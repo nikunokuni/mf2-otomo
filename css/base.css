@@ -1,0 +1,85 @@
+/* ===========================================================
+   リセットと土台
+   =========================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100vh;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+select,
+input,
+button,
+textarea {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+}
+
+/* キーボード操作時のフォーカスは必ず見えるようにする */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.app {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0.75rem 0.75rem 3rem;
+}
+
+/* 表示の切り替え（タブ・条件表示で使う） */
+[hidden],
+.is-hidden {
+  display: none !important;
+}
+
+/* 見出し */
+.section-head {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.empty {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.note {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+/* 横に長い中身は、ページ全体ではなく中身側をスクロールさせる */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

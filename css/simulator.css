@@ -1,0 +1,317 @@
+/* ===========================================================
+   育成計算タブ固有のスタイル
+   =========================================================== */
+
+.sim-section {
+  margin-bottom: 16px;
+}
+.sim-section__title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding-bottom: 6px;
+  border-bottom: var(--hairline) solid var(--color-border-tertiary);
+  margin-bottom: 10px;
+}
+
+/* --- 基本設定 --- */
+.sim-grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.sim-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sim-label {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.apt-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+.apt-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.apt-cell__label {
+  font-size: 11px;
+  text-align: center;
+  font-weight: 500;
+}
+.apt-cell select {
+  width: 100%;
+  padding: 0 4px;
+  text-align: center;
+}
+
+/* --- 初期パラメータ --- */
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.stat-row__label {
+  font-size: 12px;
+  width: 62px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.stat-row__input {
+  width: 66px;
+}
+.stepper {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  flex-shrink: 0;
+  border: var(--hairline) solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: 13px;
+}
+.stepper:hover {
+  background: var(--color-background-secondary);
+}
+.stat-bar {
+  flex: 1;
+  height: 5px;
+  min-width: 30px;
+  background: var(--color-background-secondary);
+  border-radius: 3px;
+}
+.stat-bar__fill {
+  height: 5px;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* --- 育成計画テーブル --- */
+.plan-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 640px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.plan-table th {
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  padding: 6px 4px;
+  border: var(--hairline) solid var(--color-border-tertiary);
+  text-align: center;
+  font-weight: 500;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.plan-table td {
+  border: var(--hairline) solid var(--color-border-tertiary);
+  padding: 2px;
+  vertical-align: middle;
+  text-align: center;
+}
+.plan-table .stage-cell {
+  min-width: 74px;
+}
+.stage-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+.stage-weeks {
+  display: block;
+  font-size: 11px;
+  text-align: center;
+}
+.stage-weeks--ok {
+  color: var(--color-ok);
+}
+.stage-weeks--over {
+  color: var(--color-ng);
+  font-weight: 600;
+}
+
+.plan-table select,
+.plan-table input[type='number'] {
+  width: 100%;
+  height: 30px;
+  font-size: 12px;
+  padding: 0 3px;
+  border-radius: var(--border-radius-sm);
+}
+.plan-table .col-train {
+  min-width: 112px;
+}
+.plan-table .col-num {
+  width: 50px;
+}
+.light-count {
+  display: block;
+  color: var(--color-accent-strong);
+  font-weight: 600;
+}
+
+.icon-btn {
+  border: var(--hairline) solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 14px;
+  padding: 0;
+}
+.icon-btn:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+.icon-btn--add:hover {
+  color: var(--color-accent-strong);
+  border-color: var(--color-accent);
+}
+.icon-btn--del:hover {
+  color: var(--color-ng);
+  border-color: var(--color-ng-border);
+}
+
+/* --- 桃システム --- */
+.peach {
+  background: var(--color-warn-bg);
+  border: var(--hairline) solid var(--color-warn-border);
+  border-radius: var(--border-radius-md);
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+.peach__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-warn);
+  margin-bottom: 8px;
+}
+.peach__block {
+  margin-bottom: 12px;
+}
+.peach__block:last-child {
+  margin-bottom: 0;
+}
+.peach__sub {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 10px 0 6px;
+  padding-top: 8px;
+  border-top: var(--hairline) solid var(--color-warn-border);
+}
+
+/* --- 結果 --- */
+.result-panel {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.result-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 10px;
+}
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.result-row__label {
+  font-size: 12px;
+  width: 62px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.result-row__value {
+  font-size: 15px;
+  font-weight: 600;
+  width: 46px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.result-row__delta {
+  font-size: 11px;
+  width: 46px;
+  flex-shrink: 0;
+}
+.result-row__delta--up {
+  color: var(--color-ok);
+}
+.result-row__delta--down {
+  color: var(--color-ng);
+}
+
+.stage-result {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.stage-result th {
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  padding: 4px 3px;
+  border: var(--hairline) solid var(--color-border-tertiary);
+  text-align: center;
+  font-weight: 500;
+}
+.stage-result td {
+  padding: 4px 3px;
+  border: var(--hairline) solid var(--color-border-tertiary);
+  text-align: center;
+}
+.stage-result__phase {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 12px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: var(--hairline) solid var(--color-border-tertiary);
+}
+.val-zero {
+  color: var(--color-text-tertiary);
+}
+.val-down {
+  color: var(--color-ng);
+}
+
+.sim-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.sim-actions .btn {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+}
+
+@media (max-width: 400px) {
+  .apt-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .sim-grid3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}

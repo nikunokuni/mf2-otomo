@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- D12: ピンチズームは禁止しない（maximum-scale は付けない） -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="モンスターファーム2の技の使い込みと育成計算をまとめて管理できるアプリ">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="モンファーのおとも">
+  <!-- D13: manifest.json の theme_color と必ず同じ値にすること -->
+  <meta name="theme-color" content="#378add">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icon-192.svg">
+  <link rel="icon" href="assets/icon-192.svg" type="image/svg+xml">
+  <title>モンファーのおとも</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/tracker.css">
+  <link rel="stylesheet" href="css/simulator.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===== 種族の選択（両タブ共通） ===== -->
+  <div class="card">
+    <div class="section-head">
+      モンスターを選択
+      <span id="saveIndicator" class="save-indicator">✓ 保存済み</span>
+    </div>
+    <div id="migrationNotice" class="callout callout--ok" hidden>
+      以前の「使い込みトラッカー」の記録を引き継ぎました。
+    </div>
+    <button type="button" class="btn btn--primary btn--block" id="speciesGridToggle"
+            data-action="species:toggleGrid" aria-expanded="false" aria-controls="speciesGrid"
+            style="margin-bottom:10px">＋ 種族を選んで追加</button>
+    <div class="monster-grid" id="speciesGrid" hidden></div>
+    <div id="speciesChips" class="chips"></div>
+  </div>
+
+  <!-- ===== 上位タブ ===== -->
+  <div class="tabbar" role="tablist" aria-label="表示の切り替え">
+    <button type="button" class="tabbar__btn" id="tab-tracker" role="tab"
+            aria-selected="true" aria-controls="pane-tracker"
+            data-action="tab:top" data-tab="tracker">使い込み</button>
+    <button type="button" class="tabbar__btn" id="tab-simulator" role="tab"
+            aria-selected="false" aria-controls="pane-simulator"
+            data-action="tab:top" data-tab="simulator">育成計算</button>
+  </div>
+
+  <!-- ===== 使い込みタブ ===== -->
+  <div id="pane-tracker" role="tabpanel" aria-labelledby="tab-tracker">
+
+    <div id="trackerEmpty" class="card">
+      <div class="empty">上の「＋ 種族を選んで追加」から種族を選んでください</div>
+    </div>
+
+    <!-- 技の選択 -->
+    <div id="techPickerCard" class="card" hidden>
+      <div class="section-head">使い込む技を選択</div>
+      <div id="techPickerList" class="tech-picker"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button type="button" class="btn btn--primary" data-action="tracker:applyPick">選択を確定</button>
+        <button type="button" class="btn" data-action="tracker:cancelPick">キャンセル</button>
+        <span id="techPickerCount" class="note"></span>
+      </div>
+    </div>
+
+    <div id="trackerMain" hidden>
+      <div class="card">
+        <div class="section-head">
+          <span id="trackerSpeciesLabel"></span>
+          <span id="sessionBadge" class="badge">大会なし</span>
+          <button type="button" class="btn btn--sm btn--primary" id="changeTechBtn"
+                  data-action="tracker:openPicker" style="margin-left:auto">技を変更</button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <label for="gutsRecovery" class="note" style="white-space:nowrap">ガッツ回復：</label>
+          <select id="gutsRecovery" data-change="tracker:guts" style="width:70px;height:30px"></select>
+          <span class="note">秒 / 30ガッツ</span>
+        </div>
+
+        <div class="scroll-x">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>技名（下位→上位）</th>
+                <th>累計</th>
+                <th>今回</th>
+                <th>消費G</th>
+                <th class="th-hit">理想<br>命中</th>
+                <th class="th-miss">理想<br>外れ</th>
+              </tr>
+            </thead>
+            <tbody id="techBody"></tbody>
+          </table>
+        </div>
+
+        <div id="sessionControls" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">履歴</div>
+        <div id="logArea"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">メモ</div>
+        <textarea id="memo" data-input="tracker:memo" style="min-height:100px"
+          placeholder="自由にメモできます。&#10;※「理想外れ」とは、技を全部外して、GDを受けず制限時間ギリギリまで使えた時の最大の使い込み回数です"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 育成計算タブ ===== -->
+  <div id="pane-simulator" role="tabpanel" aria-labelledby="tab-simulator" hidden>
+
+    <div id="simEmpty" class="card">
+      <div class="empty">上の「＋ 種族を選んで追加」から種族を選んでください</div>
+    </div>
+
+    <div id="simBody" hidden>
+      <div class="card">
+        <div class="section-head">
+          <span id="simSpeciesLabel"></span>
+          <span class="note">の育成計画</span>
+        </div>
+
+        <div class="subtabs" role="tablist" aria-label="育成計算の表示切り替え">
+          <button type="button" class="subtabs__btn" id="subtab-basic" role="tab"
+                  aria-selected="true" aria-controls="subpane-basic"
+                  data-action="tab:sub" data-tab="basic">基本設定</button>
+          <button type="button" class="subtabs__btn" id="subtab-plan" role="tab"
+                  aria-selected="false" aria-controls="subpane-plan"
+                  data-action="tab:sub" data-tab="plan">育成計画</button>
+          <button type="button" class="subtabs__btn" id="subtab-result" role="tab"
+                  aria-selected="false" aria-controls="subpane-result"
+                  data-action="tab:sub" data-tab="result">結果</button>
+        </div>
+
+        <!-- 基本設定 -->
+        <div id="subpane-basic" role="tabpanel" aria-labelledby="subtab-basic">
+          <div class="sim-section">
+            <div class="sim-section__title">育成開始時期</div>
+            <div class="sim-row">
+              <input type="number" id="simMonth" min="1" max="12" data-input="sim:month"
+                     style="width:60px" aria-label="開始月">
+              <span class="sim-label">月</span>
+              <select id="simWeek" data-change="sim:week" style="width:80px" aria-label="開始週">
+                <option value="1">第1週</option>
+                <option value="2">第2週</option>
+                <option value="3">第3週</option>
+                <option value="4">第4週</option>
+              </select>
+            </div>
+            <div class="note" style="margin-top:6px">※ 開始時期とヨイワルは記録用です。現在の計算結果には反映されません。</div>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section__title">成長設定</div>
+            <div class="sim-grid3">
+              <div class="field">
+                <label for="simGtype">成長タイプ</label>
+                <select id="simGtype" data-change="sim:gtype">
+                  <option value="hayajuku">早熟</option>
+                  <option value="jizoku">持続</option>
+                  <option value="futsuu">普通</option>
+                  <option value="bansei">晩成</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="simMoral">ヨイワル</label>
+                <select id="simMoral" data-change="sim:moral">
+                  <option value="good">ヨイ</option>
+                  <option value="neutral">普通</option>
+                  <option value="bad">ワル</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="simLife">寿命（週）</label>
+                <div class="sim-row" style="gap:4px;flex-wrap:nowrap">
+                  <button type="button" class="stepper" data-action="sim:lifeStep" data-delta="-10"
+                          aria-label="寿命を10週減らす">−</button>
+                  <input type="number" id="simLife" min="100" max="600" data-input="sim:life"
+                         style="width:100%;min-width:0">
+                  <button type="button" class="stepper" data-action="sim:lifeStep" data-delta="10"
+                          aria-label="寿命を10週増やす">＋</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section__title">各パラメータの成長適正</div>
+            <div class="apt-grid" id="aptGrid"></div>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section__title">初期パラメーター</div>
+            <div id="initStats"></div>
+          </div>
+        </div>
+
+        <!-- 育成計画 -->
+        <div id="subpane-plan" role="tabpanel" aria-labelledby="subtab-plan" hidden>
+          <div class="callout callout--info">
+            重トレの回数を入れると、軽トレは自動で「4 − 重トレ」になります。<br>
+            イベントの消費週（大会4週 / 修行5週 / 冒険5週）は割当週から差し引いて計算します。
+          </div>
+          <div id="planWarnings" style="margin:6px 0"></div>
+          <div id="planArea"></div>
+          <div class="peach" id="peachArea"></div>
+        </div>
+
+        <!-- 結果 -->
+        <div id="subpane-result" role="tabpanel" aria-labelledby="subtab-result" hidden>
+          <div id="resultArea"></div>
+        </div>
+
+        <div class="sim-actions">
+          <button type="button" class="btn btn--primary" data-action="sim:calc">計算実行</button>
+          <button type="button" class="btn btn--ng" data-action="sim:reset">リセット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== バックアップ ===== -->
+  <div class="card">
+    <div class="section-head">データのバックアップ</div>
+    <p class="note" style="margin-bottom:10px">
+      記録はこの端末のブラウザに保存されています。機種変更のときや、
+      しばらく使わずに消えてしまうのが心配なときは、書き出しておいてください。
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn" data-action="backup:export">JSONで書き出し</button>
+      <button type="button" class="btn" data-action="backup:import">JSONから読み込み</button>
+      <input type="file" id="importFile" accept="application/json,.json"
+             data-change="backup:file" hidden>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

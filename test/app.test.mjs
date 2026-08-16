@@ -1,0 +1,158 @@
+import { chromium } from 'playwright';
+const BASE = process.env.BASE_URL || 'http://localhost:8811/';
+// 実行時の一時ファイル（スクリーンショット等）の置き場
+const OUT = new URL('./.tmp/', import.meta.url).pathname;
+(await import('fs')).mkdirSync(OUT, {recursive:true});
+const errors=[];
+let pass=0, fail=0;
+const ok=(cond,label)=>{ if(cond){pass++;} else {fail++;console.log('  ✗ '+label);} };
+
+const browser = await chromium.launch(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH} : {});
+const ctx = await browser.newContext({ viewport:{width:390,height:844} });
+const page = await ctx.newPage();
+page.on('console', m => { if(m.type()==='error') errors.push(m.text()); });
+page.on('pageerror', e => errors.push('pageerror: '+e.message));
+
+await page.goto(BASE, {waitUntil:'networkidle'});
+
+console.log('— 起動 —');
+ok(await page.title()==='モンファーのおとも','title');
+ok(await page.locator('#trackerEmpty').isVisible(),'種族未選択の案内が出る');
+
+console.log('— 種族追加（D10: 共通の種族バー） —');
+await page.click('#speciesGridToggle');
+await page.waitForSelector('.monster-cell');
+ok(await page.locator('.monster-cell').count()===38,'38種族が並ぶ');
+ok(await page.locator('.monster-cell img').count()>0,'アイコンが遅延読み込みされた');
+await page.click('.monster-cell[data-name="ピクシー"]');
+await page.waitForSelector('#techPickerCard:not([hidden])');
+ok(true,'追加直後に技選択が開く');
+ok((await page.locator('.tech-picker__item').count())===8,'ピクシーの技8件');
+
+console.log('— 技選択 —');
+await page.locator('.tech-picker__item input').nth(0).check();
+await page.locator('.tech-picker__item input').nth(3).check();
+ok((await page.locator('#techPickerCount').textContent()).includes('2件'),'選択数の表示');
+await page.click('[data-action="tracker:applyPick"]');
+await page.waitForSelector('#trackerMain:not([hidden])');
+ok((await page.locator('#techBody tr').count())===2,'表に2行');
+
+console.log('— 理想回数 —');
+const ideal = await page.locator('#techBody tr').nth(0).locator('.ideal-hit').textContent();
+ok(Number(ideal)>0, '理想命中が数値で出る');
+await page.selectOption('#gutsRecovery','6');
+const ideal6 = await page.locator('#techBody tr').nth(0).locator('.ideal-hit').textContent();
+ok(Number(ideal6)>=Number(ideal),'ガッツ回復を速くすると回数が増える(または同等)');
+await page.selectOption('#gutsRecovery','15');
+
+console.log('— 大会の記録 —');
+await page.click('[data-action="tracker:start"]');
+ok((await page.locator('#sessionBadge').textContent())==='大会中','バッジが大会中');
+for(let i=0;i<5;i++) await page.locator('#techBody tr').nth(0).locator('[data-delta="1"]').click();
+ok((await page.locator('#techBody tr').nth(0).locator('.counter__val').textContent())==='5','5回カウント');
+await page.click('[data-action="tracker:confirm"]');
+ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'合格で累計に加算');
+ok((await page.locator('#logArea').textContent()).includes('合格'),'履歴に残る');
+
+await page.click('[data-action="tracker:start"]');
+for(let i=0;i<3;i++) await page.locator('#techBody tr').nth(0).locator('[data-delta="1"]').click();
+await page.click('[data-action="tracker:cancel"]');
+ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'やり直しで累計が増えない');
+
+console.log('— メモ（B1） —');
+await page.fill('#memo','テストメモ123');
+
+console.log('— 育成計算タブ（D4: 2階層） —');
+await page.click('#tab-simulator');
+ok(await page.locator('#simBody').isVisible(),'育成計算が表示');
+ok((await page.locator('#simSpeciesLabel').textContent())==='ピクシー','D10: 種族が引き継がれている');
+ok((await page.locator('.apt-cell').count())===6,'適正6つ');
+await page.selectOption('#simGtype','bansei');
+await page.fill('#simLife','400');
+await page.click('#subtab-plan');
+await page.waitForSelector('.plan-table');
+const stageRows = await page.locator('.plan-table .stage-cell').count();
+ok(stageRows>0,'育成計画テーブルが出る');
+const badge = await page.locator('.plan-table .stage-weeks').first().textContent();
+ok(/^\d+\/\d+週$/.test(badge),'使用週/総週バッジ: '+badge);
+const [used,total] = badge.match(/(\d+)\/(\d+)/).slice(1).map(Number);
+ok(used===total,'B5: 寿命変更後も週数が総週数に一致 ('+badge+')');
+ok((await page.locator('#planWarnings').textContent()).includes('問題なし'),'警告なし');
+
+console.log('— 重トレ→軽トレ自動 —');
+await page.locator('.plan-table select').first().selectOption('0');
+const hc = page.locator('.plan-table input[data-field="hc"]').first();
+await hc.fill('3');
+ok((await page.locator('.plan-table .light-count').first().textContent())==='1','軽トレ=4-重トレ');
+
+console.log('— 桃 —');
+await page.locator('[data-change="sim:peach"][data-pi="0"][data-field="use"]').selectOption('yes');
+await page.waitForSelector('.peach__sub');
+ok((await page.locator('.peach__sub').textContent()).includes('計'),'桃の追加計画が出る');
+ok((await page.locator('.plan-table').count())===2,'桃用テーブルが増える');
+
+console.log('— 計算実行 —');
+await page.click('[data-action="sim:calc"]');
+await page.waitForSelector('#subpane-result:not([hidden])');
+ok(await page.locator('.result-panel').isVisible(),'結果タブへ遷移して結果表示');
+const vals = await page.locator('.result-row__value').allTextContents();
+ok(vals.length===6 && vals.every(v=>/^\d+$/.test(v)),'6パラメータが数値: '+vals.join(','));
+ok(Number(vals[1])>100,'ちからが初期値より増えている: '+vals[1]);
+
+console.log('— 保存と復元（D7/D8） —');
+await page.reload({waitUntil:'networkidle'});
+ok((await page.locator('#tab-simulator').getAttribute('aria-selected'))==='true','D8: タブを覚えている');
+ok((await page.locator('#subtab-result').getAttribute('aria-selected'))==='true','D8: サブタブも覚えている');
+await page.click('#tab-tracker');
+ok((await page.locator('#memo').inputValue())==='テストメモ123','B1: メモが保存されている');
+ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'使い込み累計が保存されている');
+await page.click('#tab-simulator');
+ok((await page.locator('#simLife').inputValue())==='400','寿命が保存されている');
+ok((await page.locator('#simGtype').inputValue())==='bansei','成長タイプが保存されている');
+
+console.log('— 技なし種族（ライガー） —');
+await page.click('#tab-tracker');
+await page.click('#speciesGridToggle');
+await page.click('.monster-cell[data-name="ライガー"]');
+ok((await page.locator('#techBody').textContent()).includes('使い込みで進化する技はありません'),'技なし種族の案内');
+ok((await page.locator('#sessionControls').textContent()).trim()==='','技がない種族では大会開始ボタンを出さない');
+ok(await page.locator('#changeTechBtn').isHidden(),'技なし種族では「技を変更」も出さない');
+await page.click('#tab-simulator');
+ok((await page.locator('#simSpeciesLabel').textContent())==='ライガー','技なし種族でも育成計算は使える');
+const visibleSub = await page.evaluate(()=>['basic','plan','result'].filter(t=>!document.getElementById('subpane-'+t).hidden));
+ok(visibleSub.length===1,'サブタブは常にちょうど1つだけ表示: '+visibleSub.join(','));
+const subContent = await page.evaluate(()=>{const t=['basic','plan','result'].find(t=>!document.getElementById('subpane-'+t).hidden);return document.getElementById('subpane-'+t).textContent.trim().length;});
+ok(subContent>0,'表示中のサブタブに中身がある ('+subContent+'文字)');
+await page.click('#subtab-plan');
+await page.waitForSelector('#subpane-plan .plan-table');
+ok(await page.locator('#subpane-plan .plan-table').isVisible(),'技なし種族でも育成計画テーブルが出る');
+
+console.log('— 種族の切り替えでデータが混ざらないか —');
+await page.click('#tab-tracker');
+await page.locator('.chip__name', {hasText:'ピクシー'}).click();
+ok((await page.locator('#memo').inputValue())==='テストメモ123','ピクシーのメモ');
+await page.locator('.chip__name', {hasText:'ライガー'}).click();
+ok((await page.locator('#memo').inputValue())==='','ライガーのメモは空');
+
+console.log('— 横スクロール —');
+const overflow = await page.evaluate(()=>document.documentElement.scrollWidth > window.innerWidth+1);
+ok(!overflow,'ページ全体に横スクロールが出ていない');
+
+await page.screenshot({path:OUT+'shot-sim.png', fullPage:true});
+await page.locator('.chip__name', {hasText:'ピクシー'}).click();
+await page.click('#tab-tracker');
+await page.screenshot({path:OUT+'shot-tracker.png', fullPage:true});
+
+// ダークモード
+const dark = await browser.newContext({viewport:{width:390,height:844}, colorScheme:'dark'});
+const dp = await dark.newPage();
+await dp.goto(BASE,{waitUntil:'networkidle'});
+await dp.click('#speciesGridToggle');
+await dp.click('.monster-cell[data-name="ドラゴン"]');
+await dp.click('[data-action="tracker:cancelPick"]');
+await dp.screenshot({path:OUT+'shot-dark.png', fullPage:true});
+
+console.log(`\n合格 ${pass} / 失敗 ${fail}`);
+console.log('コンソールエラー:', errors.length ? errors : 'なし');
+await browser.close();
+process.exit(fail||errors.length?1:0);

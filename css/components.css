@@ -1,0 +1,301 @@
+/* ===========================================================
+   共通コンポーネント
+   カード / ボタン / 入力 / タブ / チップ / バッジ / 表
+   =========================================================== */
+
+/* --- カード --- */
+.card {
+  background: var(--color-background-primary);
+  border: var(--hairline) solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* --- ボタン --- */
+.btn {
+  border: var(--hairline) solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: var(--color-background-secondary);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+}
+
+.btn--primary {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+.btn--primary:hover {
+  background: var(--color-accent-bg-strong);
+}
+
+.btn--ok {
+  color: var(--color-ok);
+  border-color: var(--color-ok-border);
+}
+.btn--ok:hover {
+  background: var(--color-ok-bg);
+}
+
+.btn--ng {
+  color: var(--color-ng);
+  border-color: var(--color-ng-border);
+}
+.btn--ng:hover {
+  background: var(--color-ng-bg);
+}
+
+.btn--sm {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.btn--block {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* --- 入力 --- */
+select,
+input[type='number'],
+input[type='text'] {
+  height: 36px;
+  border: var(--hairline) solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 0 8px;
+  font-size: 14px;
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+input[type='number'] {
+  text-align: center;
+}
+textarea {
+  width: 100%;
+  border: var(--hairline) solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 8px 10px;
+  font-size: 13px;
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  resize: vertical;
+  line-height: 1.6;
+  outline: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field > label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+/* --- 上位タブ（使い込み / 育成計算） --- */
+.tabbar {
+  display: flex;
+  gap: 4px;
+  background: var(--color-background-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 3px;
+  margin-bottom: 0.75rem;
+}
+.tabbar__btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: var(--border-radius-sm);
+  padding: 8px 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.tabbar__btn[aria-selected='true'] {
+  background: var(--color-background-primary);
+  color: var(--color-accent-strong);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* --- 下位タブ（基本設定 / 育成計画 / 結果） --- */
+.subtabs {
+  display: flex;
+  gap: 16px;
+  border-bottom: var(--hairline) solid var(--color-border-tertiary);
+  margin-bottom: 12px;
+}
+.subtabs__btn {
+  border: none;
+  background: none;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.subtabs__btn[aria-selected='true'] {
+  color: var(--color-accent-strong);
+  border-bottom-color: var(--color-accent);
+  font-weight: 500;
+}
+
+/* --- バッジ --- */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+}
+.badge--active {
+  background: var(--color-accent-bg);
+  color: var(--color-accent-strong);
+  border: var(--hairline) solid var(--color-accent);
+}
+.badge--milestone {
+  font-size: 10px;
+  padding: 1px 6px;
+  background: var(--color-warn-bg);
+  color: var(--color-warn);
+  border: var(--hairline) solid var(--color-warn-border);
+  margin-left: 4px;
+}
+
+/* --- 種族チップ --- */
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 12px;
+  border-radius: 99px;
+  border: var(--hairline) solid var(--color-border-secondary);
+}
+.chip[aria-current='true'] {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
+}
+.chip__name {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 2px 0;
+  background: none;
+  border: none;
+}
+.chip[aria-current='true'] .chip__name {
+  color: var(--color-accent-strong);
+  font-weight: 500;
+}
+.chip__del {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  background: none;
+  border: none;
+}
+.chip__del:hover {
+  background: var(--color-ng-bg);
+  color: var(--color-ng);
+}
+
+/* --- 表 --- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.table th {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 4px 5px;
+  border-bottom: var(--hairline) solid var(--color-border-tertiary);
+  white-space: nowrap;
+}
+.table td {
+  padding: 6px 5px;
+  border-bottom: var(--hairline) solid var(--color-border-tertiary);
+  vertical-align: middle;
+  text-align: center;
+}
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- 進捗バー --- */
+.progress {
+  height: 4px;
+  background: var(--color-background-secondary);
+  border-radius: 2px;
+  margin-top: 3px;
+}
+.progress__bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+
+/* --- 保存インジケータ --- */
+.save-indicator {
+  font-size: 11px;
+  color: var(--color-ok);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.save-indicator.is-shown {
+  opacity: 1;
+}
+
+/* --- 注意書き --- */
+.callout {
+  border-radius: var(--border-radius-md);
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 4px 0;
+}
+.callout--info {
+  background: var(--color-accent-bg);
+  color: var(--color-accent-strong);
+}
+.callout--warn {
+  background: var(--color-ng-bg);
+  color: var(--color-ng);
+}
+.callout--ok {
+  background: var(--color-ok-bg);
+  color: var(--color-ok);
+}

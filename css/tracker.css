@@ -1,0 +1,210 @@
+/* ===========================================================
+   使い込みタブ固有のスタイル
+   =========================================================== */
+
+/* --- 種族グリッド --- */
+.monster-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.monster-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  border-radius: var(--border-radius-md);
+  border: var(--hairline) solid transparent;
+  cursor: pointer;
+  background: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.monster-cell:hover {
+  background: var(--color-background-secondary);
+  border-color: var(--color-border-secondary);
+}
+.monster-cell[aria-current='true'] {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
+}
+.monster-cell img,
+.monster-cell .monster-cell__ph {
+  width: 100%;
+  aspect-ratio: 5 / 3;
+  border-radius: var(--border-radius-sm);
+  object-fit: cover;
+  object-position: center center;
+  background: var(--color-background-secondary);
+}
+.monster-cell span {
+  font-size: 10px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  line-height: 1.2;
+  word-break: break-all;
+}
+/* 使い込み技を持たない種族は控えめに表示（育成計算には使えるので選択は可能） */
+.monster-cell--no-tech {
+  opacity: 0.55;
+}
+
+/* --- 技の選択リスト --- */
+.tech-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+.tech-picker__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  border: var(--hairline) solid transparent;
+}
+.tech-picker__item:hover {
+  background: var(--color-background-secondary);
+}
+.tech-picker__item.is-selected {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-bg-strong);
+}
+.tech-picker__item input[type='checkbox'] {
+  accent-color: var(--color-accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.tech-picker__label {
+  font-size: 13px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  flex: 1;
+}
+.tech-picker__sub {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+.tech-picker__saved {
+  font-size: 10px;
+  color: var(--color-ok);
+  margin-left: 4px;
+}
+
+/* --- 使い込み表 --- */
+.tech-name {
+  font-size: 12px;
+}
+.tech-name__from {
+  display: block;
+  color: var(--color-text-secondary);
+}
+.tech-name__to {
+  display: block;
+}
+.tech-name__milestone {
+  font-size: 10px;
+  color: var(--color-warn);
+  margin-top: 2px;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+.counter button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: var(--hairline) solid var(--color-border-secondary);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.counter button:hover {
+  background: var(--color-background-secondary);
+}
+.counter__val {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--color-accent-strong);
+  font-size: 15px;
+}
+
+.done-text {
+  color: var(--color-ok);
+  font-weight: 500;
+  font-size: 13px;
+}
+.ideal-hit {
+  color: var(--color-ideal-hit);
+  font-weight: 600;
+}
+.ideal-miss {
+  color: var(--color-ideal-miss);
+  font-weight: 600;
+}
+.th-hit {
+  color: var(--color-ideal-hit);
+}
+.th-miss {
+  color: var(--color-ideal-miss);
+}
+
+/* --- 履歴 --- */
+.log-item {
+  font-size: 12px;
+  padding: 5px 0;
+  border-bottom: var(--hairline) solid var(--color-border-tertiary);
+  color: var(--color-text-secondary);
+  display: flex;
+  gap: 8px;
+}
+.log-item:last-child {
+  border-bottom: none;
+}
+.log-item__text {
+  flex: 1;
+}
+.log-item__date {
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+.log-ok {
+  color: var(--color-ok);
+}
+.log-ng {
+  color: var(--color-ng);
+}
+
+@media (max-width: 400px) {
+  .monster-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .table {
+    font-size: 12px;
+  }
+  .table th,
+  .table td {
+    padding: 5px 3px;
+  }
+  .counter__val {
+    font-size: 14px;
+  }
+}

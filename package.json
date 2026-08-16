@@ -1,0 +1,14 @@
+{
+  "name": "monfar-no-otomo",
+  "version": "1.0.0",
+  "description": "モンスターファーム2の技の使い込みと育成計算をまとめて管理するアプリ",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node test/run.mjs --serve-only",
+    "test": "node test/run.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

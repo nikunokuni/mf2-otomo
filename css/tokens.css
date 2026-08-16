@@ -1,0 +1,99 @@
+/* ===========================================================
+   デザイントークン
+   色・角丸・フォントの定義はすべてここに集約する。
+   個々のコンポーネントは必ず var(--...) 経由で参照すること。
+   ライト/ダークは prefers-color-scheme で自動切替。
+   =========================================================== */
+
+:root {
+  /* --- 面と境界 --- */
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f5f5f5;
+  --color-background-tertiary: #ececec;
+  --color-border-tertiary: #e0e0e0;
+  --color-border-secondary: #cccccc;
+
+  /* --- 文字 --- */
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #555555;
+  --color-text-tertiary: #999999;
+
+  /* --- アクセント（青） --- */
+  --color-accent: #378add;
+  --color-accent-strong: #185fa5;
+  --color-accent-bg: #e6f1fb;
+  --color-accent-bg-strong: #b5d4f4;
+
+  /* --- 合格・やり直し・注意 --- */
+  --color-ok: #3b6d11;
+  --color-ok-border: #97c459;
+  --color-ok-bg: #eaf3de;
+  --color-ng: #a32d2d;
+  --color-ng-border: #f09595;
+  --color-ng-bg: #fcebeb;
+  --color-warn: #856404;
+  --color-warn-border: #ffda6a;
+  --color-warn-bg: #fff3cd;
+
+  /* --- 理想回数（命中/外れ） --- */
+  --color-ideal-hit: #185fa5;
+  --color-ideal-miss: #6b3fa0;
+
+  /* --- パラメータ色 --- */
+  --stat-life: #d93b3b;
+  --stat-pow: #c25a00;
+  --stat-int: #9b26b6;
+  --stat-hit: #1673b8;
+  --stat-avo: #16875a;
+  --stat-tou: #8a6d00;
+
+  /* --- かたち --- */
+  --border-radius-lg: 12px;
+  --border-radius-md: 8px;
+  --border-radius-sm: 6px;
+  --hairline: 0.5px;
+
+  /* --- 文字組み --- */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN',
+    'Yu Gothic', YuGothic, 'Noto Sans JP', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Roboto Mono', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-primary: #1c1c1e;
+    --color-background-secondary: #2c2c2e;
+    --color-background-tertiary: #3a3a3c;
+    --color-border-tertiary: #3a3a3c;
+    --color-border-secondary: #48484a;
+
+    --color-text-primary: #f2f2f7;
+    --color-text-secondary: #aeaeb2;
+    --color-text-tertiary: #7c828c;
+
+    --color-accent: #5fa8f5;
+    --color-accent-strong: #9bc9f8;
+    --color-accent-bg: #16304a;
+    --color-accent-bg-strong: #1e4870;
+
+    --color-ok: #8fc45c;
+    --color-ok-border: #4d6f2a;
+    --color-ok-bg: #1d2a12;
+    --color-ng: #f09595;
+    --color-ng-border: #7a3a3a;
+    --color-ng-bg: #2e1717;
+    --color-warn: #e8c05a;
+    --color-warn-border: #6a5320;
+    --color-warn-bg: #2a2210;
+
+    --color-ideal-hit: #7cbcf5;
+    --color-ideal-miss: #b58be0;
+
+    --stat-life: #ff6b6b;
+    --stat-pow: #ff9040;
+    --stat-int: #d77be8;
+    --stat-hit: #5cb8f0;
+    --stat-avo: #4fd0a0;
+    --stat-tou: #e5c24a;
+  }
+}
