@@ -139,9 +139,42 @@ await page.click('#tab-reference');
 ok(await page.locator('#pane-reference').isVisible(),'早見タブが表示');
 const visibleTop = await page.evaluate(()=>['tracker','simulator','reference'].filter(t=>!document.getElementById('pane-'+t).hidden));
 ok(visibleTop.length===1 && visibleTop[0]==='reference','上位タブはちょうど1つだけ表示: '+visibleTop.join(','));
-ok((await page.locator('#referenceArea').textContent()).trim().length>0,'早見タブに中身がある');
+ok((await page.locator('.ref-box').count())===4,'4つの箱が並ぶ');
+const boxTitles = await page.locator('.ref-box__head').allTextContents();
+ok(boxTitles.map(t=>t.replace('＋ 追加','').trim()).join(',')==='ローテ,アイテム,合体素材,再生メモ','箱の並び: '+boxTitles.join(','));
+
+console.log('— 箱の中だけスクロール —');
+const scrollable = await page.evaluate(()=>{
+  const b=[...document.querySelectorAll('.ref-box__body')];
+  return b.every(x=>getComputedStyle(x).overflowY==='auto') && b.every(x=>x.clientHeight>0);
+});
+ok(scrollable,'各箱の本文が縦スクロール領域になっている');
+const fixedHeight = await page.evaluate(()=>{
+  const h=[...document.querySelectorAll('.ref-box')].map(x=>Math.round(x.getBoundingClientRect().height));
+  return h.every(v=>v===h[0]);
+});
+ok(fixedHeight,'箱の高さが固定（4つとも同じ）');
+
+console.log('— 再生メモ —');
+await page.click('[data-action="ref:addNote"]');
+await page.waitForSelector('.ref-note');
+await page.fill('.ref-note [data-field="monster"]','ピクシー');
+await page.fill('.ref-note [data-field="title"]','テストCD');
+await page.fill('.ref-note [data-field="singer"]','テスト歌手');
+await page.fill('.ref-note [data-field="memo"]','いい石像が出る');
 await page.reload({waitUntil:'networkidle'});
 ok((await page.locator('#tab-reference').getAttribute('aria-selected'))==='true','D8: 早見タブも覚えている');
+ok((await page.locator('.ref-note [data-field="monster"]').inputValue())==='ピクシー','再生メモが保存されている');
+ok((await page.locator('.ref-note [data-field="memo"]').inputValue())==='いい石像が出る','自由メモが保存されている');
+const beforeScroll = await page.evaluate(()=>document.documentElement.scrollHeight);
+for(let i=0;i<6;i++) await page.click('[data-action="ref:addNote"]');
+ok((await page.locator('.ref-note').count())===7,'メモを増やせる');
+ok(await page.evaluate(()=>document.documentElement.scrollHeight)===beforeScroll,'メモが増えてもページの高さは変わらない（箱の中で吸収）');
+ok(await page.evaluate(()=>{const b=document.querySelectorAll('.ref-box__body')[3];return b.scrollHeight>b.clientHeight;}),'再生メモの箱がスクロールする');
+page.once('dialog',d=>d.accept());
+await page.locator('[data-action="ref:delNote"]').first().click();
+ok((await page.locator('.ref-note').count())===6,'メモを削除できる');
+ok((await page.locator('.ref-note [data-field="monster"]').last().inputValue())==='ピクシー','削除しても他のメモは残る');
 await page.click('#tab-tracker');
 
 console.log('— 横スクロール —');

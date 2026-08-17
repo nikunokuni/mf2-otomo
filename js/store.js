@@ -56,6 +56,11 @@ export function defaultMon() {
   };
 }
 
+/** 再生メモ1件ぶんの初期値（早見タブ。種族の記録とは別に持つ） */
+export function defaultNote() {
+  return { id: newNoteId(), monster: '', title: '', singer: '', memo: '' };
+}
+
 function defaultState() {
   return {
     v: 1,
@@ -63,7 +68,14 @@ function defaultState() {
     current: null,
     order: [],
     mon: {},
+    notes: [],
   };
+}
+
+let noteSeq = 0;
+function newNoteId() {
+  noteSeq += 1;
+  return `n${Date.now().toString(36)}${noteSeq}`;
 }
 
 export const state = defaultState();
@@ -128,6 +140,9 @@ function normalize(loaded) {
   s.ui = Object.assign(base.ui, loaded.ui || {});
   s.mon = s.mon || {};
   s.order = Array.isArray(s.order) ? s.order : [];
+  s.notes = (Array.isArray(s.notes) ? s.notes : []).map((n) =>
+    Object.assign(defaultNote(), n && typeof n === 'object' ? n : {})
+  );
 
   Object.keys(s.mon).forEach((name) => {
     const d = defaultMon();
@@ -209,6 +224,27 @@ export function removeSpecies(name) {
   delete state.mon[name];
   state.order = state.order.filter((n) => n !== name);
   if (state.current === name) state.current = state.order[0] || null;
+  save();
+}
+
+/* ---------- 再生メモ（早見タブ） ---------- */
+
+export function addNote() {
+  const note = defaultNote();
+  state.notes.unshift(note);
+  save();
+  return note;
+}
+
+export function updateNote(id, field, value) {
+  const note = state.notes.find((n) => n.id === id);
+  if (!note || !(field in note) || field === 'id') return;
+  note[field] = value;
+  save();
+}
+
+export function removeNote(id) {
+  state.notes = state.notes.filter((n) => n.id !== id);
   save();
 }
 

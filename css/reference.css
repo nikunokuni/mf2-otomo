@@ -1,0 +1,115 @@
+/* ===========================================================
+   早見タブ
+   -----------------------------------------------------------
+   4つの箱を並べる。箱の高さは固定で、あふれた中身は
+   ページではなく箱の中だけがスクロールする。
+   =========================================================== */
+
+.ref-grid {
+  /* 箱の高さを変えるならここだけ直す */
+  --ref-box-height: 17rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+/* 画面に余裕があるときは2列に並べる */
+@media (min-width: 560px) {
+  .ref-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ref-box {
+  height: var(--ref-box-height);
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* 見出しは固定。スクロールするのは下の本文だけ */
+.ref-box__head {
+  flex: 0 0 auto;
+  margin-bottom: 8px;
+}
+.ref-box__add {
+  margin-left: auto;
+}
+
+.ref-box__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* スクロールバーと文字が重ならないように */
+  padding-right: 2px;
+}
+
+/* --- ローテ / アイテム / 合体素材の1行 --- */
+.ref-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: var(--hairline) solid var(--color-border-tertiary);
+}
+.ref-row:last-child {
+  border-bottom: none;
+}
+.ref-row__name {
+  font-size: 13px;
+}
+.ref-row__detail {
+  margin-left: auto;
+  text-align: right;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+/* --- 再生メモ --- */
+.ref-note {
+  border: var(--hairline) solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ref-note:last-child {
+  margin-bottom: 0;
+}
+
+.ref-note__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ref-note__input {
+  width: 100%;
+  min-width: 0;
+  font-size: 13px;
+}
+.ref-note__memo {
+  min-height: 3.5rem;
+  resize: vertical;
+}
+
+.ref-note__del {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ref-note__del:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-ng);
+}

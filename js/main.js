@@ -91,6 +91,7 @@ function start() {
   registerActions('input', {
     ...tracker.inputActions,
     ...simulator.inputActions,
+    ...reference.inputActions,
   });
   startActionDelegation();
 

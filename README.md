@@ -22,7 +22,11 @@
 
 ### 早見タブ
 
-- 育成中にさっと確認したい情報を並べる場所（表示する中身はこれから追加）
+育成中にさっと確認したい情報を、4つの箱に並べて表示します。
+箱の高さは固定で、あふれた中身は箱の中だけがスクロールします。
+
+- **ローテ / アイテム / 合体素材** … アプリ側のデータを表示（中身は `js/data/reference-data.js` に書く）
+- **再生メモ** … モンスター・タイトル・歌手・自由メモを自分で記録（種族とは別に、まとめて保存）
 
 ### 共通
 
@@ -46,6 +50,7 @@ css/
   components.css      ボタン・カード・タブなど共通部品
   tracker.css         使い込みタブ固有
   simulator.css       育成計算タブ固有
+  reference.css       早見タブ固有（箱の高さは --ref-box-height）
 
 js/
   main.js             起動処理。操作の登録はすべてここに集約
@@ -57,6 +62,7 @@ js/
     growth.js         育成計算の定数テーブル
     monsters.js       38種族の使い込み技データ
     icons.js          種族アイコン（約40KB / 遅延読み込み）
+    reference-data.js 早見タブに出す内容（ローテ・アイテム・合体素材）
   tracker/
     tracker.js        使い込みタブの画面
     ideal.js          理想使用回数の計算
@@ -64,7 +70,7 @@ js/
     simulator.js      育成計算タブの画面
     growth-calc.js    育成計算のロジック（画面に依存しない）
   reference/
-    reference.js      早見タブの画面（SECTIONS に足すとカードが増える）
+    reference.js      早見タブの画面（4つの箱と再生メモの入力）
 
 test/
   calc.test.mjs       計算ロジックの検証
