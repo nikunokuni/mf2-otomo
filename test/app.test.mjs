@@ -134,6 +134,16 @@ ok((await page.locator('#memo').inputValue())==='テストメモ123','ピクシ�
 await page.locator('.chip__name', {hasText:'ライガー'}).click();
 ok((await page.locator('#memo').inputValue())==='','ライガーのメモは空');
 
+console.log('— 早見タブ —');
+await page.click('#tab-reference');
+ok(await page.locator('#pane-reference').isVisible(),'早見タブが表示');
+const visibleTop = await page.evaluate(()=>['tracker','simulator','reference'].filter(t=>!document.getElementById('pane-'+t).hidden));
+ok(visibleTop.length===1 && visibleTop[0]==='reference','上位タブはちょうど1つだけ表示: '+visibleTop.join(','));
+ok((await page.locator('#referenceArea').textContent()).trim().length>0,'早見タブに中身がある');
+await page.reload({waitUntil:'networkidle'});
+ok((await page.locator('#tab-reference').getAttribute('aria-selected'))==='true','D8: 早見タブも覚えている');
+await page.click('#tab-tracker');
+
 console.log('— 横スクロール —');
 const overflow = await page.evaluate(()=>document.documentElement.scrollWidth > window.innerWidth+1);
 ok(!overflow,'ページ全体に横スクロールが出ていない');

@@ -48,6 +48,9 @@
     <button type="button" class="tabbar__btn" id="tab-simulator" role="tab"
             aria-selected="false" aria-controls="pane-simulator"
             data-action="tab:top" data-tab="simulator">育成計算</button>
+    <button type="button" class="tabbar__btn" id="tab-reference" role="tab"
+            aria-selected="false" aria-controls="pane-reference"
+            data-action="tab:top" data-tab="reference">早見</button>
   </div>
 
   <!-- ===== 使い込みタブ ===== -->
@@ -226,6 +229,11 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ===== 早見タブ ===== -->
+  <div id="pane-reference" role="tabpanel" aria-labelledby="tab-reference" hidden>
+    <div id="referenceArea"></div>
   </div>
 
   <!-- ===== バックアップ ===== -->

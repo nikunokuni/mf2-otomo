@@ -10,6 +10,7 @@ import * as tabs from './tabs.js';
 import * as species from './species.js';
 import * as tracker from './tracker/tracker.js';
 import * as simulator from './simulator/simulator.js';
+import * as reference from './reference/reference.js';
 
 /* ---------- 保存インジケータ ---------- */
 
@@ -65,6 +66,7 @@ function renderAll() {
   species.renderChips();
   tracker.render();
   simulator.render();
+  reference.render();
 }
 
 /* ---------- 起動 ---------- */
@@ -77,6 +79,7 @@ function start() {
     ...species.actions,
     ...tracker.actions,
     ...simulator.actions,
+    ...reference.actions,
     ...backupActions,
   });
   registerActions('change', {
