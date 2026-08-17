@@ -158,6 +158,36 @@
 .plan-table .col-num {
   width: 50px;
 }
+/* --- 選んだトレーニングの上昇値（select の下） --- */
+.train-gain {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0 5px;
+  /* トレーニング「なし」でも行の高さが変わらないように場所を確保しておく */
+  min-height: 14px;
+  margin-top: 1px;
+  font-size: 10px;
+  line-height: 1.3;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.train-gain-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.train-gain-legend .note {
+  font-size: 10px;
+  font-weight: 400;
+}
+
 .light-count {
   display: block;
   color: var(--color-accent-strong);

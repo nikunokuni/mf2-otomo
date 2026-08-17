@@ -5,7 +5,7 @@
    計算そのものは growth-calc.js（画面に依存しない）に置いてある。
    =========================================================== */
 
-import { STATS, SK, SC, STAGES, HEAVY4, LIGHT6, EV_COST } from '../data/growth.js';
+import { STATS, SK, SC, STAGES, SKEYS, HEAVY4, LIGHT6, EV_COST } from '../data/growth.js';
 import { state, save, currentMon } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import {
@@ -16,6 +16,8 @@ import {
   computeResult,
   validatePlan,
   peachExtra,
+  heavyGain,
+  lightGain,
 } from './growth-calc.js';
 
 const APTITUDES = ['E', 'D', 'C', 'B', 'A'];
@@ -121,6 +123,47 @@ function updateStatBar(key) {
 
 /* ---------- 育成計画 ---------- */
 
+/* 表の中は幅が狭いので、パラメータ名は1文字にする（色と凡例で見分ける） */
+const STAT_SHORT = ['ラ', '力', '賢', '命', '回', '丈'];
+
+/** 選んだトレーニング1回ぶんの上昇値を、パラメータごとに色を付けて並べる */
+function gainItems(list) {
+  return list.map(({ key, value }) => {
+    const i = SK.indexOf(key);
+    return h('span', {
+      class: 'train-gain__item',
+      style: `color:${SC[i]}`,
+      text: `${STAT_SHORT[i]}${value >= 0 ? '+' : ''}${value}`,
+      attrs: { title: `${STATS[i]} ${value >= 0 ? '+' : ''}${value}` },
+    });
+  });
+}
+
+/** 上昇値の表示欄。select の下に置き、選び直したら中身だけ差し替える */
+function gainBox(g, si, idx, field, list) {
+  return h('div', { class: 'train-gain', id: `gain-${g}-${si}-${idx}-${field}` }, gainItems(list));
+}
+
+function updateTrainGain(g, si, idx, field, ti) {
+  const node = el(`gain-${g}-${si}-${idx}-${field}`);
+  if (!node) return;
+  const apt = sim().apt;
+  const list = field === 'ht' ? heavyGain(ti, SKEYS[si], apt) : lightGain(ti, SKEYS[si], apt);
+  replace(node, gainItems(list));
+}
+
+/** 1文字表記の対応表。表の下に一度だけ出す */
+function gainLegend() {
+  return h(
+    'div',
+    { class: 'train-gain-legend' },
+    ...STATS.map((name, i) =>
+      h('span', { style: `color:${SC[i]}`, text: `${STAT_SHORT[i]}=${name}` })
+    ),
+    h('span', { class: 'note', text: '※ トレーニング1回ぶんの上昇値（軽トレは最大値）' })
+  );
+}
+
 function trainOptions(list, selected, noneLabel) {
   return [
     h('option', { value: '-1', text: noneLabel, selected: String(selected) === '-1' }),
@@ -131,6 +174,8 @@ function trainOptions(list, selected, noneLabel) {
 function planRow(g, si, idx, set, rowspanCells) {
   const heavy = clampInt(set.hc, 0, 4, 0);
   const light = Math.max(0, 4 - heavy);
+  const apt = sim().apt;
+  const stageKey = SKEYS[si];
   const numField = (field, value, label) =>
     h('td', { class: 'col-num' },
       h('input', {
@@ -151,7 +196,8 @@ function planRow(g, si, idx, set, rowspanCells) {
         { dataset: { change: 'sim:setField', g: String(g), si: String(si), idx: String(idx), field: 'ht' },
           attrs: { 'aria-label': '重トレの種類' } },
         trainOptions(HEAVY4, set.ht, 'なし')
-      )
+      ),
+      gainBox(g, si, idx, 'ht', heavyGain(parseInt(set.ht, 10), stageKey, apt))
     ),
     numField('hc', heavy, '重トレの回数/月'),
     h('td', { class: 'col-train' },
@@ -159,7 +205,8 @@ function planRow(g, si, idx, set, rowspanCells) {
         { dataset: { change: 'sim:setField', g: String(g), si: String(si), idx: String(idx), field: 'lt' },
           attrs: { 'aria-label': '軽トレの種類' } },
         trainOptions(LIGHT6, set.lt, 'なし')
-      )
+      ),
+      gainBox(g, si, idx, 'lt', lightGain(parseInt(set.lt, 10), stageKey, apt))
     ),
     h('td', { class: 'col-num' },
       h('span', { class: 'light-count', id: `lc-${g}-${si}-${idx}`, text: String(light) })
@@ -296,7 +343,7 @@ export function renderPlan() {
   if (!s) return;
   normalizePlan(s); // B5: 寿命や成長タイプを変えたら週数を計算し直す
   const groups = stageWeeksByGroup(s);
-  replace(el('planArea'), planTable(0, groups[0]));
+  replace(el('planArea'), planTable(0, groups[0]), gainLegend());
   renderPeach(groups);
   renderWarnings();
   save();
@@ -506,6 +553,8 @@ export const changeActions = {
     const set = setsAt(s, Number(g), Number(si))[Number(idx)];
     if (!set) return;
     set[field] = parseInt(target.value, 10);
+    // 選んだトレーニングの上昇値をその場で出す（表全体は作り直さない）
+    updateTrainGain(Number(g), Number(si), Number(idx), field, set[field]);
     save();
   },
 };

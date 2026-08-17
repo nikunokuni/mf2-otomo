@@ -85,6 +85,33 @@ const hc = page.locator('.plan-table input[data-field="hc"]').first();
 await hc.fill('3');
 ok((await page.locator('.plan-table .light-count').first().textContent())==='1','軽トレ=4-重トレ');
 
+console.log('— トレーニングの上昇値表示 —');
+const row0 = page.locator('.plan-table tbody tr').first();
+await row0.locator('select').first().selectOption('0');   // 重り引き
+const heavyGain = (await row0.locator('.train-gain').first().textContent()).trim();
+// 重り引き: ちから(主)+ ライフ(副)+ 回避-2。適正Cの1段階なら 力+5 ラ+3 回-2
+ok(/^力\+\d+ラ\+\d+回-2$/.test(heavyGain),'重トレの上昇値が3つ出る: '+heavyGain);
+const gainColors = await row0.locator('.train-gain').first().locator('span').evaluateAll(
+  ns => ns.map(n=>getComputedStyle(n).color));
+ok(new Set(gainColors).size===3,'能力値ごとに色が違う: '+gainColors.join(' / '));
+await row0.locator('select').nth(1).selectOption('4');    // 走り込み（ライフ）
+const lightGain = (await row0.locator('.train-gain').nth(1).textContent()).trim();
+ok(/^ラ\+\d+$/.test(lightGain),'軽トレの上昇値が出る: '+lightGain);
+// 適正を上げると上昇値も増える（基本設定で変えて戻ってくる）
+const before = Number(heavyGain.match(/力\+(\d+)/)[1]);
+await page.click('#subtab-basic');
+await page.locator('.apt-cell select').nth(1).selectOption('A');  // ちから適正A
+await page.click('#subtab-plan');
+const after = Number((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).match(/力\+(\d+)/)[1]);
+ok(after>before,`適正を上げると上昇値が増える: ${before}→${after}`);
+await page.click('#subtab-basic');
+await page.locator('.apt-cell select').nth(1).selectOption('C');
+await page.click('#subtab-plan');
+ok((await page.locator('.train-gain-legend').count())===1,'凡例は表の下に1つだけ');
+await page.locator('.plan-table tbody tr').first().locator('select').first().selectOption('-1');
+ok((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).trim()==='','「なし」なら上昇値は出ない');
+await page.locator('.plan-table tbody tr').first().locator('select').first().selectOption('0');
+
 console.log('— 桃 —');
 await page.locator('[data-change="sim:peach"][data-pi="0"][data-field="use"]').selectOption('yes');
 await page.waitForSelector('.peach__sub');

@@ -108,6 +108,28 @@ export function normalizePlan(sim) {
 }
 
 /**
+ * 重トレ1回ぶんの上昇値。[{ key, value }] を主上昇・副上昇・減少の順で返す。
+ * 主上昇は HM テーブルの4つの数字のうち3つ目を使う（計算も画面表示もここを見る）。
+ * トレーニングを選んでいない（ti が -1）ときは空配列。
+ */
+export function heavyGain(ti, stageKey, apt) {
+  const t = HEAVY4[ti];
+  if (!t) return [];
+  return [
+    { key: t.main, value: HM[stageKey][apt[t.main]][2] },
+    { key: t.sub, value: HS[stageKey][apt[t.sub]] },
+    { key: t.pen, value: -2 },
+  ];
+}
+
+/** 軽トレ1回ぶんの上昇値。LG テーブルの値＝上がりうる最大値 */
+export function lightGain(ti, stageKey, apt) {
+  const t = LIGHT6[ti];
+  if (!t) return [];
+  return [{ key: t.stat, value: LG[stageKey][apt[t.stat]] }];
+}
+
+/**
  * 1セットぶんのパラメータ上昇値。
  * イベント週はトレーニングに使えないので、ここで一度だけ差し引く。
  */
@@ -122,26 +144,20 @@ export function calcSetGain(set, stageKey, apt) {
   const heavyCount = Math.max(0, Math.min(4, parseInt(set.hc, 10) || 0));
   const lightCount = Math.max(0, 4 - heavyCount);
 
-  const hi = parseInt(set.ht, 10);
-  if (hi >= 0 && hi < HEAVY4.length && heavyCount > 0) {
-    const t = HEAVY4[hi];
-    const mainGain = HM[stageKey][apt[t.main]][2];
-    const subGain = HS[stageKey][apt[t.sub]];
-    gain[t.main] += mainGain * heavyCount * fullMonths;
-    gain[t.sub] += subGain * heavyCount * fullMonths;
-    gain[t.pen] -= 2 * heavyCount * fullMonths;
-    // 4週に満たない余り週は、重トレ1回ぶんとして加算する
-    if (remainder > 0) {
-      gain[t.main] += mainGain;
-      gain[t.sub] += subGain;
-      gain[t.pen] -= 2;
-    }
+  const heavy = heavyGain(parseInt(set.ht, 10), stageKey, apt);
+  if (heavy.length && heavyCount > 0) {
+    heavy.forEach(({ key, value }) => {
+      gain[key] += value * heavyCount * fullMonths;
+      // 4週に満たない余り週は、重トレ1回ぶんとして加算する
+      if (remainder > 0) gain[key] += value;
+    });
   }
 
-  const li = parseInt(set.lt, 10);
-  if (li >= 0 && li < LIGHT6.length && lightCount > 0) {
-    const t = LIGHT6[li];
-    gain[t.stat] += LG[stageKey][apt[t.stat]] * lightCount * fullMonths;
+  const light = lightGain(parseInt(set.lt, 10), stageKey, apt);
+  if (light.length && lightCount > 0) {
+    light.forEach(({ key, value }) => {
+      gain[key] += value * lightCount * fullMonths;
+    });
   }
   return gain;
 }
