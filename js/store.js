@@ -12,6 +12,21 @@ import { SK } from './data/growth.js';
 const STORAGE_KEY = 'monfar_state_v1';
 const LEGACY_KEY = 'mf2_mf2v8_state';
 
+/** ヨイワルの5きざみの刻み幅 */
+export const MORAL_STEP = 5;
+
+/**
+ * ヨイワルを -100〜100 の5きざみの数値に直す。
+ * 昔の保存データは 'good' / 'neutral' / 'bad' の3択だったので、そのぶんも読み替える。
+ */
+export function normalizeMoral(value) {
+  const legacy = { good: 50, neutral: 0, bad: -50 };
+  const n = typeof value === 'string' && value in legacy ? legacy[value] : Number(value);
+  if (!Number.isFinite(n)) return 0;
+  const stepped = Math.round(n / MORAL_STEP) * MORAL_STEP;
+  return Math.max(-100, Math.min(100, stepped));
+}
+
 /** 技を一意に識別するキー。保存データのキーになるので形式を変えないこと */
 export function techKey(tech) {
   return tech.from + '→' + tech.to;
@@ -29,7 +44,8 @@ export function defaultSim() {
     month: 1,
     week: 1,
     gtype: 'futsuu',
-    moral: 'neutral',
+    // ヨイワルは -100〜100 の数値（5きざみ）。0 が普通
+    moral: 0,
     life: 300,
     apt,
     init,
@@ -196,6 +212,7 @@ function normalize(loaded) {
     const d = defaultMon();
     const m = Object.assign(d, s.mon[name]);
     m.sim = Object.assign(defaultSim(), m.sim || {});
+    m.sim.moral = normalizeMoral(m.sim.moral);
     m.sim.apt = Object.assign(defaultSim().apt, m.sim.apt || {});
     m.sim.init = Object.assign(defaultSim().init, m.sim.init || {});
     m.sim.plan = Object.assign({ 0: {}, 1: {}, 2: {} }, m.sim.plan || {});

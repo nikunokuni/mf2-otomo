@@ -6,7 +6,7 @@
    =========================================================== */
 
 import { STATS, SK, SC, STAGES, SKEYS, HEAVY4, LIGHT6, EV_COST } from '../data/growth.js';
-import { state, save, currentMon } from '../store.js';
+import { state, save, currentMon, MORAL_STEP, normalizeMoral } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import {
   newSet,
@@ -28,11 +28,17 @@ const GROWTH_TYPES = [
   ['futsuu', '普通'],
   ['bansei', '晩成'],
 ];
-const MORALS = [
-  ['good', 'ヨイ'],
-  ['neutral', '普通'],
-  ['bad', 'ワル'],
-];
+/** ヨイワルの選択肢。-100〜100 を5きざみ。両端と0だけ言葉を添える */
+const MORAL_LABELS = { '-100': 'ワル', 0: '普通', 100: 'ヨイ' };
+function moralOptions(selected) {
+  const list = [];
+  for (let v = -100; v <= 100; v += MORAL_STEP) {
+    const sign = v > 0 ? '+' : '';
+    const note = MORAL_LABELS[v] ? `（${MORAL_LABELS[v]}）` : '';
+    list.push(h('option', { value: String(v), text: `${sign}${v}${note}`, selected: v === selected }));
+  }
+  return list;
+}
 
 function sim() {
   const mon = currentMon();
@@ -49,7 +55,7 @@ function renderBasic() {
   el('simMonth').value = s.month;
   el('simWeek').value = s.week;
   el('simGtype').value = s.gtype;
-  el('simMoral').value = s.moral;
+  replace(el('simMoral'), moralOptions(s.moral));
   el('simLife').value = s.life;
 
   // 成長適正
@@ -585,7 +591,7 @@ export const changeActions = {
 
   'sim:moral': (target) => {
     const s = sim();
-    s.moral = target.value;
+    s.moral = normalizeMoral(target.value);
     save();
   },
 

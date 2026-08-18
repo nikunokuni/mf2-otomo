@@ -29,8 +29,8 @@ export function clampInner(key, value, initMoral = 0) {
 
 /**
  * 「ストレス-50%」のような割合の効果で、実際に動く量を返す。
- * 小数点以下は切り捨て（0に近いほうへ落とす）。
- *   pctDelta(75, -50) === -37  → 75 は 38 になる
+ * 割合を出した時点で小数点以下を切り捨て、そのあとで足し引きする。
+ *   pctDelta(75, -50) === -37  → 75 は 38 になる（37.5 を切り捨てて 37 引く）
  */
 export function pctDelta(value, pct) {
   return Math.trunc((value * pct) / 100);

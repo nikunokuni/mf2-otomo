@@ -69,6 +69,14 @@ ok((await page.locator('#simSpeciesLabel').textContent())==='ピクシー','D10:
 ok((await page.locator('.apt-cell').count())===6,'適正6つ');
 await page.selectOption('#simGtype','bansei');
 await page.fill('#simLife','400');
+// ヨイワルは -100〜100 の5きざみ
+const moralValues = await page.locator('#simMoral option').evaluateAll(o=>o.map(x=>Number(x.value)));
+ok(moralValues.length===41,'ヨイワルの選択肢は41個: '+moralValues.length);
+ok(moralValues[0]===-100 && moralValues[moralValues.length-1]===100,'両端が-100と100');
+ok(moralValues.every((v,i)=>i===0||v-moralValues[i-1]===5),'5きざみで並ぶ');
+ok((await page.locator('#simMoral').inputValue())==='0','はじめは0（普通）');
+ok((await page.locator('#simMoral option[value="0"]').textContent()).includes('普通'),'0には普通と書いてある');
+await page.selectOption('#simMoral','-35');
 await page.click('#subtab-plan');
 await page.waitForSelector('.plan-table');
 const stageRows = await page.locator('.plan-table .stage-cell').count();
@@ -163,6 +171,7 @@ ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'�
 await page.click('#tab-simulator');
 ok((await page.locator('#simLife').inputValue())==='400','寿命が保存されている');
 ok((await page.locator('#simGtype').inputValue())==='bansei','成長タイプが保存されている');
+ok((await page.locator('#simMoral').inputValue())==='-35','ヨイワルが保存されている');
 
 console.log('— 技なし種族（ライガー） —');
 await page.click('#tab-tracker');

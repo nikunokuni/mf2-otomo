@@ -2,6 +2,7 @@ import * as N from '../js/simulator/growth-calc.js';
 import {SK,SKEYS,HEAVY4,LIGHT6,HM,HS,LG,GTH,EV_COST} from '../js/data/growth.js';
 import {calcIdeal as newIdeal} from '../js/tracker/ideal.js';
 import {ITEMS,INNER} from '../js/data/items.js';
+import {normalizeMoral} from '../js/store.js';
 import {moralRange,clampInner,pctDelta,applyPct,applyDelta} from '../js/simulator/inner-calc.js';
 
 /* ---- 旧実装をそのまま写したもの ---- */
@@ -101,6 +102,17 @@ eq(pctDelta(9,-20),-1,'9の-20%は-1（-1.8を切り捨て）');
 eq(pctDelta(0,-50),0,'0なら動かない');
 eq(applyPct('stress',75,-50),38,'ストレス75に-50%で38');
 eq(applyDelta('fatigue',5,-28),0,'疲労は0より下がらない');
+
+// ヨイワルの入力値の丸め（5きざみ・-100〜100・古い3択からの読み替え）
+eq(normalizeMoral('good'),50,'good は +50');
+eq(normalizeMoral('neutral'),0,'neutral は 0');
+eq(normalizeMoral('bad'),-50,'bad は -50');
+eq(normalizeMoral(0),0,'0 はそのまま');
+eq(normalizeMoral(37),35,'5きざみに丸める');
+eq(normalizeMoral(-98),-100,'下限に収める');
+eq(normalizeMoral(999),100,'上限に収める');
+eq(normalizeMoral('でたらめ'),0,'読めない値は 0');
+eq(normalizeMoral(undefined),0,'未設定は 0');
 
 /* ---- アイテムデータの形 ---- */
 const STAT_KEYS=['life','pow','int','hit','avo','tou'];
