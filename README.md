@@ -67,7 +67,7 @@ js/
   data/
     growth.js         育成計算の定数テーブル
     monsters.js       38種族の使い込み技データ
-    items.js          アイテムデータ（名前と効果）
+    items.js          アイテムデータ（効果は数値でも持つ）と内部数値の範囲
     icons.js          種族アイコン（約40KB / 遅延読み込み）
     reference-data.js 早見タブに出す内容（ローテ・アイテム・合体素材）
   tracker/
@@ -76,6 +76,7 @@ js/
   simulator/
     simulator.js      育成計算タブの画面
     growth-calc.js    育成計算のロジック（画面に依存しない）
+    inner-calc.js     内部数値の範囲と割合の切り捨て（画面に依存しない）
     items.js          育成計算タブ「アイテム」の入力画面
   reference/
     reference.js      早見タブの画面（箱の並びと再生メモ・リンク集の入力）

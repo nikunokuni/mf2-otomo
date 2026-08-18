@@ -1,6 +1,8 @@
 import * as N from '../js/simulator/growth-calc.js';
 import {SK,SKEYS,HEAVY4,LIGHT6,HM,HS,LG,GTH,EV_COST} from '../js/data/growth.js';
 import {calcIdeal as newIdeal} from '../js/tracker/ideal.js';
+import {ITEMS,INNER} from '../js/data/items.js';
+import {moralRange,clampInner,pctDelta,applyPct,applyDelta} from '../js/simulator/inner-calc.js';
 
 /* ---- 旧実装をそのまま写したもの ---- */
 const O={};
@@ -81,6 +83,43 @@ for(let i=0;i<4000;i++){
 for(let gr=6;gr<=19;gr++) for(const gc of [10,12,17,19,24,29,35,42,50])
   for(const mt of [1.1,2.0,2.8,3.8,4.5,5.5,6.5,8.3])
     eq(newIdeal(gc,mt,gr),oldIdeal(gc,mt,gr),`ideal ${gr} ${gc} ${mt}`);
+
+/* ---- 内部数値 ---- */
+// ヨイワルは初期値から±100、かつ全体の-100〜100に収まる
+eq(moralRange(0),[-100,100],'moralRange 0');
+eq(moralRange(-90),[-100,10],'moralRange -90');
+eq(moralRange(50),[-50,100],'moralRange 50');
+eq(clampInner('moral',20,-90),10,'ヨイワルは初期値-90なら+10まで');
+eq(clampInner('moral',-200,-90),-100,'ヨイワルの下限');
+eq(clampInner('stress',120),100,'ストレスの上限');
+eq(clampInner('stress',-5),0,'ストレスの下限');
+eq(clampInner('form',-150),-100,'体型の下限');
+// 割合は小数点以下切り捨て
+eq(pctDelta(75,-50),-37,'75の-50%は-37（-37.5を切り捨て）');
+eq(pctDelta(100,-50),-50,'100の-50%は-50');
+eq(pctDelta(9,-20),-1,'9の-20%は-1（-1.8を切り捨て）');
+eq(pctDelta(0,-50),0,'0なら動かない');
+eq(applyPct('stress',75,-50),38,'ストレス75に-50%で38');
+eq(applyDelta('fatigue',5,-28),0,'疲労は0より下がらない');
+
+/* ---- アイテムデータの形 ---- */
+const STAT_KEYS=['life','pow','int','hit','avo','tou'];
+const INNER_KEYS=Object.keys(INNER);
+eq(ITEMS.length>0,true,'アイテムが入っている');
+eq(new Set(ITEMS.map(i=>i.name)).size,ITEMS.length,'アイテム名が重複していない');
+ITEMS.forEach(it=>{
+  eq(!!it.name&&!!it.effect,true,`${it.name}: 名前と説明がある`);
+  eq(['use','hold'].includes(it.kind),true,`${it.name}: kind が use か hold`);
+  const inners=[it.inner,it.innerPct,it.monthly&&it.monthly.inner]
+    .concat((it.conditional||[]).flatMap(c=>[c.inner,c.innerPct]));
+  inners.filter(Boolean).forEach(o=>
+    eq(Object.keys(o).every(k=>INNER_KEYS.includes(k)),true,`${it.name}: 内部数値のキー ${Object.keys(o)}`));
+  [it.stat,it.statPctWeekly].filter(Boolean).forEach(o=>
+    eq(Object.keys(o).every(k=>STAT_KEYS.includes(k)),true,`${it.name}: パラメーターのキー ${Object.keys(o)}`));
+  // 持ち物は月ごとの効果を持ち、使うアイテムは持たない
+  eq(it.kind==='hold',!!it.monthly,`${it.name}: hold と monthly の対応`);
+  if(it.statPctWeekly) eq(it.weeks>0,true,`${it.name}: 毎週の効果には weeks が要る`);
+});
 
 console.log(`\n照合 ${checks}件 / 不一致 ${fail}件`);
 
