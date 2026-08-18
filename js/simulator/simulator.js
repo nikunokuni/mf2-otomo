@@ -172,12 +172,25 @@ function trainOptions(list, selected, noneLabel) {
   ];
 }
 
+/** 割当週からイベント週を引いた、実際にトレーニングできる週数 */
+function trainWeeks(set) {
+  return (set.weeks || 0) - eventWeeks(set);
+}
+
+function trainWeeksLabel(set) {
+  return `トレ${trainWeeks(set)}週`;
+}
+
+function trainWeeksClass(set) {
+  return 'train-weeks' + (trainWeeks(set) < 0 ? ' train-weeks--over' : '');
+}
+
 function planRow(g, si, idx, set, rowspanCells) {
   const heavy = clampInt(set.hc, 0, 4, 0);
   const light = Math.max(0, 4 - heavy);
   const apt = sim().apt;
   const stageKey = SKEYS[si];
-  const numField = (field, value, label) =>
+  const numField = (field, value, label, extra = null) =>
     h('td', { class: 'col-num' },
       h('input', {
         type: 'number',
@@ -185,7 +198,8 @@ function planRow(g, si, idx, set, rowspanCells) {
         min: 0,
         dataset: { input: 'sim:setField', g: String(g), si: String(si), idx: String(idx), field },
         attrs: { 'aria-label': label },
-      })
+      }),
+      extra
     );
 
   return h(
@@ -215,7 +229,16 @@ function planRow(g, si, idx, set, rowspanCells) {
     numField('tc', set.tc || 0, '大会の回数'),
     numField('mc', set.mc || 0, '修行の回数'),
     numField('ac', set.ac || 0, '冒険の回数'),
-    numField('weeks', set.weeks || 0, '割り当て週数'),
+    numField(
+      'weeks',
+      set.weeks || 0,
+      '割り当て週数',
+      h('span', {
+        class: trainWeeksClass(set),
+        id: `trainWeeks-${g}-${si}-${idx}`,
+        text: trainWeeksLabel(set),
+      })
+    ),
     h('td', { style: 'width:32px' },
       idx > 0
         ? h('button', {
@@ -354,6 +377,13 @@ export function renderPlan() {
   renderPeach(groups);
   renderWarnings();
   save();
+}
+
+function updateTrainWeeks(g, si, idx, set) {
+  const node = el(`trainWeeks-${g}-${si}-${idx}`);
+  if (!node) return;
+  node.textContent = trainWeeksLabel(set);
+  node.className = trainWeeksClass(set);
 }
 
 function updateStageBadge(g, si) {
@@ -615,6 +645,7 @@ export const inputActions = {
       set[field] = Math.max(0, parseInt(target.value, 10) || 0);
     }
     updateStageBadge(Number(g), Number(si));
+    updateTrainWeeks(Number(g), Number(si), Number(idx), set);
     renderWarnings();
     save();
   },

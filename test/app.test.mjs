@@ -121,6 +121,27 @@ const peachTiming = await page.locator('.peach__timing').first().textContent();
 ok(peachTiming.includes('桃を与えるタイミング'),'桃を与えるタイミングが出る');
 ok(/週目|寿命/.test(peachTiming),'タイミングに段階と週目（または寿命超過）が出る');
 
+console.log('— トレーニングに使える週数 —');
+const weekCell = page.locator('.plan-table').first().locator('tbody tr').first();
+const weekInput = weekCell.locator('input[type="number"]').last();
+const trainWeeks = weekCell.locator('.train-weeks');
+const assigned = Number(await weekInput.inputValue());
+ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'イベント0なら割当週と同じ');
+// 大会1回=4週 ぶんだけ減る
+await weekCell.locator('input[type="number"]').nth(1).fill('1');
+ok((await trainWeeks.textContent()).trim()===`トレ${assigned-4}週`,'大会1回で4週減る: '+(await trainWeeks.textContent()));
+// 修行1回=5週 も足すと合わせて9週減る
+await weekCell.locator('input[type="number"]').nth(2).fill('1');
+ok((await trainWeeks.textContent()).trim()===`トレ${assigned-9}週`,'修行1回でさらに5週減る: '+(await trainWeeks.textContent()));
+ok(Number(await weekInput.inputValue())===assigned,'イベントを入れても割当週は減らない');
+// 割当週を超えるイベントは赤くなる
+await weekInput.fill('5');
+ok((await trainWeeks.getAttribute('class')).includes('train-weeks--over'),'割当週より多いイベントは警告色');
+await weekCell.locator('input[type="number"]').nth(1).fill('0');
+await weekCell.locator('input[type="number"]').nth(2).fill('0');
+await weekInput.fill(String(assigned));
+ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'戻せば元に戻る');
+
 console.log('— 計算実行 —');
 await page.click('[data-action="sim:calc"]');
 await page.waitForSelector('#subpane-result:not([hidden])');

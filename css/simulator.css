@@ -194,6 +194,22 @@
   font-weight: 600;
 }
 
+/* --- 割当週の下に出す「実際にトレーニングできる週数」 --- */
+.train-weeks {
+  display: block;
+  /* イベント0のときも行の高さが変わらないように場所を確保しておく */
+  min-height: 14px;
+  margin-top: 1px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.train-weeks--over {
+  color: var(--color-ng);
+  font-weight: 600;
+}
+
 .icon-btn {
   border: var(--hairline) solid var(--color-border-secondary);
   border-radius: var(--border-radius-sm);
