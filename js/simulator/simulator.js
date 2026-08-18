@@ -382,8 +382,23 @@ export function renderResult() {
 
   const { init, final, rows } = s.result;
 
+  // ステータス6種の合計（初期値からの伸びも一緒に出す）
+  const initTotal = SK.reduce((a, key) => a + (init[key] || 0), 0);
+  const finalTotal = SK.reduce((a, key) => a + (final[key] || 0), 0);
+  const totalDelta = finalTotal - initTotal;
+
   const panel = h('div', { class: 'result-panel' },
-    h('div', { class: 'result-title', text: '最終パラメーター' }),
+    h('div', { class: 'result-head' },
+      h('span', { class: 'result-title', text: '最終パラメーター' }),
+      h('span', { class: 'result-total' },
+        h('span', { class: 'result-total__label', text: '合計' }),
+        h('span', { class: 'result-total__value', text: String(finalTotal) }),
+        h('span', {
+          class: 'result-total__delta ' + (totalDelta >= 0 ? 'result-row__delta--up' : 'result-row__delta--down'),
+          text: (totalDelta >= 0 ? '+' : '') + totalDelta,
+        })
+      )
+    ),
     ...SK.map((key, i) => {
       const from = init[key] || 0;
       const to = final[key];

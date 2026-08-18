@@ -128,6 +128,9 @@ ok(await page.locator('.result-panel').isVisible(),'結果タブへ遷移して�
 const vals = await page.locator('.result-row__value').allTextContents();
 ok(vals.length===6 && vals.every(v=>/^\d+$/.test(v)),'6パラメータが数値: '+vals.join(','));
 ok(Number(vals[1])>100,'ちからが初期値より増えている: '+vals[1]);
+const totalText = (await page.locator('.result-total__value').textContent()).trim();
+ok(Number(totalText)===vals.reduce((a,v)=>a+Number(v),0),'合計値が6パラメータの和と一致: '+totalText);
+ok((await page.locator('.result-total__delta').textContent()).trim().startsWith('+'),'合計の伸びが出る');
 
 console.log('— 保存と復元（D7/D8） —');
 await page.reload({waitUntil:'networkidle'});
