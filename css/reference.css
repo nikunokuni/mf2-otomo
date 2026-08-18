@@ -50,8 +50,9 @@
 /* --- ローテ / アイテム / 合体素材の1行 --- */
 .ref-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px;
+  gap: 2px 8px;
   padding: 5px 0;
   border-bottom: var(--hairline) solid var(--color-border-tertiary);
 }
@@ -60,6 +61,8 @@
 }
 .ref-row__name {
   font-size: 13px;
+  /* 名前は折り返さない。説明が長いときは説明のほうが次の行に回る */
+  white-space: nowrap;
 }
 .ref-row__detail {
   margin-left: auto;

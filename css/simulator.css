@@ -454,3 +454,25 @@
   background: var(--color-background-secondary);
   color: var(--color-ng);
 }
+
+.item-group__title {
+  margin: 12px 0 2px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+/* アプリに入っているぶん（読むだけ） */
+.item-row--fixed {
+  align-items: baseline;
+}
+.item-row__text {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  word-break: break-word;
+}
+.item-row--fixed .item-row__name {
+  color: var(--color-text-primary);
+}
+/* 効果が次の行に回ったとき、名前の位置に揃える */
+.item-row--fixed .item-row__effect {
+  padding-left: calc(1.6rem + 6px);
+}

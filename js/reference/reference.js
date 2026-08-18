@@ -16,7 +16,8 @@
    （高さは css/reference.css の --ref-box-height）。
    =========================================================== */
 
-import { ROTATION, ITEMS, COMBI, LINKS } from '../data/reference-data.js';
+import { ROTATION, COMBI, LINKS } from '../data/reference-data.js';
+import { ITEMS } from '../data/items.js';
 import { state, addNote, updateNote, removeNote, addLink, removeLink } from '../store.js';
 import { el, h, replace } from '../dom.js';
 
@@ -58,7 +59,7 @@ function dataBox(title, rows) {
  */
 function itemRows() {
   return [
-    ...ITEMS,
+    ...ITEMS.map((i) => ({ name: i.name, detail: i.effect })),
     ...state.items
       .filter((i) => i.name || i.effect)
       .map((i) => ({ name: i.name, detail: i.effect })),
