@@ -27,17 +27,23 @@ export function calcStageWeeks(totalLife, gtype) {
   return weeks;
 }
 
+/** 段階 si が始まる週（0始まり） */
+export function stageStartWeek(baseWeeks, si) {
+  let start = 0;
+  for (let i = 0; i < si && i < baseWeeks.length; i++) start += baseWeeks[i];
+  return start;
+}
+
 /**
  * 桃（若返り）で戻る分の段階別週数。
- * useSi 段階の開始時点から extra 週ぶんさかのぼった区間を、段階ごとに切り出す。
+ * 桃を使うと useSi 段階の開始時点まで若返るので、
+ * そこから extra 週ぶん（寿命の範囲内）をもう一度たどる区間を段階ごとに切り出す。
  */
 export function calcPeachWeeks(totalLife, gtype, useSi, extra) {
   const baseWeeks = calcStageWeeks(totalLife, gtype);
-  let startOfUseSi = 0;
-  for (let i = 0; i < useSi; i++) startOfUseSi += baseWeeks[i];
+  const peachStart = stageStartWeek(baseWeeks, useSi);
+  const peachEnd = Math.min(totalLife, peachStart + extra);
 
-  const peachStart = Math.max(0, startOfUseSi - extra);
-  const peachEnd = startOfUseSi;
   const result = new Array(10).fill(0);
   let cursor = 0;
   for (let si = 0; si < 10; si++) {
@@ -46,6 +52,25 @@ export function calcPeachWeeks(totalLife, gtype, useSi, extra) {
     cursor = stageEnd;
   }
   return result;
+}
+
+/**
+ * 桃を与えるタイミング。
+ * useSi 段階の開始から extra 週後が、第何段階の何週目にあたるかを返す。
+ * 寿命を超えてしまう場合は over: true（si / weekInStage は null）。
+ */
+export function peachTiming(totalLife, gtype, useSi, extra) {
+  const baseWeeks = calcStageWeeks(totalLife, gtype);
+  const week = stageStartWeek(baseWeeks, useSi) + extra;
+  if (week >= totalLife) return { week, si: null, weekInStage: null, over: true };
+
+  let cursor = 0;
+  for (let si = 0; si < 10; si++) {
+    const stageEnd = cursor + baseWeeks[si];
+    if (week < stageEnd) return { week, si, weekInStage: week - cursor + 1, over: false };
+    cursor = stageEnd;
+  }
+  return { week, si: null, weekInStage: null, over: true };
 }
 
 /** 桃で追加される週数（黄金桃 +50 / 白銀桃 +25） */

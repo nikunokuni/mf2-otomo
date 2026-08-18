@@ -117,6 +117,9 @@ await page.locator('[data-change="sim:peach"][data-pi="0"][data-field="use"]').s
 await page.waitForSelector('.peach__sub');
 ok((await page.locator('.peach__sub').textContent()).includes('計'),'桃の追加計画が出る');
 ok((await page.locator('.plan-table').count())===2,'桃用テーブルが増える');
+const peachTiming = await page.locator('.peach__timing').first().textContent();
+ok(peachTiming.includes('桃を与えるタイミング'),'桃を与えるタイミングが出る');
+ok(/週目|寿命/.test(peachTiming),'タイミングに段階と週目（または寿命超過）が出る');
 
 console.log('— 計算実行 —');
 await page.click('[data-action="sim:calc"]');

@@ -16,6 +16,7 @@ import {
   computeResult,
   validatePlan,
   peachExtra,
+  peachTiming,
   heavyGain,
   lightGain,
 } from './growth-calc.js';
@@ -313,9 +314,15 @@ function renderPeach(groups) {
 
     const weeks = groups[pi + 1];
     const total = weeks.reduce((a, b) => a + b, 0);
+    const timing = peachTiming(s.life, s.gtype, p.si, extra);
+    const timingText = timing.over
+      ? `桃を与えるタイミング：「${STAGES[p.si]}」開始から${extra}週後は寿命（${s.life}週）を超えます`
+      : `桃を与えるタイミング：「${STAGES[p.si]}」開始から${extra}週後＝${STAGES[timing.si]} ${timing.weekInStage}週目（通算${timing.week + 1}週目）`;
+
     return h('div', { class: 'peach__block' },
       controls,
-      h('div', { class: 'peach__sub', text: `「${STAGES[p.si]}」から${extra}週さかのぼり：計${total}週` }),
+      h('div', { class: 'peach__sub', text: `「${STAGES[p.si]}」開始から${extra}週ぶん：計${total}週` }),
+      h('div', { class: 'peach__timing' + (timing.over ? ' peach__timing--over' : ''), text: timingText }),
       planTable(pi + 1, weeks)
     );
   });
@@ -323,7 +330,7 @@ function renderPeach(groups) {
   replace(el('peachArea'),
     h('div', { class: 'peach__title', text: '🍑 桃システム（若返り）' }),
     h('div', { class: 'callout callout--info',
-      text: '黄金桃+50週、白銀桃+25週。使用時点からさかのぼって、週数ぶんの段階を再計算します。' }),
+      text: '黄金桃+50週、白銀桃+25週。選んだ段階の開始時点まで若返り、そこから週数ぶんの段階をもう一度計算します。' }),
     ...blocks
   );
 }

@@ -7,10 +7,16 @@ const O={};
 O.getPct=(total,e)=>Math.floor(Math.floor((e/total)*1000)/10);
 O.getStageIdx=(pct,gtype)=>{const th=GTH[gtype];for(let i=0;i<th.length;i++)if(pct>=th[i][0]&&pct<=th[i][1])return i;return 9;};
 O.calcStageWeeks=(total,gtype)=>{const w=new Array(10).fill(0);for(let i=0;i<total;i++)w[O.getStageIdx(O.getPct(total,i),gtype)]++;return w;};
+// 桃は「選んだ段階の開始まで若返り、そこから extra 週ぶん進む」区間
 O.calcPeachWeeks=(totalLife,gtype,useSi,extra)=>{
   const baseW=O.calcStageWeeks(totalLife,gtype);let s=0;for(let i=0;i<useSi;i++)s+=baseW[i];
-  const ps=Math.max(0,s-extra),pe=s,r=new Array(10).fill(0);let c=0;
+  const ps=s,pe=Math.min(totalLife,s+extra),r=new Array(10).fill(0);let c=0;
   for(let si=0;si<10;si++){const sE=c+baseW[si];r[si]=Math.max(0,Math.min(sE,pe)-Math.max(c,ps));c=sE;}return r;};
+O.peachTiming=(totalLife,gtype,useSi,extra)=>{
+  const baseW=O.calcStageWeeks(totalLife,gtype);let s=0;for(let i=0;i<useSi;i++)s+=baseW[i];
+  const w=s+extra;if(w>=totalLife)return{week:w,si:null,weekInStage:null,over:true};
+  let c=0;for(let si=0;si<10;si++){const sE=c+baseW[si];if(w<sE)return{week:w,si,weekInStage:w-c+1,over:false};c=sE;}
+  return{week:w,si:null,weekInStage:null,over:true};};
 O.calcSetGain=(set,sk,apts)=>{
   const G={};SK.forEach(k=>G[k]=0);
   const evW=(set.tc||0)*EV_COST.tc+(set.mc||0)*EV_COST.mc+(set.ac||0)*EV_COST.ac;
@@ -36,8 +42,28 @@ const eq=(a,b,label)=>{checks++;if(JSON.stringify(a)!==JSON.stringify(b)){fail++
 const GT=Object.keys(GTH), APTS=['E','D','C','B','A'];
 for(const g of GT) for(let life=100;life<=600;life+=7){
   eq(N.calcStageWeeks(life,g),O.calcStageWeeks(life,g),`stageWeeks ${g} ${life}`);
-  for(const si of [0,3,4,6,9]) for(const ex of [50,25])
+  for(const si of [0,3,4,6,9]) for(const ex of [50,25]){
     eq(N.calcPeachWeeks(life,g,si,ex),O.calcPeachWeeks(life,g,si,ex),`peach ${g} ${life} ${si} ${ex}`);
+    eq(N.peachTiming(life,g,si,ex),O.peachTiming(life,g,si,ex),`peachTiming ${g} ${life} ${si} ${ex}`);
+  }
+}
+
+// 桃の区間は「選んだ段階の開始から前へ」ではなく「開始からうしろへ extra 週」
+for(const g of GT) for(let life=100;life<=600;life+=17) for(const si of [0,2,4,5,9]) for(const ex of [50,25]){
+  const base=N.calcStageWeeks(life,g);
+  const start=N.stageStartWeek(base,si);
+  const w=N.calcPeachWeeks(life,g,si,ex);
+  // 選んだ段階より前の段階には1週も割り当てられない
+  eq(w.slice(0,si).reduce((a,b)=>a+b,0),0,`peach forward-only ${g} ${life} ${si} ${ex}`);
+  // 合計は extra 週（寿命を超える分は切り捨て）
+  eq(w.reduce((a,b)=>a+b,0),Math.min(life,start+ex)-start,`peach total ${g} ${life} ${si} ${ex}`);
+  // 選んだ段階に週数があれば、その先頭から始まっている
+  if(base[si]>0) eq(w[si]>0,true,`peach starts at stage ${g} ${life} ${si} ${ex}`);
+  // タイミングは「開始から extra 週後」
+  const t=N.peachTiming(life,g,si,ex);
+  eq(t.week,start+ex,`timing week ${g} ${life} ${si} ${ex}`);
+  if(!t.over) eq(N.stageStartWeek(base,t.si)+t.weekInStage-1,t.week,`timing stage/week ${g} ${life} ${si} ${ex}`);
+  else eq(t.week>=life,true,`timing over ${g} ${life} ${si} ${ex}`);
 }
 // 段階週数の合計 = 寿命 であること
 for(const g of GT) for(let life=100;life<=600;life+=13)

@@ -246,6 +246,14 @@
   padding-top: 8px;
   border-top: var(--hairline) solid var(--color-warn-border);
 }
+.peach__timing {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin: 0 0 6px;
+}
+.peach__timing--over {
+  color: var(--color-ng);
+}
 
 /* --- 結果 --- */
 .result-panel {
