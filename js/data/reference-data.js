@@ -25,5 +25,5 @@ export const COMBI = [];
 export const LINKS = [
   { name: '@wiki', url: 'https://w.atwiki.jp/mf2_matome/pages/158.html' },
   { name: 'CD検索', url: 'https://appmedia.jp/mf2/5370460' },
-  { name: '公式サイト', url: 'https://www.gamecity.ne.jp/mf2/' },
+  { name: '段飛ばし、合体計算', url: 'https://legendcup.com/monster-farm-apps.php' },
 ];
