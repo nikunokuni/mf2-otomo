@@ -23,7 +23,7 @@ export const COMBI = [];
  * 差し替えるときは name と url を書き換えるだけでよい。
  */
 export const LINKS = [
+  { name: '@wiki', url: 'https://w.atwiki.jp/mf2_matome/pages/158.html' },
+  { name: 'CD検索', url: 'https://appmedia.jp/mf2/5370460' },
   { name: '公式サイト', url: 'https://www.gamecity.ne.jp/mf2/' },
-  { name: 'Wikipedia', url: 'https://ja.wikipedia.org/wiki/モンスターファーム2' },
-  { name: '円盤石を検索', url: 'https://www.google.com/search?q=モンスターファーム2+円盤石' },
 ];
