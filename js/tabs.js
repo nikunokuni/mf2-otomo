@@ -2,7 +2,7 @@
    タブの制御（2階層）
    -----------------------------------------------------------
    上位: 使い込み / 育成計算 / 早見
-   下位: 基本設定 / 育成計画 / 結果（育成計算タブの中だけ）
+   下位: 基本設定 / 育成計画 / アイテム / 結果（育成計算タブの中だけ）
    選んでいたタブは保存され、次に開いたときも同じ場所から始まる。
    =========================================================== */
 
@@ -10,7 +10,7 @@ import { state, save } from './store.js';
 import { el } from './dom.js';
 
 const TOP_TABS = ['tracker', 'simulator', 'reference'];
-const SUB_TABS = ['basic', 'plan', 'result'];
+const SUB_TABS = ['basic', 'plan', 'item', 'result'];
 
 const listeners = { top: [], sub: [] };
 

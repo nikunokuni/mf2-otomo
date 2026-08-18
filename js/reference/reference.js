@@ -6,6 +6,8 @@
 
    ・ローテ / アイテム / 合体素材 … アプリ側のデータを表示する。
      中身は js/data/reference-data.js に書く。
+     アイテムだけは、育成計算タブの「アイテム」で入れたぶん（state.items）も
+     続けて並べる。
    ・再生メモ … ユーザーが自分で書いて残す。state.notes に保存。
    ・リンク集 … あらかじめ入れた3つ（LINKS）に加えて、
      ユーザーが名前とURLを足せる。足したぶんは state.links に保存。
@@ -47,6 +49,20 @@ function dataBox(title, rows) {
       )
     )
   );
+}
+
+/**
+ * アイテムの箱に出す行。
+ * アプリ側のデータ（ITEMS）のうしろに、育成計算タブで入れたぶんを並べる。
+ * 名前も効果も空の行（追加した直後でまだ書いていない行）は出さない。
+ */
+function itemRows() {
+  return [
+    ...ITEMS,
+    ...state.items
+      .filter((i) => i.name || i.effect)
+      .map((i) => ({ name: i.name, detail: i.effect })),
+  ];
 }
 
 /* ---------- 再生メモ ---------- */
@@ -178,7 +194,7 @@ export function render() {
       'div',
       { class: 'ref-grid' },
       dataBox('ローテ', ROTATION),
-      dataBox('アイテム', ITEMS),
+      dataBox('アイテム', itemRows()),
       dataBox('合体素材', COMBI),
       notesBox(),
       linksBox()

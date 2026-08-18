@@ -188,6 +188,37 @@ ok((await page.locator('#memo').inputValue())==='テストメモ123','ピクシ�
 await page.locator('.chip__name', {hasText:'ライガー'}).click();
 ok((await page.locator('#memo').inputValue())==='','ライガーのメモは空');
 
+console.log('— アイテム —');
+await page.click('#tab-simulator');
+await page.click('#subtab-item');
+ok(await page.locator('#subpane-item').isVisible(),'アイテムタブが表示');
+const subOrder = await page.locator('.subtabs__btn').allTextContents();
+ok(subOrder.join(',')==='基本設定,育成計画,アイテム,結果','育成計画と結果の間にある: '+subOrder.join(','));
+await page.click('[data-action="item:add"]');
+await page.locator('.item-row__name').first().fill('まずいマタタビ');
+await page.locator('.item-row__effect').first().fill('ちから+5 きふん-10');
+await page.click('[data-action="item:add"]');
+await page.locator('.item-row__name').last().fill('おいしいマタタビ');
+await page.locator('.item-row__effect').last().fill('ちから+10 きふん+5');
+ok((await page.locator('.item-row').count())===2,'アイテムを続けて足せる');
+ok((await page.locator('#itemArea .section-head').textContent()).includes('2件'),'件数が出る');
+// 早見タブに出る
+await page.click('#tab-reference');
+const itemBody = page.locator('.ref-box').nth(1);
+ok((await itemBody.locator('.ref-box__head').textContent()).includes('アイテム'),'2番目の箱がアイテム');
+ok((await itemBody.locator('.ref-row').count())===2,'入れたアイテムが早見に出る');
+ok((await itemBody.locator('.ref-row__name').first().textContent())==='まずいマタタビ','名前が出る');
+ok((await itemBody.locator('.ref-row__detail').first().textContent())==='ちから+5 きふん-10','効果が出る');
+// 名前も効果も空の行は早見に出さない
+await page.click('#tab-simulator');
+await page.click('[data-action="item:add"]');
+await page.click('#tab-reference');
+ok((await page.locator('.ref-box').nth(1).locator('.ref-row').count())===2,'空の行は早見に出ない');
+await page.click('#tab-simulator');
+page.once('dialog',d=>d.accept());
+await page.locator('[data-action="item:del"]').last().click();
+ok((await page.locator('.item-row').count())===2,'アイテムを削除できる');
+
 console.log('— 早見タブ —');
 await page.click('#tab-reference');
 ok(await page.locator('#pane-reference').isVisible(),'早見タブが表示');
@@ -240,6 +271,7 @@ await page.fill('.ref-note [data-field="memo"]','いい石像が出る');
 await page.reload({waitUntil:'networkidle'});
 ok((await page.locator('#tab-reference').getAttribute('aria-selected'))==='true','D8: 早見タブも覚えている');
 ok((await page.locator('.ref-note [data-field="monster"]').inputValue())==='ピクシー','再生メモが保存されている');
+ok((await page.locator('.ref-box').nth(1).locator('.ref-row').count())===2,'アイテムが保存されている');
 ok((await page.locator('.ref-note [data-field="memo"]').inputValue())==='いい石像が出る','自由メモが保存されている');
 ok((await page.locator('.ref-link:has(.ref-link__del) .ref-link__btn').first().textContent()).trim()==='攻略メモ','追加したリンクが保存されている');
 page.once('dialog',d=>d.accept());

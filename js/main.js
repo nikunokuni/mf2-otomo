@@ -10,6 +10,7 @@ import * as tabs from './tabs.js';
 import * as species from './species.js';
 import * as tracker from './tracker/tracker.js';
 import * as simulator from './simulator/simulator.js';
+import * as items from './simulator/items.js';
 import * as reference from './reference/reference.js';
 
 /* ---------- 保存インジケータ ---------- */
@@ -66,6 +67,7 @@ function renderAll() {
   species.renderChips();
   tracker.render();
   simulator.render();
+  items.renderItems();
   reference.render();
 }
 
@@ -79,6 +81,7 @@ function start() {
     ...species.actions,
     ...tracker.actions,
     ...simulator.actions,
+    ...items.actions,
     ...reference.actions,
     ...backupActions,
   });
@@ -91,6 +94,7 @@ function start() {
   registerActions('input', {
     ...tracker.inputActions,
     ...simulator.inputActions,
+    ...items.inputActions,
     ...reference.inputActions,
   });
   startActionDelegation();
@@ -104,7 +108,15 @@ function start() {
     simulator.renderResult();
   });
 
-  tabs.onSubShown((name) => simulator.onSubTabShown(name));
+  tabs.onSubShown((name) => {
+    if (name === 'item') items.renderItems();
+    else simulator.onSubTabShown(name);
+  });
+
+  // アイテムを入れたあとに早見タブへ移ったとき、その場で反映されるように
+  tabs.onTopShown((name) => {
+    if (name === 'reference') reference.render();
+  });
 
   // グリッドの開閉状態を復元
   el('speciesGrid').hidden = !state.ui.gridOpen;

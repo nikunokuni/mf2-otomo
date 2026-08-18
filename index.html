@@ -140,6 +140,9 @@
           <button type="button" class="subtabs__btn" id="subtab-plan" role="tab"
                   aria-selected="false" aria-controls="subpane-plan"
                   data-action="tab:sub" data-tab="plan">育成計画</button>
+          <button type="button" class="subtabs__btn" id="subtab-item" role="tab"
+                  aria-selected="false" aria-controls="subpane-item"
+                  data-action="tab:sub" data-tab="item">アイテム</button>
           <button type="button" class="subtabs__btn" id="subtab-result" role="tab"
                   aria-selected="false" aria-controls="subpane-result"
                   data-action="tab:sub" data-tab="result">結果</button>
@@ -218,6 +221,11 @@
           <div id="planWarnings" style="margin:6px 0"></div>
           <div id="planArea"></div>
           <div class="peach" id="peachArea"></div>
+        </div>
+
+        <!-- アイテム -->
+        <div id="subpane-item" role="tabpanel" aria-labelledby="subtab-item" hidden>
+          <div id="itemArea"></div>
         </div>
 
         <!-- 結果 -->

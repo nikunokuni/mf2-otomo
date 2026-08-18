@@ -66,6 +66,11 @@ export function defaultLink() {
   return { id: newLinkId(), name: '', url: '' };
 }
 
+/** アイテム1件ぶんの初期値（育成計算タブのアイテム。種族に関係なく共通で持つ） */
+export function defaultItem() {
+  return { id: newItemId(), name: '', effect: '' };
+}
+
 function defaultState() {
   return {
     v: 1,
@@ -75,6 +80,7 @@ function defaultState() {
     mon: {},
     notes: [],
     links: [],
+    items: [],
   };
 }
 
@@ -88,6 +94,12 @@ let linkSeq = 0;
 function newLinkId() {
   linkSeq += 1;
   return `l${Date.now().toString(36)}${linkSeq}`;
+}
+
+let itemSeq = 0;
+function newItemId() {
+  itemSeq += 1;
+  return `i${Date.now().toString(36)}${itemSeq}`;
 }
 
 /**
@@ -170,6 +182,9 @@ function normalize(loaded) {
   s.order = Array.isArray(s.order) ? s.order : [];
   s.notes = (Array.isArray(s.notes) ? s.notes : []).map((n) =>
     Object.assign(defaultNote(), n && typeof n === 'object' ? n : {})
+  );
+  s.items = (Array.isArray(s.items) ? s.items : []).map((i) =>
+    Object.assign(defaultItem(), i && typeof i === 'object' ? i : {})
   );
   // 開けない URL（javascript: など）は読み込み時点で落とす
   s.links = (Array.isArray(s.links) ? s.links : [])
@@ -294,6 +309,28 @@ export function addLink(name, url) {
 
 export function removeLink(id) {
   state.links = state.links.filter((l) => l.id !== id);
+  save();
+}
+
+/* ---------- アイテム（育成計算タブ / 早見タブに表示） ---------- */
+
+/** 続けて入力していくので、新しいものは末尾に足す */
+export function addItem() {
+  const item = defaultItem();
+  state.items.push(item);
+  save();
+  return item;
+}
+
+export function updateItem(id, field, value) {
+  const item = state.items.find((i) => i.id === id);
+  if (!item || !(field in item) || field === 'id') return;
+  item[field] = value;
+  save();
+}
+
+export function removeItem(id) {
+  state.items = state.items.filter((i) => i.id !== id);
   save();
 }
 
