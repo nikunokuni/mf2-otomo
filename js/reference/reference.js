@@ -2,27 +2,29 @@
    早見タブ
    -----------------------------------------------------------
    育成中に「あれ、どうだったっけ」となる情報を、
-   4つの箱に並べてさっと確認するための画面。
+   箱に並べてさっと確認するための画面。
 
    ・ローテ / アイテム / 合体素材 … アプリ側のデータを表示する。
      中身は js/data/reference-data.js に書く。
    ・再生メモ … ユーザーが自分で書いて残す。state.notes に保存。
+   ・リンク集 … あらかじめ入れた3つ（LINKS）に加えて、
+     ユーザーが名前とURLを足せる。足したぶんは state.links に保存。
 
    箱の高さは固定で、あふれたぶんは箱の中だけがスクロールする
    （高さは css/reference.css の --ref-box-height）。
    =========================================================== */
 
-import { ROTATION, ITEMS, COMBI } from '../data/reference-data.js';
-import { state, addNote, updateNote, removeNote } from '../store.js';
+import { ROTATION, ITEMS, COMBI, LINKS } from '../data/reference-data.js';
+import { state, addNote, updateNote, removeNote, addLink, removeLink } from '../store.js';
 import { el, h, replace } from '../dom.js';
 
 /* ---------- 箱の枠 ---------- */
 
 /** 見出しが固定で、中身だけスクロールする箱をつくる */
-function box(title, body, headExtra = null) {
+function box(title, body, headExtra = null, extraClass = '') {
   return h(
     'section',
-    { class: 'card ref-box' },
+    { class: 'card ref-box' + (extraClass ? ' ' + extraClass : '') },
     h('div', { class: 'section-head ref-box__head' }, h('span', { text: title }), headExtra),
     h('div', { class: 'ref-box__body' }, ...[].concat(body))
   );
@@ -99,6 +101,72 @@ function notesBox() {
   return box('再生メモ', body, addBtn);
 }
 
+/* ---------- リンク集 ---------- */
+
+/** 名前がそのままボタンになる。押すと別タブでリンクを開く */
+function linkButton(link, deletable) {
+  return h(
+    'div',
+    { class: 'ref-link' },
+    h('a', {
+      class: 'ref-link__btn',
+      text: link.name,
+      href: link.url,
+      attrs: { target: '_blank', rel: 'noopener noreferrer', title: link.url },
+    }),
+    deletable
+      ? h('button', {
+          type: 'button',
+          class: 'ref-link__del',
+          text: '×',
+          dataset: { action: 'ref:delLink', id: link.id },
+          attrs: { 'aria-label': `${link.name} を削除` },
+        })
+      : null
+  );
+}
+
+function linksBox() {
+  const form = h(
+    'div',
+    { class: 'ref-link-form' },
+    h('input', {
+      type: 'text',
+      id: 'refLinkName',
+      class: 'ref-link-form__input',
+      placeholder: '名前',
+      attrs: { 'aria-label': 'リンクの名前' },
+    }),
+    h('input', {
+      type: 'url',
+      id: 'refLinkUrl',
+      class: 'ref-link-form__input',
+      placeholder: 'https://…',
+      attrs: { 'aria-label': 'リンクのURL' },
+    }),
+    h('button', {
+      type: 'button',
+      class: 'btn btn--sm btn--primary',
+      text: '追加',
+      dataset: { action: 'ref:addLink' },
+    })
+  );
+
+  return box(
+    'リンク集',
+    [
+      h('div', { class: 'ref-links' }, LINKS.map((link) => linkButton(link, false))),
+      state.links.length
+        ? h('div', { class: 'ref-links' }, state.links.map((link) => linkButton(link, true)))
+        : null,
+      form,
+      h('div', { class: 'ref-link-form__error', id: 'refLinkError' }),
+    ],
+    null,
+    'ref-box--links'
+  );
+}
+
 /* ---------- 描画 ---------- */
 
 export function render() {
@@ -112,7 +180,8 @@ export function render() {
       dataBox('ローテ', ROTATION),
       dataBox('アイテム', ITEMS),
       dataBox('合体素材', COMBI),
-      notesBox()
+      notesBox(),
+      linksBox()
     )
   );
 }
@@ -129,6 +198,33 @@ export const actions = {
   'ref:delNote': (target) => {
     if (!confirm('このメモを削除します。よろしいですか？')) return;
     removeNote(target.dataset.id);
+    render();
+  },
+
+  'ref:addLink': () => {
+    const nameInput = el('refLinkName');
+    const urlInput = el('refLinkUrl');
+    const error = el('refLinkError');
+    const name = nameInput.value.trim();
+
+    if (!name) {
+      error.textContent = '名前を入力してください';
+      nameInput.focus();
+      return;
+    }
+    // http/https 以外は addLink 側で弾かれる
+    if (!addLink(name, urlInput.value)) {
+      error.textContent = 'リンクは http:// か https:// で始まるURLを入れてください';
+      urlInput.focus();
+      return;
+    }
+    render();
+    el('refLinkName').focus();
+  },
+
+  'ref:delLink': (target) => {
+    if (!confirm('このリンクを削除します。よろしいですか？')) return;
+    removeLink(target.dataset.id);
     render();
   },
 };

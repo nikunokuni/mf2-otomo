@@ -1,8 +1,9 @@
 /* ===========================================================
    早見タブ
    -----------------------------------------------------------
-   4つの箱を並べる。箱の高さは固定で、あふれた中身は
+   箱を並べる。箱の高さは固定で、あふれた中身は
    ページではなく箱の中だけがスクロールする。
+   一番下のリンク集だけは中身に合わせて伸びる。
    =========================================================== */
 
 .ref-grid {
@@ -111,5 +112,88 @@
 }
 .ref-note__del:hover {
   background: var(--color-background-secondary);
+  color: var(--color-ng);
+}
+
+/* --- リンク集（一番下） --- */
+.ref-box--links {
+  height: auto;
+}
+@media (min-width: 560px) {
+  /* 2列のときは一番下で横いっぱいに広げる */
+  .ref-box--links {
+    grid-column: 1 / -1;
+  }
+}
+
+.ref-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ref-link {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+/* 名前そのものがボタン。タップでリンクを開く */
+.ref-link__btn {
+  display: inline-block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: var(--hairline) solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+.ref-link__btn:hover {
+  background: var(--color-background-secondary);
+}
+.ref-link__btn:active {
+  transform: scale(0.97);
+}
+/* 削除ボタンが付くときは、ボタンの右側を平らにしてくっつける */
+.ref-link:has(.ref-link__del) .ref-link__btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.ref-link__del {
+  flex: 0 0 auto;
+  width: 26px;
+  border: var(--hairline) solid var(--color-border-secondary);
+  border-left: none;
+  border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ref-link__del:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-ng);
+}
+
+.ref-link-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: var(--hairline) solid var(--color-border-tertiary);
+}
+.ref-link-form__input {
+  flex: 1 1 8rem;
+  min-width: 0;
+  font-size: 13px;
+}
+.ref-link-form__error:not(:empty) {
+  margin-top: 6px;
+  font-size: 11px;
   color: var(--color-ng);
 }

@@ -61,6 +61,11 @@ export function defaultNote() {
   return { id: newNoteId(), monster: '', title: '', singer: '', memo: '' };
 }
 
+/** リンク1件ぶんの初期値（早見タブのリンク集。ユーザーが足したぶん） */
+export function defaultLink() {
+  return { id: newLinkId(), name: '', url: '' };
+}
+
 function defaultState() {
   return {
     v: 1,
@@ -69,6 +74,7 @@ function defaultState() {
     order: [],
     mon: {},
     notes: [],
+    links: [],
   };
 }
 
@@ -76,6 +82,28 @@ let noteSeq = 0;
 function newNoteId() {
   noteSeq += 1;
   return `n${Date.now().toString(36)}${noteSeq}`;
+}
+
+let linkSeq = 0;
+function newLinkId() {
+  linkSeq += 1;
+  return `l${Date.now().toString(36)}${linkSeq}`;
+}
+
+/**
+ * リンクとして開いてよい URL だけを通す。
+ * スキームがなければ https:// を補い、http/https 以外（javascript: など）は空文字で弾く。
+ */
+export function safeUrl(raw) {
+  const text = String(raw == null ? '' : raw).trim();
+  if (!text) return '';
+  const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(text) ? text : 'https://' + text;
+  try {
+    const url = new URL(withScheme);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+  } catch (e) {
+    return '';
+  }
 }
 
 export const state = defaultState();
@@ -143,6 +171,11 @@ function normalize(loaded) {
   s.notes = (Array.isArray(s.notes) ? s.notes : []).map((n) =>
     Object.assign(defaultNote(), n && typeof n === 'object' ? n : {})
   );
+  // 開けない URL（javascript: など）は読み込み時点で落とす
+  s.links = (Array.isArray(s.links) ? s.links : [])
+    .map((l) => Object.assign(defaultLink(), l && typeof l === 'object' ? l : {}))
+    .map((l) => Object.assign(l, { name: String(l.name || ''), url: safeUrl(l.url) }))
+    .filter((l) => l.name && l.url);
 
   Object.keys(s.mon).forEach((name) => {
     const d = defaultMon();
@@ -245,6 +278,22 @@ export function updateNote(id, field, value) {
 
 export function removeNote(id) {
   state.notes = state.notes.filter((n) => n.id !== id);
+  save();
+}
+
+/* ---------- リンク集（早見タブ） ---------- */
+
+/** 追加できたら追加した1件を、名前かURLが不正なら null を返す */
+export function addLink(name, url) {
+  const link = Object.assign(defaultLink(), { name: String(name || '').trim(), url: safeUrl(url) });
+  if (!link.name || !link.url) return null;
+  state.links.push(link);
+  save();
+  return link;
+}
+
+export function removeLink(id) {
+  state.links = state.links.filter((l) => l.id !== id);
   save();
 }
 

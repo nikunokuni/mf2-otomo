@@ -172,9 +172,29 @@ await page.click('#tab-reference');
 ok(await page.locator('#pane-reference').isVisible(),'早見タブが表示');
 const visibleTop = await page.evaluate(()=>['tracker','simulator','reference'].filter(t=>!document.getElementById('pane-'+t).hidden));
 ok(visibleTop.length===1 && visibleTop[0]==='reference','上位タブはちょうど1つだけ表示: '+visibleTop.join(','));
-ok((await page.locator('.ref-box').count())===4,'4つの箱が並ぶ');
+ok((await page.locator('.ref-box').count())===5,'5つの箱が並ぶ');
 const boxTitles = await page.locator('.ref-box__head').allTextContents();
-ok(boxTitles.map(t=>t.replace('＋ 追加','').trim()).join(',')==='ローテ,アイテム,合体素材,再生メモ','箱の並び: '+boxTitles.join(','));
+ok(boxTitles.map(t=>t.replace('＋ 追加','').trim()).join(',')==='ローテ,アイテム,合体素材,再生メモ,リンク集','箱の並び: '+boxTitles.join(','));
+
+console.log('— リンク集 —');
+ok((await page.locator('.ref-box--links').count())===1,'リンク集の箱が一番下にある');
+ok((await page.locator('.ref-link__btn').count())===3,'あらかじめ3つのリンクが入っている');
+ok((await page.locator('.ref-link__del').count())===0,'あらかじめ入っているリンクは消せない');
+// 名前だけ / URLだけではエラーになる
+await page.click('[data-action="ref:addLink"]');
+ok((await page.locator('#refLinkError').textContent()).includes('名前'),'名前が空ならエラー');
+await page.fill('#refLinkName','攻略メモ');
+await page.fill('#refLinkUrl','javascript:alert(1)');
+await page.click('[data-action="ref:addLink"]');
+ok((await page.locator('.ref-link__del').count())===0,'http/https 以外のURLは追加されない');
+ok((await page.locator('#refLinkError').textContent()).includes('http'),'URLが不正ならエラー');
+await page.fill('#refLinkUrl','example.com/mf2');
+await page.click('[data-action="ref:addLink"]');
+ok((await page.locator('.ref-link__del').count())===1,'自分のリンクを追加できる');
+const addedLink = page.locator('.ref-link:has(.ref-link__del) .ref-link__btn').first();
+ok((await addedLink.textContent()).trim()==='攻略メモ','名前がボタンになる');
+ok((await addedLink.getAttribute('href'))==='https://example.com/mf2','スキームがなければ https:// を補う');
+ok((await addedLink.getAttribute('target'))==='_blank','別タブで開く');
 
 console.log('— 箱の中だけスクロール —');
 const scrollable = await page.evaluate(()=>{
@@ -183,10 +203,11 @@ const scrollable = await page.evaluate(()=>{
 });
 ok(scrollable,'各箱の本文が縦スクロール領域になっている');
 const fixedHeight = await page.evaluate(()=>{
-  const h=[...document.querySelectorAll('.ref-box')].map(x=>Math.round(x.getBoundingClientRect().height));
-  return h.every(v=>v===h[0]);
+  // リンク集だけは中身に合わせて伸びるので、高さ固定の対象は上の4つ
+  const h=[...document.querySelectorAll('.ref-box:not(.ref-box--links)')].map(x=>Math.round(x.getBoundingClientRect().height));
+  return h.length===4 && h.every(v=>v===h[0]);
 });
-ok(fixedHeight,'箱の高さが固定（4つとも同じ）');
+ok(fixedHeight,'箱の高さが固定（リンク集をのぞく4つとも同じ）');
 
 console.log('— 再生メモ —');
 await page.click('[data-action="ref:addNote"]');
@@ -199,6 +220,11 @@ await page.reload({waitUntil:'networkidle'});
 ok((await page.locator('#tab-reference').getAttribute('aria-selected'))==='true','D8: 早見タブも覚えている');
 ok((await page.locator('.ref-note [data-field="monster"]').inputValue())==='ピクシー','再生メモが保存されている');
 ok((await page.locator('.ref-note [data-field="memo"]').inputValue())==='いい石像が出る','自由メモが保存されている');
+ok((await page.locator('.ref-link:has(.ref-link__del) .ref-link__btn').first().textContent()).trim()==='攻略メモ','追加したリンクが保存されている');
+page.once('dialog',d=>d.accept());
+await page.locator('[data-action="ref:delLink"]').first().click();
+ok((await page.locator('.ref-link__del').count())===0,'追加したリンクを削除できる');
+ok((await page.locator('.ref-link__btn').count())===3,'削除してもあらかじめ入っている3つは残る');
 const beforeScroll = await page.evaluate(()=>document.documentElement.scrollHeight);
 for(let i=0;i<6;i++) await page.click('[data-action="ref:addNote"]');
 ok((await page.locator('.ref-note').count())===7,'メモを増やせる');

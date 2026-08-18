@@ -16,3 +16,14 @@ export const ITEMS = [];
 
 /** 合体素材 */
 export const COMBI = [];
+
+/**
+ * リンク集にあらかじめ入れておくもの。
+ * ユーザーが早見タブから足したぶんは state.links に入るので、ここは触らない。
+ * 差し替えるときは name と url を書き換えるだけでよい。
+ */
+export const LINKS = [
+  { name: '公式サイト', url: 'https://www.gamecity.ne.jp/mf2/' },
+  { name: 'Wikipedia', url: 'https://ja.wikipedia.org/wiki/モンスターファーム2' },
+  { name: '円盤石を検索', url: 'https://www.google.com/search?q=モンスターファーム2+円盤石' },
+];
