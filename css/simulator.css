@@ -143,6 +143,13 @@
   color: var(--color-ng);
   font-weight: 600;
 }
+/* その段階が始まる時期（○月◎週） */
+.stage-date {
+  display: block;
+  font-size: 10px;
+  text-align: center;
+  color: var(--color-text-tertiary);
+}
 
 .plan-table select,
 .plan-table input[type='number'] {

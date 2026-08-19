@@ -17,6 +17,8 @@ import {
   validatePlan,
   peachExtra,
   peachTiming,
+  stageStartOffsets,
+  weekToDate,
   heavyGain,
   lightGain,
 } from './growth-calc.js';
@@ -259,7 +261,14 @@ function planRow(g, si, idx, set, rowspanCells) {
   );
 }
 
-function planTable(g, stageWeeks) {
+/** 段階が始まる時期。「○月◎週」で出す（分からないときは空） */
+function stageDateLabel(s, offset) {
+  if (offset === null || offset === undefined) return '';
+  const d = weekToDate(s.month, s.week, offset);
+  return `${d.month}月${d.week}週`;
+}
+
+function planTable(g, stageWeeks, starts) {
   const s = sim();
   const head = h('thead', {},
     h('tr', {},
@@ -269,9 +278,9 @@ function planTable(g, stageWeeks) {
       h('th', { class: 'col-num', text: '回/月' }),
       h('th', { class: 'col-train', text: '軽トレ' }),
       h('th', { class: 'col-num', text: '自動' }),
-      h('th', { class: 'col-num', text: `大会(${EV_COST.tc}週)` }),
-      h('th', { class: 'col-num', text: `修行(${EV_COST.mc}週)` }),
-      h('th', { class: 'col-num', text: `冒険(${EV_COST.ac}週)` }),
+      h('th', { class: 'col-num', text: `大会(-${EV_COST.tc})` }),
+      h('th', { class: 'col-num', text: `修行(-${EV_COST.mc})` }),
+      h('th', { class: 'col-num', text: `冒険(-${EV_COST.ac})` }),
       h('th', { class: 'col-num', text: '割当週' }),
       h('th', { style: 'width:32px' })
     )
@@ -294,7 +303,8 @@ function planTable(g, stageWeeks) {
                   class: 'stage-weeks ' + (used > total ? 'stage-weeks--over' : 'stage-weeks--ok'),
                   id: `stageWeeks-${g}-${si}`,
                   text: `${used}/${total}週`,
-                })
+                }),
+                h('span', { class: 'stage-date', text: stageDateLabel(s, starts && starts[si]) })
               ),
               h('td', { attrs: { rowspan: sets.length } },
                 h('button', {
@@ -316,7 +326,7 @@ function planTable(g, stageWeeks) {
   );
 }
 
-function renderPeach(groups) {
+function renderPeach(groups, starts) {
   const s = sim();
   const blocks = [0, 1].map((pi) => {
     const p = s.peach[pi];
@@ -352,7 +362,7 @@ function renderPeach(groups) {
       controls,
       h('div', { class: 'peach__sub', text: `「${STAGES[p.si]}」開始から${extra}週ぶん：計${total}週` }),
       h('div', { class: 'peach__timing' + (timing.over ? ' peach__timing--over' : ''), text: timingText }),
-      planTable(pi + 1, weeks)
+      planTable(pi + 1, weeks, starts[pi + 1])
     );
   });
 
@@ -379,8 +389,9 @@ export function renderPlan() {
   if (!s) return;
   normalizePlan(s); // B5: 寿命や成長タイプを変えたら週数を計算し直す
   const groups = stageWeeksByGroup(s);
-  replace(el('planArea'), planTable(0, groups[0]), gainLegend());
-  renderPeach(groups);
+  const starts = stageStartOffsets(s);
+  replace(el('planArea'), planTable(0, groups[0], starts[0]), gainLegend());
+  renderPeach(groups, starts);
   renderWarnings();
   save();
 }

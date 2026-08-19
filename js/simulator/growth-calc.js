@@ -73,6 +73,76 @@ export function peachTiming(totalLife, gtype, useSi, extra) {
   return { week, si: null, weekInStage: null, over: true };
 }
 
+/**
+ * 育成開始（startMonth月 startWeek週）から offset 週あとが、何月何週か。
+ * 4週で1か月、12か月で1年。year は0から数えた経過年数。
+ */
+export function weekToDate(startMonth, startWeek, offset) {
+  const total = (startMonth - 1) * 4 + (startWeek - 1) + offset;
+  return {
+    year: Math.floor(total / 48),
+    month: (Math.floor(total / 4) % 12) + 1,
+    week: (total % 4) + 1,
+  };
+}
+
+/**
+ * 各段階が始まるのが、育成開始から数えて暦の何週目かを返す。
+ * groups[g][si] = 週数（0始まり）。その段階が無いときは null。
+ *
+ * 桃を使うと年齢だけ戻って暦は進み続けるので、
+ * 桃を与えたあとの段階は、そのぶん暦がうしろにずれる。
+ *
+ * ※ イベント（大会・修行・冒険）は減る寿命と実際に進む週数が違うため、
+ *   計画にイベントを入れると、ここで出す暦とは実際にはずれる。
+ *   いまは「育成開始 ＋ 段階の週数」だけで出している。
+ */
+export function stageStartOffsets(sim) {
+  const base = calcStageWeeks(sim.life, sim.gtype);
+
+  // 桃を与える時点（年齢の週）と、そこで暦だけ余分に進む週数
+  const peaches = [];
+  for (let pi = 0; pi < 2; pi++) {
+    const p = sim.peach[pi];
+    if (!p || !p.use) continue;
+    const extra = peachExtra(pi);
+    const at = stageStartWeek(base, p.si) + extra;
+    if (at >= sim.life) continue; // 寿命を超えるなら使えない
+    peaches.push({ pi, at, extra });
+  }
+  peaches.sort((a, b) => a.at - b.at);
+
+  /** 年齢の週 → 暦の週 */
+  const toCalendar = (age) =>
+    age + peaches.reduce((sum, p) => sum + (age > p.at ? p.extra : 0), 0);
+
+  const normal = new Array(10).fill(null);
+  let cursor = 0;
+  for (let si = 0; si < 10; si++) {
+    if (base[si] > 0) normal[si] = toCalendar(cursor);
+    cursor += base[si];
+  }
+
+  const groups = [normal];
+  for (let pi = 0; pi < 2; pi++) {
+    const list = new Array(10).fill(null);
+    const used = peaches.find((x) => x.pi === pi);
+    if (used) {
+      // 桃を与えた週から、戻ったぶんの段階を順にたどる
+      let at = toCalendar(used.at);
+      const weeks = calcPeachWeeks(sim.life, sim.gtype, sim.peach[pi].si, used.extra);
+      for (let si = 0; si < 10; si++) {
+        if (weeks[si] > 0) {
+          list[si] = at;
+          at += weeks[si];
+        }
+      }
+    }
+    groups.push(list);
+  }
+  return groups;
+}
+
 /** 桃で追加される週数（黄金桃 +50 / 白銀桃 +25） */
 export function peachExtra(peachIndex) {
   return peachIndex === 0 ? 50 : 25;

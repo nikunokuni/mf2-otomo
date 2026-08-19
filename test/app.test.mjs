@@ -135,20 +135,40 @@ const weekInput = weekCell.locator('input[type="number"]').last();
 const trainWeeks = weekCell.locator('.train-weeks');
 const assigned = Number(await weekInput.inputValue());
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'イベント0なら割当週と同じ');
-// 大会1回=4週 ぶんだけ減る
+// 大会1回=寿命-4 ぶんだけ減る
 await weekCell.locator('input[type="number"]').nth(1).fill('1');
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned-4}週`,'大会1回で4週減る: '+(await trainWeeks.textContent()));
-// 修行1回=5週 も足すと合わせて9週減る
+// 修行1回=寿命-7 も足すと合わせて11週減る
 await weekCell.locator('input[type="number"]').nth(2).fill('1');
-ok((await trainWeeks.textContent()).trim()===`トレ${assigned-9}週`,'修行1回でさらに5週減る: '+(await trainWeeks.textContent()));
+ok((await trainWeeks.textContent()).trim()===`トレ${assigned-11}週`,'修行1回でさらに7週減る: '+(await trainWeeks.textContent()));
 ok(Number(await weekInput.inputValue())===assigned,'イベントを入れても割当週は減らない');
 // 割当週を超えるイベントは赤くなる
 await weekInput.fill('5');
+ok((await page.locator('.plan-table thead').first().textContent()).includes('大会(-4)'),'ヘッダーに寿命の減りが出る');
 ok((await trainWeeks.getAttribute('class')).includes('train-weeks--over'),'割当週より多いイベントは警告色');
 await weekCell.locator('input[type="number"]').nth(1).fill('0');
 await weekCell.locator('input[type="number"]').nth(2).fill('0');
 await weekInput.fill(String(assigned));
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'戻せば元に戻る');
+
+console.log('— 段階が始まる時期 —');
+await page.click('#subtab-basic');
+await page.fill('#simMonth','4');
+await page.selectOption('#simWeek','1');
+await page.fill('#simLife','300');
+await page.selectOption('#simGtype','futsuu');
+await page.click('#subtab-plan');
+await page.waitForSelector('.plan-table .stage-date');
+const dates = await page.locator('.plan-table').first().locator('.stage-date').allTextContents();
+ok(dates[0]==='4月1週','1段階は育成開始と同じ: '+dates[0]);
+// 寿命300・普通型なら 1段階30週 → 2段階は30週後 = 11月3週
+ok(dates[1]==='11月3週','2段階は30週後: '+dates[1]);
+ok(dates.every(d=>/^\d+月[1-4]週$/.test(d)),'すべて○月◎週の形: '+dates.join(','));
+// このあとの保存テストのために設定を戻す
+await page.click('#subtab-basic');
+await page.fill('#simLife','400');
+await page.selectOption('#simGtype','bansei');
+await page.click('#subtab-plan');
 
 console.log('— 計算実行 —');
 await page.click('[data-action="sim:calc"]');
