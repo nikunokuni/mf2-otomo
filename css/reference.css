@@ -119,12 +119,13 @@
 }
 
 /* --- リンク集（一番下） --- */
-.ref-box--links {
+/* リンク集とバックアップは中身が少ないので、高さを中身に合わせる */
+.ref-box--auto {
   height: auto;
 }
 @media (min-width: 560px) {
-  /* 2列のときは一番下で横いっぱいに広げる */
-  .ref-box--links {
+  /* 2列のときは横いっぱいに広げる */
+  .ref-box--auto {
     grid-column: 1 / -1;
   }
 }
@@ -199,4 +200,83 @@
   margin-top: 6px;
   font-size: 11px;
   color: var(--color-ng);
+}
+
+/* --- アイテムの箱（収録ぶんは読むだけ、自分で足したぶんは直せる） --- */
+.item-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0;
+  border-bottom: var(--hairline) solid var(--color-border-tertiary);
+}
+.item-row:last-child {
+  border-bottom: none;
+}
+.item-row__no {
+  flex: 0 0 auto;
+  min-width: 1.6rem;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.item-row__input {
+  min-width: 0;
+  font-size: 13px;
+}
+.item-row__name {
+  flex: 1 1 7rem;
+}
+/* 狭い画面では効果を次の行に回して、どちらの欄も広く使えるようにする */
+.item-row__effect {
+  flex: 1 1 100%;
+}
+@media (min-width: 560px) {
+  .item-row__effect {
+    flex: 2 1 10rem;
+  }
+  /* 1行に収まるときは × を右端へ */
+  .item-row__del {
+    order: 1;
+  }
+}
+.item-row__del {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.item-row__del:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-ng);
+}
+
+.item-group__title {
+  margin: 12px 0 2px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+/* アプリに入っているぶん（読むだけ） */
+.item-row--fixed {
+  align-items: baseline;
+}
+.item-row__text {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  word-break: break-word;
+}
+.item-row--fixed .item-row__name {
+  color: var(--color-text-primary);
+}
+/* 効果が次の行に回ったとき、名前の位置に揃える */
+.item-row--fixed .item-row__effect {
+  padding-left: calc(1.6rem + 6px);
 }

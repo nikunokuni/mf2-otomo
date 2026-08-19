@@ -17,34 +17,25 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/monster.css">
   <link rel="stylesheet" href="css/tracker.css">
   <link rel="stylesheet" href="css/simulator.css">
   <link rel="stylesheet" href="css/reference.css">
 </head>
 <body>
 
-<div class="app">
+<!-- 保存の合図。どのタブでも同じ位置に浮かせる -->
+<span id="saveIndicator" class="save-indicator">✓ 保存済み</span>
 
-  <!-- ===== 種族の選択（両タブ共通） ===== -->
-  <div class="card">
-    <div class="section-head">
-      モンスターを選択
-      <span id="saveIndicator" class="save-indicator">✓ 保存済み</span>
-    </div>
-    <div id="migrationNotice" class="callout callout--ok" hidden>
-      以前の「使い込みトラッカー」の記録を引き継ぎました。
-    </div>
-    <button type="button" class="btn btn--primary btn--block" id="speciesGridToggle"
-            data-action="species:toggleGrid" aria-expanded="false" aria-controls="speciesGrid"
-            style="margin-bottom:10px">＋ 種族を選んで追加</button>
-    <div class="monster-grid" id="speciesGrid" hidden></div>
-    <div id="speciesChips" class="chips"></div>
-  </div>
+<div class="app">
 
   <!-- ===== 上位タブ ===== -->
   <div class="tabbar" role="tablist" aria-label="表示の切り替え">
+    <button type="button" class="tabbar__btn" id="tab-monster" role="tab"
+            aria-selected="true" aria-controls="pane-monster"
+            data-action="tab:top" data-tab="monster">モンスター</button>
     <button type="button" class="tabbar__btn" id="tab-tracker" role="tab"
-            aria-selected="true" aria-controls="pane-tracker"
+            aria-selected="false" aria-controls="pane-tracker"
             data-action="tab:top" data-tab="tracker">使い込み</button>
     <button type="button" class="tabbar__btn" id="tab-simulator" role="tab"
             aria-selected="false" aria-controls="pane-simulator"
@@ -54,11 +45,95 @@
             data-action="tab:top" data-tab="reference">早見</button>
   </div>
 
+  <!-- 選択中の種族。早見タブは種族に関係ないので、そのときだけ隠す -->
+  <div id="speciesBar" class="species-bar">
+    <div id="speciesChips" class="chips"></div>
+  </div>
+
+  <!-- ===== モンスタータブ ===== -->
+  <div id="pane-monster" role="tabpanel" aria-labelledby="tab-monster">
+
+    <div id="migrationNotice" class="callout callout--ok" hidden>
+      以前の「使い込みトラッカー」の記録を引き継ぎました。
+    </div>
+
+    <div class="card">
+      <div class="section-head">モンスターを選ぶ</div>
+      <button type="button" class="btn btn--primary btn--block" id="speciesGridToggle"
+              data-action="species:toggleGrid" aria-expanded="false" aria-controls="speciesGrid"
+      >＋ 種族を選んで追加</button>
+      <div class="monster-grid" id="speciesGrid" hidden></div>
+    </div>
+
+    <div id="monsterEmpty" class="card">
+      <div class="empty">「＋ 種族を選んで追加」から種族を選んでください</div>
+    </div>
+
+    <!-- そのモンスター1体ぶんの決まった値。使い込みタブと育成計算タブの両方が使う -->
+    <div id="monsterSpec" class="card" hidden>
+      <div class="section-head">
+        <span id="specSpeciesLabel"></span>
+        <span class="note">のデータ</span>
+      </div>
+
+      <div class="sim-section">
+        <div class="sim-section__title">成長設定</div>
+        <div class="sim-grid3">
+          <div class="field">
+            <label for="simGtype">成長タイプ</label>
+            <select id="simGtype" data-change="sim:gtype">
+              <option value="hayajuku">早熟</option>
+              <option value="jizoku">持続</option>
+              <option value="futsuu">普通</option>
+              <option value="bansei">晩成</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="simMoral">ヨイワル</label>
+            <!-- -100〜100 を5きざみ。中身は js/monster.js で作る -->
+            <select id="simMoral" data-change="sim:moral"></select>
+          </div>
+          <div class="field">
+            <label for="simLife">寿命（週）</label>
+            <div class="sim-row" style="gap:4px;flex-wrap:nowrap">
+              <button type="button" class="stepper" data-action="sim:lifeStep" data-delta="-10"
+                      aria-label="寿命を10週減らす">−</button>
+              <input type="number" id="simLife" min="100" max="600" data-input="sim:life"
+                     style="width:100%;min-width:0">
+              <button type="button" class="stepper" data-action="sim:lifeStep" data-delta="10"
+                      aria-label="寿命を10週増やす">＋</button>
+            </div>
+          </div>
+        </div>
+        <div class="note" style="margin-top:6px">※ ヨイワルは記録用です。現在の計算結果には反映されません。</div>
+      </div>
+
+      <div class="sim-section">
+        <div class="sim-section__title">ガッツ回復速度</div>
+        <div class="sim-row">
+          <label for="gutsRecovery" class="note" style="white-space:nowrap">30ガッツ回復に</label>
+          <select id="gutsRecovery" data-change="tracker:guts" style="width:70px;height:30px"></select>
+          <span class="note">秒（使い込みタブの理想回数に使う）</span>
+        </div>
+      </div>
+
+      <div class="sim-section">
+        <div class="sim-section__title">各パラメータの成長適正</div>
+        <div class="apt-grid" id="aptGrid"></div>
+      </div>
+
+      <div class="sim-section">
+        <div class="sim-section__title">初期パラメーター</div>
+        <div id="initStats"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== 使い込みタブ ===== -->
-  <div id="pane-tracker" role="tabpanel" aria-labelledby="tab-tracker">
+  <div id="pane-tracker" role="tabpanel" aria-labelledby="tab-tracker" hidden>
 
     <div id="trackerEmpty" class="card">
-      <div class="empty">上の「＋ 種族を選んで追加」から種族を選んでください</div>
+      <div class="empty">「モンスター」タブから種族を選んでください</div>
     </div>
 
     <!-- 技の選択 -->
@@ -81,12 +156,6 @@
                   data-action="tracker:openPicker" style="margin-left:auto">技を変更</button>
         </div>
 
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <label for="gutsRecovery" class="note" style="white-space:nowrap">ガッツ回復：</label>
-          <select id="gutsRecovery" data-change="tracker:guts" style="width:70px;height:30px"></select>
-          <span class="note">秒 / 30ガッツ</span>
-        </div>
-
         <div class="scroll-x">
           <table class="table">
             <thead>
@@ -102,6 +171,7 @@
             <tbody id="techBody"></tbody>
           </table>
         </div>
+        <div id="gutsHint" class="note" style="margin-top:6px"></div>
 
         <div id="sessionControls" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"></div>
       </div>
@@ -123,7 +193,7 @@
   <div id="pane-simulator" role="tabpanel" aria-labelledby="tab-simulator" hidden>
 
     <div id="simEmpty" class="card">
-      <div class="empty">上の「＋ 種族を選んで追加」から種族を選んでください</div>
+      <div class="empty">「モンスター」タブから種族を選んでください</div>
     </div>
 
     <div id="simBody" hidden>
@@ -134,22 +204,19 @@
         </div>
 
         <div class="subtabs" role="tablist" aria-label="育成計算の表示切り替え">
-          <button type="button" class="subtabs__btn" id="subtab-basic" role="tab"
-                  aria-selected="true" aria-controls="subpane-basic"
-                  data-action="tab:sub" data-tab="basic">基本設定</button>
           <button type="button" class="subtabs__btn" id="subtab-plan" role="tab"
-                  aria-selected="false" aria-controls="subpane-plan"
+                  aria-selected="true" aria-controls="subpane-plan"
                   data-action="tab:sub" data-tab="plan">育成計画</button>
-          <button type="button" class="subtabs__btn" id="subtab-item" role="tab"
-                  aria-selected="false" aria-controls="subpane-item"
-                  data-action="tab:sub" data-tab="item">アイテム</button>
+          <button type="button" class="subtabs__btn" id="subtab-rotation" role="tab"
+                  aria-selected="false" aria-controls="subpane-rotation"
+                  data-action="tab:sub" data-tab="rotation">調整ローテ</button>
           <button type="button" class="subtabs__btn" id="subtab-result" role="tab"
                   aria-selected="false" aria-controls="subpane-result"
                   data-action="tab:sub" data-tab="result">結果</button>
         </div>
 
-        <!-- 基本設定 -->
-        <div id="subpane-basic" role="tabpanel" aria-labelledby="subtab-basic">
+        <!-- 育成計画 -->
+        <div id="subpane-plan" role="tabpanel" aria-labelledby="subtab-plan">
           <div class="sim-section">
             <div class="sim-section__title">育成開始時期</div>
             <div class="sim-row">
@@ -162,54 +229,14 @@
                 <option value="3">第3週</option>
                 <option value="4">第4週</option>
               </select>
-            </div>
-            <div class="note" style="margin-top:6px">※ 開始時期とヨイワルは記録用です。現在の計算結果には反映されません。</div>
-          </div>
-
-          <div class="sim-section">
-            <div class="sim-section__title">成長設定</div>
-            <div class="sim-grid3">
-              <div class="field">
-                <label for="simGtype">成長タイプ</label>
-                <select id="simGtype" data-change="sim:gtype">
-                  <option value="hayajuku">早熟</option>
-                  <option value="jizoku">持続</option>
-                  <option value="futsuu">普通</option>
-                  <option value="bansei">晩成</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="simMoral">ヨイワル</label>
-                <!-- -100〜100 を5きざみ。中身は js/simulator/simulator.js で作る -->
-                <select id="simMoral" data-change="sim:moral"></select>
-              </div>
-              <div class="field">
-                <label for="simLife">寿命（週）</label>
-                <div class="sim-row" style="gap:4px;flex-wrap:nowrap">
-                  <button type="button" class="stepper" data-action="sim:lifeStep" data-delta="-10"
-                          aria-label="寿命を10週減らす">−</button>
-                  <input type="number" id="simLife" min="100" max="600" data-input="sim:life"
-                         style="width:100%;min-width:0">
-                  <button type="button" class="stepper" data-action="sim:lifeStep" data-delta="10"
-                          aria-label="寿命を10週増やす">＋</button>
-                </div>
-              </div>
+              <span class="note">から育て始める</span>
             </div>
           </div>
 
-          <div class="sim-section">
-            <div class="sim-section__title">各パラメータの成長適正</div>
-            <div class="apt-grid" id="aptGrid"></div>
-          </div>
+          <!-- 成長適正は上昇値に効くので、計画を組みながら見えるようにしておく
+               （書き換えるのはモンスタータブ） -->
+          <div id="planApt" class="plan-apt"></div>
 
-          <div class="sim-section">
-            <div class="sim-section__title">初期パラメーター</div>
-            <div id="initStats"></div>
-          </div>
-        </div>
-
-        <!-- 育成計画 -->
-        <div id="subpane-plan" role="tabpanel" aria-labelledby="subtab-plan" hidden>
           <div class="callout callout--info">
             重トレの回数を入れると、軽トレは自動で「4 − 重トレ」になります。<br>
             イベントとアイテムで減る寿命は割当週から差し引いて計算します。
@@ -223,9 +250,9 @@
           <div class="peach" id="peachArea"></div>
         </div>
 
-        <!-- アイテム -->
-        <div id="subpane-item" role="tabpanel" aria-labelledby="subtab-item" hidden>
-          <div id="itemArea"></div>
+        <!-- 調整ローテ（育成計画の短期詳細版。これから作る） -->
+        <div id="subpane-rotation" role="tabpanel" aria-labelledby="subtab-rotation" hidden>
+          <div id="rotationArea"></div>
         </div>
 
         <!-- 結果 -->
@@ -233,7 +260,7 @@
           <div id="resultArea"></div>
         </div>
 
-        <div class="sim-actions">
+        <div class="sim-actions" id="simActions">
           <button type="button" class="btn btn--primary" data-action="sim:calc">計算実行</button>
           <button type="button" class="btn btn--ng" data-action="sim:reset">リセット</button>
         </div>
@@ -244,21 +271,6 @@
   <!-- ===== 早見タブ ===== -->
   <div id="pane-reference" role="tabpanel" aria-labelledby="tab-reference" hidden>
     <div id="referenceArea"></div>
-  </div>
-
-  <!-- ===== バックアップ ===== -->
-  <div class="card">
-    <div class="section-head">データのバックアップ</div>
-    <p class="note" style="margin-bottom:10px">
-      記録はこの端末のブラウザに保存されています。機種変更のときや、
-      しばらく使わずに消えてしまうのが心配なときは、書き出しておいてください。
-    </p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button type="button" class="btn" data-action="backup:export">JSONで書き出し</button>
-      <button type="button" class="btn" data-action="backup:import">JSONから読み込み</button>
-      <input type="file" id="importFile" accept="application/json,.json"
-             data-change="backup:file" hidden>
-    </div>
   </div>
 
 </div>

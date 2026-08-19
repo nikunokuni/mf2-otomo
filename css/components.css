@@ -270,9 +270,20 @@ textarea {
 
 /* --- 保存インジケータ --- */
 .save-indicator {
+  /* どのタブでも同じ位置に出したいので、流れから外して浮かせる。
+     タブバーと重ならないよう下端に置く */
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 10;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--color-background-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
   font-size: 11px;
   color: var(--color-ok);
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.3s;
 }
 .save-indicator.is-shown {
@@ -298,4 +309,43 @@ textarea {
 .callout--ok {
   background: var(--color-ok-bg);
   color: var(--color-ok);
+}
+
+/* --- 数値の増減ボタン（モンスタータブの寿命・初期パラ） --- */
+.stepper {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  flex-shrink: 0;
+  border: var(--hairline) solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: 13px;
+}
+.stepper:hover {
+  background: var(--color-background-secondary);
+}
+
+/* --- 値の帯（モンスタータブの初期パラと、育成計算タブの結果で使う） --- */
+.stat-bar {
+  flex: 1;
+  height: 5px;
+  min-width: 30px;
+  background: var(--color-background-secondary);
+  border-radius: 3px;
+}
+.stat-bar__fill {
+  height: 5px;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* --- 種族チップの帯（タブバーのすぐ下） --- */
+.species-bar {
+  margin-bottom: 0.75rem;
+}
+.species-bar[hidden] {
+  display: none;
 }

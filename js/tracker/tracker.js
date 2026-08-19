@@ -9,7 +9,7 @@
 
 import { MONSTER_DATA } from '../data/monsters.js';
 import { state, save, currentMon, techKey } from '../store.js';
-import { el, h, replace, clampInt } from '../dom.js';
+import { el, h, replace } from '../dom.js';
 import { hasTech } from '../species.js';
 import { calcIdeal } from './ideal.js';
 
@@ -194,14 +194,11 @@ function renderTechTable() {
   replace(body, rows);
 }
 
-function renderGutsSelect() {
+/** 理想回数の前提になっているガッツ回復速度を、表の下に一言そえる */
+function renderGutsHint() {
   const mon = currentMon();
-  const sel = el('gutsRecovery');
-  const options = [];
-  for (let i = 6; i <= 19; i++) {
-    options.push(h('option', { value: String(i), text: String(i), selected: i === (mon.guts || 15) }));
-  }
-  replace(sel, options);
+  el('gutsHint').textContent =
+    `理想回数はガッツ回復 ${mon.guts || 15}秒/30ガッツ で計算しています（変えるのはモンスタータブ）`;
 }
 
 function renderSessionControls() {
@@ -294,7 +291,7 @@ export function render() {
 
   el('memo').value = mon.memo || '';
 
-  renderGutsSelect();
+  renderGutsHint();
   renderTechTable();
   renderSessionControls();
   renderLog();
@@ -396,14 +393,6 @@ export const changeActions = {
     else pickState.delete(key);
     renderPicker();
   },
-
-  'tracker:guts': (target) => {
-    const mon = currentMon();
-    if (!mon) return;
-    mon.guts = clampInt(target.value, 6, 19, 15);
-    save();
-    renderTechTable();
-  },
 };
 
 export const inputActions = {
@@ -416,7 +405,15 @@ export const inputActions = {
   },
 };
 
-/** 種族を新規追加した直後に技選択を開く */
-document.addEventListener('tracker:openTechPicker', () => {
-  if (state.ui.top === 'tracker') openPicker();
-});
+/**
+ * まだ1つも技を選んでいない種族なら、技選択を開いた状態で始める。
+ * 種族を足す場所がモンスタータブに移ったので、
+ * 「使い込みタブを開いたとき」がこの案内を出すタイミングになる。
+ */
+export function openPickerIfEmpty() {
+  const mon = currentMon();
+  if (!mon || !hasTech(state.current)) return;
+  if (mon.selected.length) return;
+  if (!el('techPickerCard').hidden) return;
+  openPicker();
+}

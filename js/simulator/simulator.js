@@ -6,7 +6,7 @@
    =========================================================== */
 
 import { STATS, SK, SC, STAGES, SKEYS, HEAVY4, LIGHT6, EV_COST } from '../data/growth.js';
-import { state, save, currentMon, MORAL_STEP, normalizeMoral } from '../store.js';
+import { state, save, currentMon } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import {
   newSet,
@@ -25,111 +25,9 @@ import {
   lightGain,
 } from './growth-calc.js';
 
-const APTITUDES = ['E', 'D', 'C', 'B', 'A'];
-const GROWTH_TYPES = [
-  ['hayajuku', '早熟'],
-  ['jizoku', '持続'],
-  ['futsuu', '普通'],
-  ['bansei', '晩成'],
-];
-/** ヨイワルの選択肢。-100〜100 を5きざみ。両端と0だけ言葉を添える */
-const MORAL_LABELS = { '-100': 'ワル', 0: '普通', 100: 'ヨイ' };
-function moralOptions(selected) {
-  const list = [];
-  for (let v = -100; v <= 100; v += MORAL_STEP) {
-    const sign = v > 0 ? '+' : '';
-    const note = MORAL_LABELS[v] ? `（${MORAL_LABELS[v]}）` : '';
-    list.push(h('option', { value: String(v), text: `${sign}${v}${note}`, selected: v === selected }));
-  }
-  return list;
-}
-
 function sim() {
   const mon = currentMon();
   return mon ? mon.sim : null;
-}
-
-/* ---------- 基本設定 ---------- */
-
-function renderBasic() {
-  const s = sim();
-  if (!s) return;
-
-  // 開始時期
-  el('simMonth').value = s.month;
-  el('simWeek').value = s.week;
-  el('simGtype').value = s.gtype;
-  replace(el('simMoral'), moralOptions(s.moral));
-  el('simLife').value = s.life;
-
-  // 成長適正
-  replace(
-    el('aptGrid'),
-    STATS.map((label, i) =>
-      h(
-        'div',
-        { class: 'apt-cell' },
-        h('span', { class: 'apt-cell__label', style: `color:${SC[i]}`, text: label }),
-        h(
-          'select',
-          { dataset: { change: 'sim:apt', key: SK[i] }, attrs: { 'aria-label': `${label}の成長適正` } },
-          APTITUDES.map((a) => h('option', { value: a, text: a, selected: s.apt[SK[i]] === a }))
-        )
-      )
-    )
-  );
-
-  // 初期パラメータ
-  replace(
-    el('initStats'),
-    STATS.map((label, i) => {
-      const key = SK[i];
-      const value = s.init[key] || 0;
-      return h(
-        'div',
-        { class: 'stat-row' },
-        h('span', { class: 'stat-row__label', style: `color:${SC[i]}`, text: label }),
-        h('button', {
-          type: 'button',
-          class: 'stepper',
-          text: '−10',
-          dataset: { action: 'sim:statStep', key, delta: '-10' },
-          attrs: { 'aria-label': `${label}を10減らす` },
-        }),
-        h('input', {
-          type: 'number',
-          class: 'stat-row__input',
-          value,
-          min: 0,
-          max: 999,
-          dataset: { input: 'sim:init', key },
-          attrs: { 'aria-label': `${label}の初期値` },
-        }),
-        h('button', {
-          type: 'button',
-          class: 'stepper',
-          text: '+10',
-          dataset: { action: 'sim:statStep', key, delta: '10' },
-          attrs: { 'aria-label': `${label}を10増やす` },
-        }),
-        h(
-          'div',
-          { class: 'stat-bar' },
-          h('div', {
-            class: 'stat-bar__fill',
-            id: `statBar-${key}`,
-            style: `background:${SC[i]};width:${Math.min(100, value / 9.99).toFixed(1)}%`,
-          })
-        )
-      );
-    })
-  );
-}
-
-function updateStatBar(key) {
-  const s = sim();
-  const bar = el(`statBar-${key}`);
-  if (bar && s) bar.style.width = Math.min(100, (s.init[key] || 0) / 9.99).toFixed(1) + '%';
 }
 
 /* ---------- 育成計画 ---------- */
@@ -409,9 +307,34 @@ function renderWarnings() {
   );
 }
 
+/**
+ * 成長適正の読み取り専用の帯。
+ * 上昇値は適正で変わるので、計画を組みながら見えるようにしておく。
+ * 書き換えるのはモンスタータブなので、ここでは表示だけ。
+ */
+function renderPlanApt() {
+  const s = sim();
+  replace(
+    el('planApt'),
+    h('span', { class: 'plan-apt__title', text: '成長適正' }),
+    ...STATS.map((name, i) =>
+      h(
+        'span',
+        { class: 'plan-apt__cell', attrs: { title: `${name}の成長適正` } },
+        h('span', { class: 'plan-apt__label', style: `color:${SC[i]}`, text: STAT_SHORT[i] }),
+        h('span', { class: 'plan-apt__rank', text: s.apt[SK[i]] })
+      )
+    ),
+    h('span', { class: 'plan-apt__note', text: '（変えるのはモンスタータブ）' })
+  );
+}
+
 export function renderPlan() {
   const s = sim();
   if (!s) return;
+  el('simMonth').value = s.month;
+  el('simWeek').value = s.week;
+  renderPlanApt();
   normalizePlan(s); // B5: 寿命や成長タイプを変えたら週数を計算し直す
   const groups = stageWeeksByGroup(s);
   const starts = stageStartOffsets(s);
@@ -563,7 +486,6 @@ export function render() {
   if (!mon) return;
 
   el('simSpeciesLabel').textContent = state.current;
-  renderBasic();
   renderPlan();
   renderResult();
 }
@@ -573,7 +495,6 @@ export function onSubTabShown(name) {
   if (!sim()) return;
   if (name === 'plan') renderPlan();
   else if (name === 'result') renderResult();
-  else renderBasic();
 }
 
 /* ---------- 操作 ---------- */
@@ -585,25 +506,6 @@ function setsAt(s, g, si) {
 }
 
 export const actions = {
-  'sim:statStep': (target) => {
-    const s = sim();
-    if (!s) return;
-    const key = target.dataset.key;
-    s.init[key] = clampInt((s.init[key] || 0) + Number(target.dataset.delta), 0, 999, 0);
-    const input = document.querySelector(`input[data-input="sim:init"][data-key="${key}"]`);
-    if (input) input.value = s.init[key];
-    updateStatBar(key);
-    save();
-  },
-
-  'sim:lifeStep': (target) => {
-    const s = sim();
-    if (!s) return;
-    s.life = clampInt(s.life + Number(target.dataset.delta), 100, 600, 300);
-    el('simLife').value = s.life;
-    save();
-  },
-
   'sim:addSet': (target) => {
     const s = sim();
     const g = Number(target.dataset.g);
@@ -647,24 +549,6 @@ export const actions = {
 };
 
 export const changeActions = {
-  'sim:apt': (target) => {
-    const s = sim();
-    s.apt[target.dataset.key] = target.value;
-    save();
-  },
-
-  'sim:gtype': (target) => {
-    const s = sim();
-    s.gtype = target.value;
-    save();
-  },
-
-  'sim:moral': (target) => {
-    const s = sim();
-    s.moral = normalizeMoral(target.value);
-    save();
-  },
-
   'sim:peach': (target) => {
     const s = sim();
     const p = s.peach[Number(target.dataset.pi)];
@@ -699,20 +583,6 @@ export const inputActions = {
     if (count === 0) delete set.items[name];
     else set.items[name] = count;
     refreshPlanNumbers();
-    save();
-  },
-
-  'sim:init': (target) => {
-    const s = sim();
-    const key = target.dataset.key;
-    s.init[key] = clampInt(target.value, 0, 999, 0);
-    updateStatBar(key);
-    save();
-  },
-
-  'sim:life': (target) => {
-    const s = sim();
-    s.life = clampInt(target.value, 100, 600, 300);
     save();
   },
 

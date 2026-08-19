@@ -128,16 +128,11 @@ export const actions = {
 
   'species:add': (target) => {
     const name = target.dataset.name;
-    const isNew = !state.mon[name];
     ensureMon(name);
     selectSpecies(name);
     toggleGrid(false);
     renderChips();
     notifyChange();
-    // 新しく追加した種族は、続けて技を選べるようにしておく
-    if (isNew && hasTech(name)) {
-      document.dispatchEvent(new CustomEvent('tracker:openTechPicker'));
-    }
   },
 
   'species:select': (target) => {

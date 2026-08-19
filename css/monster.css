@@ -1,0 +1,54 @@
+/* ===========================================================
+   モンスタータブ固有のスタイル
+   -----------------------------------------------------------
+   成長適正と初期パラメーターの入力欄。
+   枠組み（.sim-section / .sim-grid3 / .sim-row / .field）は
+   育成計算タブと共用なので css/simulator.css と css/components.css にある。
+   .stat-bar は結果画面でも使うので css/components.css。
+   =========================================================== */
+
+/* --- 成長適正 --- */
+.apt-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+.apt-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.apt-cell__label {
+  font-size: 11px;
+  text-align: center;
+  font-weight: 500;
+}
+.apt-cell select {
+  width: 100%;
+  padding: 0 4px;
+  text-align: center;
+}
+
+/* --- 初期パラメーター --- */
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.stat-row__label {
+  font-size: 12px;
+  width: 62px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.stat-row__input {
+  width: 66px;
+}
+
+@media (max-width: 400px) {
+  .apt-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

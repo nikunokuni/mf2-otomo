@@ -4,13 +4,14 @@
    各モジュールの操作を1か所に集めて登録し、最初の描画を行う。
    =========================================================== */
 
-import { load, save, onSave, state, exportJSON, importJSON } from './store.js';
+import { load, onSave, state, exportJSON, importJSON } from './store.js';
 import { el, registerActions, startActionDelegation } from './dom.js';
 import * as tabs from './tabs.js';
 import * as species from './species.js';
+import * as monster from './monster.js';
 import * as tracker from './tracker/tracker.js';
 import * as simulator from './simulator/simulator.js';
-import * as items from './simulator/items.js';
+import * as rotation from './simulator/rotation.js';
 import * as reference from './reference/reference.js';
 
 /* ---------- 保存インジケータ ---------- */
@@ -24,7 +25,7 @@ onSave(() => {
   indicatorTimer = setTimeout(() => node.classList.remove('is-shown'), 1500);
 });
 
-/* ---------- バックアップ ---------- */
+/* ---------- バックアップ（画面は早見タブの箱） ---------- */
 
 const backupActions = {
   'backup:export': () => {
@@ -65,9 +66,10 @@ const backupChanges = {
 
 function renderAll() {
   species.renderChips();
+  monster.render();
   tracker.render();
   simulator.render();
-  items.renderItems();
+  rotation.render();
   reference.render();
 }
 
@@ -79,27 +81,28 @@ function start() {
   registerActions('click', {
     ...tabs.actions,
     ...species.actions,
+    ...monster.actions,
     ...tracker.actions,
     ...simulator.actions,
-    ...items.actions,
     ...reference.actions,
     ...backupActions,
   });
   registerActions('change', {
+    ...monster.changeActions,
     ...tracker.changeActions,
     ...simulator.changeActions,
     ...simulator.simpleChanges,
     ...backupChanges,
   });
   registerActions('input', {
+    ...monster.inputActions,
     ...tracker.inputActions,
     ...simulator.inputActions,
-    ...items.inputActions,
     ...reference.inputActions,
   });
   startActionDelegation();
 
-  // 種族を選び直したら、両方のタブを作り直す
+  // 種族を選び直したら、種族に紐づくタブをまとめて作り直す
   document.addEventListener(species.SPECIES_CHANGED, renderAll);
 
   // 「計算実行」を押したら結果タブへ移動する
@@ -108,14 +111,18 @@ function start() {
     simulator.renderResult();
   });
 
-  tabs.onSubShown((name) => {
-    if (name === 'item') items.renderItems();
-    else simulator.onSubTabShown(name);
-  });
+  tabs.onSubShown((name) => simulator.onSubTabShown(name));
 
-  // アイテムを入れたあとに早見タブへ移ったとき、その場で反映されるように
+  // モンスタータブで直した値は、ほかのタブの表示に効く。
+  // 上位タブを開くたびに、そのタブだけ作り直しておけば食い違わない。
+  //   ガッツ回復 → 使い込みの理想回数
+  //   成長適正・初期パラ・寿命・成長タイプ → 育成計画の週数と上昇値
   tabs.onTopShown((name) => {
-    if (name === 'reference') reference.render();
+    if (name === 'tracker') {
+      tracker.render();
+      tracker.openPickerIfEmpty();
+    } else if (name === 'simulator') simulator.render();
+    else if (name === 'reference') reference.render();
   });
 
   // グリッドの開閉状態を復元

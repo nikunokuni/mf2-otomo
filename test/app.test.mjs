@@ -17,7 +17,11 @@ await page.goto(BASE, {waitUntil:'networkidle'});
 
 console.log('— 起動 —');
 ok(await page.title()==='モンファーのおとも','title');
-ok(await page.locator('#trackerEmpty').isVisible(),'種族未選択の案内が出る');
+const topOrder = await page.locator('.tabbar__btn').allTextContents();
+ok(topOrder.join(',')==='モンスター,使い込み,育成計算,早見','上位タブの並び: '+topOrder.join(','));
+ok(await page.locator('#pane-monster').isVisible(),'はじめはモンスタータブ');
+ok(await page.locator('#monsterEmpty').isVisible(),'種族未選択の案内が出る');
+ok(await page.locator('#monsterSpec').isHidden(),'種族を選ぶまで個体データは出さない');
 
 console.log('— 種族追加（D10: 共通の種族バー） —');
 await page.click('#speciesGridToggle');
@@ -25,11 +29,17 @@ await page.waitForSelector('.monster-cell');
 ok(await page.locator('.monster-cell').count()===38,'38種族が並ぶ');
 ok(await page.locator('.monster-cell img').count()>0,'アイコンが遅延読み込みされた');
 await page.click('.monster-cell[data-name="ピクシー"]');
-await page.waitForSelector('#techPickerCard:not([hidden])');
-ok(true,'追加直後に技選択が開く');
-ok((await page.locator('.tech-picker__item').count())===8,'ピクシーの技8件');
+ok(await page.locator('#monsterSpec').isVisible(),'追加すると個体データが出る');
+ok((await page.locator('#specSpeciesLabel').textContent())==='ピクシー','個体データの見出しが種族名');
+ok((await page.locator('.apt-cell').count())===6,'成長適正は6つ');
+ok((await page.locator('#gutsRecovery option').count())===14,'ガッツ回復は6〜19の14通り');
+ok((await page.locator('#speciesChips .chip').count())===1,'種族チップが帯に出る');
 
-console.log('— 技選択 —');
+console.log('— 技選択（使い込みタブを開いたときに案内が出る） —');
+await page.click('#tab-tracker');
+await page.waitForSelector('#techPickerCard:not([hidden])');
+ok(true,'まだ技を選んでいない種族なら技選択が開く');
+ok((await page.locator('.tech-picker__item').count())===8,'ピクシーの技8件');
 await page.locator('.tech-picker__item input').nth(0).check();
 await page.locator('.tech-picker__item input').nth(3).check();
 ok((await page.locator('#techPickerCount').textContent()).includes('2件'),'選択数の表示');
@@ -37,13 +47,19 @@ await page.click('[data-action="tracker:applyPick"]');
 await page.waitForSelector('#trackerMain:not([hidden])');
 ok((await page.locator('#techBody tr').count())===2,'表に2行');
 
-console.log('— 理想回数 —');
+console.log('— 理想回数（ガッツ回復はモンスタータブ） —');
 const ideal = await page.locator('#techBody tr').nth(0).locator('.ideal-hit').textContent();
 ok(Number(ideal)>0, '理想命中が数値で出る');
+ok((await page.locator('#gutsHint').textContent()).includes('15秒'),'いまのガッツ回復を表の下に出す');
+await page.click('#tab-monster');
 await page.selectOption('#gutsRecovery','6');
+await page.click('#tab-tracker');
 const ideal6 = await page.locator('#techBody tr').nth(0).locator('.ideal-hit').textContent();
 ok(Number(ideal6)>=Number(ideal),'ガッツ回復を速くすると回数が増える(または同等)');
+ok((await page.locator('#gutsHint').textContent()).includes('6秒'),'表の下の表示も追いかける');
+await page.click('#tab-monster');
 await page.selectOption('#gutsRecovery','15');
+await page.click('#tab-tracker');
 
 console.log('— 大会の記録 —');
 await page.click('[data-action="tracker:start"]');
@@ -62,11 +78,8 @@ ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'�
 console.log('— メモ（B1） —');
 await page.fill('#memo','テストメモ123');
 
-console.log('— 育成計算タブ（D4: 2階層） —');
-await page.click('#tab-simulator');
-ok(await page.locator('#simBody').isVisible(),'育成計算が表示');
-ok((await page.locator('#simSpeciesLabel').textContent())==='ピクシー','D10: 種族が引き継がれている');
-ok((await page.locator('.apt-cell').count())===6,'適正6つ');
+console.log('— 個体データ（モンスタータブ） —');
+await page.click('#tab-monster');
 await page.selectOption('#simGtype','bansei');
 await page.fill('#simLife','400');
 // ヨイワルは -100〜100 の5きざみ
@@ -77,7 +90,14 @@ ok(moralValues.every((v,i)=>i===0||v-moralValues[i-1]===5),'5きざみで並ぶ'
 ok((await page.locator('#simMoral').inputValue())==='0','はじめは0（普通）');
 ok((await page.locator('#simMoral option[value="0"]').textContent()).includes('普通'),'0には普通と書いてある');
 await page.selectOption('#simMoral','-35');
-await page.click('#subtab-plan');
+
+console.log('— 育成計算タブ（D4: 2階層） —');
+await page.click('#tab-simulator');
+ok(await page.locator('#simBody').isVisible(),'育成計算が表示');
+ok((await page.locator('#simSpeciesLabel').textContent())==='ピクシー','D10: 種族が引き継がれている');
+const subOrder = await page.locator('.subtabs__btn').allTextContents();
+ok(subOrder.join(',')==='育成計画,調整ローテ,結果','サブタブの並び: '+subOrder.join(','));
+ok(await page.locator('#subpane-plan').isVisible(),'はじめは育成計画');
 await page.waitForSelector('.plan-table');
 const stageRows = await page.locator('.plan-table .stage-cell').count();
 ok(stageRows>0,'育成計画テーブルが出る');
@@ -86,6 +106,12 @@ ok(/^\d+\/\d+週$/.test(badge),'使用週/総週バッジ: '+badge);
 const [used,total] = badge.match(/(\d+)\/(\d+)/).slice(1).map(Number);
 ok(used===total,'B5: 寿命変更後も週数が総週数に一致 ('+badge+')');
 ok((await page.locator('#planWarnings').textContent()).includes('問題なし'),'警告なし');
+
+console.log('— 成長適正の小表示（計画を組みながら見える） —');
+ok((await page.locator('#planApt .plan-apt__cell').count())===6,'計画の上に適正6つが出る');
+ok((await page.locator('#planApt .plan-apt__rank').allTextContents()).join('')==='CCCCCC','はじめは全部C');
+ok((await page.locator('#planApt .plan-apt__cell input, #planApt .plan-apt__cell select').count())===0,
+   'ここでは書き換えられない（読むだけ）');
 
 console.log('— 重トレ→軽トレ自動 —');
 await page.locator('.plan-table select').first().selectOption('0');
@@ -105,16 +131,17 @@ ok(new Set(gainColors).size===3,'能力値ごとに色が違う: '+gainColors.jo
 await row0.locator('select').nth(1).selectOption('4');    // 走り込み（ライフ）
 const lightGain = (await row0.locator('.train-gain').nth(1).textContent()).trim();
 ok(/^ラ\+\d+$/.test(lightGain),'軽トレの上昇値が出る: '+lightGain);
-// 適正を上げると上昇値も増える（基本設定で変えて戻ってくる）
+// 適正を上げると上昇値も増える（モンスタータブで変えて戻ってくる）
 const before = Number(heavyGain.match(/力\+(\d+)/)[1]);
-await page.click('#subtab-basic');
+await page.click('#tab-monster');
 await page.locator('.apt-cell select').nth(1).selectOption('A');  // ちから適正A
-await page.click('#subtab-plan');
+await page.click('#tab-simulator');
 const after = Number((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).match(/力\+(\d+)/)[1]);
 ok(after>before,`適正を上げると上昇値が増える: ${before}→${after}`);
-await page.click('#subtab-basic');
+ok((await page.locator('#planApt .plan-apt__rank').allTextContents())[1]==='A','計画の上の小表示も追いかける');
+await page.click('#tab-monster');
 await page.locator('.apt-cell select').nth(1).selectOption('C');
-await page.click('#subtab-plan');
+await page.click('#tab-simulator');
 ok((await page.locator('.train-gain-legend').count())===1,'凡例は表の下に1つだけ');
 await page.locator('.plan-table tbody tr').first().locator('select').first().selectOption('-1');
 ok((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).trim()==='','「なし」なら上昇値は出ない');
@@ -164,13 +191,14 @@ await weekCell.locator('[aria-label="パラドクシンの回数"]').fill('0');
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'戻せば元に戻る');
 ok(Number((await stageBadges.nth(1).textContent()).split('/')[1].replace('週',''))===nextTotal,'次の段階も戻る');
 
-console.log('— 段階が始まる時期 —');
-await page.click('#subtab-basic');
+console.log('— 段階が始まる時期（開始時期は育成計画の中） —');
+ok(await page.locator('#subpane-plan #simMonth').isVisible(),'開始時期は育成計画のいちばん上にある');
 await page.fill('#simMonth','4');
 await page.selectOption('#simWeek','1');
+await page.click('#tab-monster');
 await page.fill('#simLife','300');
 await page.selectOption('#simGtype','futsuu');
-await page.click('#subtab-plan');
+await page.click('#tab-simulator');
 await page.waitForSelector('.plan-table .stage-date');
 const dates = await page.locator('.plan-table').first().locator('.stage-date').allTextContents();
 ok(dates[0]==='4月1週','1段階は育成開始と同じ: '+dates[0]);
@@ -196,10 +224,18 @@ await firstRow.locator('[aria-label="大会の回数"]').fill('0');
 await firstRow.locator('[aria-label="トロロンの回数"]').fill('0');
 ok((await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent())==='11月3週','戻せば元に戻る');
 // このあとの保存テストのために設定を戻す
-await page.click('#subtab-basic');
+await page.click('#tab-monster');
 await page.fill('#simLife','400');
 await page.selectOption('#simGtype','bansei');
+await page.click('#tab-simulator');
+
+console.log('— 調整ローテ（器だけ） —');
+await page.click('#subtab-rotation');
+ok(await page.locator('#subpane-rotation').isVisible(),'調整ローテのペインが出る');
+ok((await page.locator('#rotationArea').textContent()).includes('短期詳細版'),'これから作る旨の案内が出る');
+ok(await page.locator('#simActions').isHidden(),'調整ローテでは計算実行/リセットを出さない');
 await page.click('#subtab-plan');
+ok(await page.locator('#simActions').isVisible(),'育成計画では出る');
 
 console.log('— 計算実行 —');
 await page.click('[data-action="sim:calc"]');
@@ -219,23 +255,25 @@ ok((await page.locator('#subtab-result').getAttribute('aria-selected'))==='true'
 await page.click('#tab-tracker');
 ok((await page.locator('#memo').inputValue())==='テストメモ123','B1: メモが保存されている');
 ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'使い込み累計が保存されている');
-await page.click('#tab-simulator');
+await page.click('#tab-monster');
 ok((await page.locator('#simLife').inputValue())==='400','寿命が保存されている');
 ok((await page.locator('#simGtype').inputValue())==='bansei','成長タイプが保存されている');
 ok((await page.locator('#simMoral').inputValue())==='-35','ヨイワルが保存されている');
+ok((await page.locator('#gutsRecovery').inputValue())==='15','ガッツ回復が保存されている');
 
 console.log('— 技なし種族（ライガー） —');
-await page.click('#tab-tracker');
 await page.click('#speciesGridToggle');
 await page.click('.monster-cell[data-name="ライガー"]');
+await page.click('#tab-tracker');
 ok((await page.locator('#techBody').textContent()).includes('使い込みで進化する技はありません'),'技なし種族の案内');
 ok((await page.locator('#sessionControls').textContent()).trim()==='','技がない種族では大会開始ボタンを出さない');
 ok(await page.locator('#changeTechBtn').isHidden(),'技なし種族では「技を変更」も出さない');
+ok(await page.locator('#techPickerCard').isHidden(),'技なし種族では技選択も開かない');
 await page.click('#tab-simulator');
 ok((await page.locator('#simSpeciesLabel').textContent())==='ライガー','技なし種族でも育成計算は使える');
-const visibleSub = await page.evaluate(()=>['basic','plan','result'].filter(t=>!document.getElementById('subpane-'+t).hidden));
+const visibleSub = await page.evaluate(()=>['plan','rotation','result'].filter(t=>!document.getElementById('subpane-'+t).hidden));
 ok(visibleSub.length===1,'サブタブは常にちょうど1つだけ表示: '+visibleSub.join(','));
-const subContent = await page.evaluate(()=>{const t=['basic','plan','result'].find(t=>!document.getElementById('subpane-'+t).hidden);return document.getElementById('subpane-'+t).textContent.trim().length;});
+const subContent = await page.evaluate(()=>{const t=['plan','rotation','result'].find(t=>!document.getElementById('subpane-'+t).hidden);return document.getElementById('subpane-'+t).textContent.trim().length;});
 ok(subContent>0,'表示中のサブタブに中身がある ('+subContent+'文字)');
 await page.click('#subtab-plan');
 await page.waitForSelector('#subpane-plan .plan-table');
@@ -248,12 +286,22 @@ ok((await page.locator('#memo').inputValue())==='テストメモ123','ピクシ�
 await page.locator('.chip__name', {hasText:'ライガー'}).click();
 ok((await page.locator('#memo').inputValue())==='','ライガーのメモは空');
 
-console.log('— アイテム —');
-await page.click('#tab-simulator');
-await page.click('#subtab-item');
-ok(await page.locator('#subpane-item').isVisible(),'アイテムタブが表示');
-const subOrder = await page.locator('.subtabs__btn').allTextContents();
-ok(subOrder.join(',')==='基本設定,育成計画,アイテム,結果','育成計画と結果の間にある: '+subOrder.join(','));
+console.log('— 早見タブ —');
+await page.click('#tab-reference');
+ok(await page.locator('#pane-reference').isVisible(),'早見タブが表示');
+const visibleTop = await page.evaluate(()=>['monster','tracker','simulator','reference'].filter(t=>!document.getElementById('pane-'+t).hidden));
+ok(visibleTop.length===1 && visibleTop[0]==='reference','上位タブはちょうど1つだけ表示: '+visibleTop.join(','));
+ok(await page.locator('#speciesBar').isHidden(),'早見は種族に関係ないので種族チップを隠す');
+ok((await page.locator('.ref-box').count())===6,'6つの箱が並ぶ');
+const boxTitles = await page.locator('.ref-box__head').allTextContents();
+ok(boxTitles.map(t=>t.replace('＋ 追加','').replace(/（\d+件）/,'').trim()).join(',')
+   ==='ローテ,アイテム,合体素材,再生メモ,リンク集,データのバックアップ','箱の並び: '+boxTitles.join(','));
+await page.click('#tab-tracker');
+ok(await page.locator('#speciesBar').isVisible(),'ほかのタブでは種族チップが戻る');
+await page.click('#tab-reference');
+
+console.log('— アイテム（早見に一本化） —');
+const itemBox = page.locator('.ref-box').nth(1);
 // アプリに入っているぶんは読むだけ（入力欄にしない）
 const builtin = await page.locator('.item-row--fixed').count();
 ok(builtin>0,'収録ぶんのアイテムが出る: '+builtin+'件');
@@ -269,36 +317,22 @@ await page.click('[data-action="item:add"]');
 await myName.last().fill('おいしいマタタビ');
 await myEffect.last().fill('ちから+10 きふん+5');
 ok((await myName.count())===2,'アイテムを続けて足せる');
-ok((await page.locator('#itemArea .section-head').textContent()).includes(`${builtin+2}件`),'件数は収録ぶんとの合計');
-// 早見タブに出る
+ok((await itemBox.locator('.ref-box__head').textContent()).includes(`${builtin+2}件`),'件数は収録ぶんとの合計');
+ok((await page.locator('#pane-simulator .item-row').count())===0,'育成計算タブにはもうアイテムを置かない');
+// 種族を切り替えても中身は変わらない（アイテムは全体で1つ）
+await page.click('#tab-tracker');
+await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 await page.click('#tab-reference');
-const itemBody = page.locator('.ref-box').nth(1);
-ok((await itemBody.locator('.ref-box__head').textContent()).includes('アイテム'),'2番目の箱がアイテム');
-ok((await itemBody.locator('.ref-row').count())===builtin+2,'収録ぶんのうしろに足したぶんが並ぶ');
-ok((await itemBody.locator('.ref-row__name').first().textContent())==='カララギマンゴー','収録ぶんが先に出る');
-ok((await itemBody.locator('.ref-row__name').last().textContent())==='おいしいマタタビ','足したぶんが最後に出る');
-ok((await itemBody.locator('.ref-row__detail').last().textContent())==='ちから+10 きふん+5','効果が出る');
-// 名前も効果も空の行は早見に出さない
-await page.click('#tab-simulator');
-await page.click('[data-action="item:add"]');
-await page.click('#tab-reference');
-ok((await page.locator('.ref-box').nth(1).locator('.ref-row').count())===builtin+2,'空の行は早見に出ない');
-await page.click('#tab-simulator');
+ok((await page.locator('input.item-row__name').count())===2,'種族を切り替えてもアイテムは共通');
 page.once('dialog',d=>d.accept());
 await page.locator('[data-action="item:del"]').last().click();
-ok((await page.locator('input.item-row__name').count())===2,'アイテムを削除できる');
-
-console.log('— 早見タブ —');
-await page.click('#tab-reference');
-ok(await page.locator('#pane-reference').isVisible(),'早見タブが表示');
-const visibleTop = await page.evaluate(()=>['tracker','simulator','reference'].filter(t=>!document.getElementById('pane-'+t).hidden));
-ok(visibleTop.length===1 && visibleTop[0]==='reference','上位タブはちょうど1つだけ表示: '+visibleTop.join(','));
-ok((await page.locator('.ref-box').count())===5,'5つの箱が並ぶ');
-const boxTitles = await page.locator('.ref-box__head').allTextContents();
-ok(boxTitles.map(t=>t.replace('＋ 追加','').trim()).join(',')==='ローテ,アイテム,合体素材,再生メモ,リンク集','箱の並び: '+boxTitles.join(','));
+ok((await page.locator('input.item-row__name').count())===1,'アイテムを削除できる');
+await page.click('[data-action="item:add"]');
+await myName.last().fill('おいしいマタタビ');
+await myEffect.last().fill('ちから+10 きふん+5');
 
 console.log('— リンク集 —');
-ok((await page.locator('.ref-box--links').count())===1,'リンク集の箱が一番下にある');
+ok((await page.locator('.ref-box--auto').count())===2,'リンク集とバックアップは中身に合わせて伸びる');
 ok((await page.locator('.ref-link__btn').count())===3,'あらかじめ3つのリンクが入っている');
 ok((await page.locator('.ref-link__del').count())===0,'あらかじめ入っているリンクは消せない');
 // 名前だけ / URLだけではエラーになる
@@ -324,11 +358,11 @@ const scrollable = await page.evaluate(()=>{
 });
 ok(scrollable,'各箱の本文が縦スクロール領域になっている');
 const fixedHeight = await page.evaluate(()=>{
-  // リンク集だけは中身に合わせて伸びるので、高さ固定の対象は上の4つ
-  const h=[...document.querySelectorAll('.ref-box:not(.ref-box--links)')].map(x=>Math.round(x.getBoundingClientRect().height));
+  // リンク集とバックアップは中身に合わせて伸びるので、高さ固定の対象は上の4つ
+  const h=[...document.querySelectorAll('.ref-box:not(.ref-box--auto)')].map(x=>Math.round(x.getBoundingClientRect().height));
   return h.length===4 && h.every(v=>v===h[0]);
 });
-ok(fixedHeight,'箱の高さが固定（リンク集をのぞく4つとも同じ）');
+ok(fixedHeight,'箱の高さが固定（リンク集とバックアップをのぞく4つとも同じ）');
 
 console.log('— 再生メモ —');
 await page.click('[data-action="ref:addNote"]');
@@ -340,7 +374,7 @@ await page.fill('.ref-note [data-field="memo"]','いい石像が出る');
 await page.reload({waitUntil:'networkidle'});
 ok((await page.locator('#tab-reference').getAttribute('aria-selected'))==='true','D8: 早見タブも覚えている');
 ok((await page.locator('.ref-note [data-field="monster"]').inputValue())==='ピクシー','再生メモが保存されている');
-ok((await page.locator('.ref-box').nth(1).locator('.ref-row').count())===builtin+2,'アイテムが保存されている');
+ok((await page.locator('input.item-row__name').count())===2,'アイテムが保存されている');
 ok((await page.locator('.ref-note [data-field="memo"]').inputValue())==='いい石像が出る','自由メモが保存されている');
 ok((await page.locator('.ref-link:has(.ref-link__del) .ref-link__btn').first().textContent()).trim()==='攻略メモ','追加したリンクが保存されている');
 page.once('dialog',d=>d.accept());
@@ -356,16 +390,24 @@ page.once('dialog',d=>d.accept());
 await page.locator('[data-action="ref:delNote"]').first().click();
 ok((await page.locator('.ref-note').count())===6,'メモを削除できる');
 ok((await page.locator('.ref-note [data-field="monster"]').last().inputValue())==='ピクシー','削除しても他のメモは残る');
+
+console.log('— バックアップ（早見の箱） —');
+ok(await page.locator('[data-action="backup:export"]').isVisible(),'書き出しボタンは早見タブにある');
 await page.click('#tab-tracker');
+ok((await page.locator('#pane-tracker [data-action="backup:export"]').count())===0,'ほかのタブには出ない');
 
 console.log('— 横スクロール —');
 const overflow = await page.evaluate(()=>document.documentElement.scrollWidth > window.innerWidth+1);
 ok(!overflow,'ページ全体に横スクロールが出ていない');
 
+await page.click('#tab-simulator');
 await page.screenshot({path:OUT+'shot-sim.png', fullPage:true});
-await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 await page.click('#tab-tracker');
 await page.screenshot({path:OUT+'shot-tracker.png', fullPage:true});
+await page.click('#tab-monster');
+await page.screenshot({path:OUT+'shot-monster.png', fullPage:true});
+await page.click('#tab-reference');
+await page.screenshot({path:OUT+'shot-reference.png', fullPage:true});
 
 // ダークモード
 const dark = await browser.newContext({viewport:{width:390,height:844}, colorScheme:'dark'});
@@ -373,7 +415,6 @@ const dp = await dark.newPage();
 await dp.goto(BASE,{waitUntil:'networkidle'});
 await dp.click('#speciesGridToggle');
 await dp.click('.monster-cell[data-name="ドラゴン"]');
-await dp.click('[data-action="tracker:cancelPick"]');
 await dp.screenshot({path:OUT+'shot-dark.png', fullPage:true});
 
 console.log(`\n合格 ${pass} / 失敗 ${fail}`);

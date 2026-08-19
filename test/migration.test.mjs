@@ -41,8 +41,10 @@ ok(await page.locator('#migrationNotice').isVisible(),'移行の案内が出る'
 const chips = await page.locator('.chip__name').allTextContents();
 ok(chips.includes('ヘンガー')&&chips.includes('モッチー')&&chips.includes('ゴーレム'),
    '種族が引き継がれた: '+chips.join(','));
-ok((await page.locator('#trackerSpeciesLabel').textContent())==='ヘンガー','選択中の種族も復元');
+ok((await page.locator('#specSpeciesLabel').textContent())==='ヘンガー','選択中の種族も復元');
 ok((await page.locator('#gutsRecovery').inputValue())==='12','ガッツ回復値が引き継がれた');
+await page.click('#tab-tracker');
+ok((await page.locator('#trackerSpeciesLabel').textContent())==='ヘンガー','使い込みタブにも引き継がれる');
 const body = await page.locator('#techBody').textContent();
 ok(body.includes('23/30'),'途中の累計が引き継がれた');
 ok(body.includes('✓完了'),'完了状態が引き継がれた');
@@ -64,11 +66,13 @@ ok(keys.includes('mf2_mf2v8_state'),'旧データは消さずに残している'
 // 二重移行が起きないこと
 await page.evaluate(()=>{ const s=JSON.parse(localStorage.getItem('monfar_state_v1')); s.mon['ヘンガー'].memo='移行後メモ'; localStorage.setItem('monfar_state_v1',JSON.stringify(s)); });
 await page.goto(BASE,{waitUntil:'networkidle'});
+await page.click('#tab-tracker');
 ok((await page.locator('#memo').inputValue())==='移行後メモ','再読込で旧データに上書きされない');
 ok(await page.locator('#migrationNotice').isHidden(),'2回目は移行の案内を出さない');
 
 /* ===== バックアップ（R8） ===== */
 console.log('— バックアップ —');
+await page.click('#tab-reference');
 const dl = page.waitForEvent('download');
 await page.click('[data-action="backup:export"]');
 const d = await dl;
@@ -82,14 +86,16 @@ ok(parsed.mon['ヘンガー'].memo==='移行後メモ','書き出した中身が
 // データを消してから読み込みで復元
 await page.evaluate(()=>localStorage.clear());
 await page.goto(BASE,{waitUntil:'networkidle'});
-ok(await page.locator('#trackerEmpty').isVisible(),'消去された');
+ok(await page.locator('#monsterEmpty').isVisible(),'消去された');
+await page.click('#tab-reference');
 page.once('dialog', d=>d.accept());
 await page.setInputFiles('#importFile', tmp);
-await page.waitForSelector('#trackerMain:not([hidden])');
+await page.waitForSelector('#speciesChips .chip',{state:'attached'});
 ok((await page.locator('.chip__name').allTextContents()).includes('ヘンガー'),'バックアップから復元できた');
 
 // 壊れたファイルを渡しても既存データを壊さない
 fs.writeFileSync(OUT+'broken.json','{ これはJSONではない');
+await page.click('#tab-reference');
 page.once('dialog', d=>d.accept());
 await page.setInputFiles('#importFile',OUT+'broken.json');
 await page.waitForTimeout(300);
@@ -104,14 +110,18 @@ await ctx.setOffline(true);
 await page.goto(BASE,{waitUntil:'domcontentloaded'});
 await page.waitForTimeout(800);
 ok((await page.title())==='モンファーのおとも','機内モードでも起動する');
-ok(await page.locator('#trackerMain').isVisible()||await page.locator('#trackerEmpty').isVisible(),'画面が描画される');
+// どのタブを開いた状態で落ちたかは直前の操作次第なので、
+// 「上位タブのどれか1つがちゃんと開いている」ことで描画を見る
+const shownPane = await page.evaluate(()=>
+  ['monster','tracker','simulator','reference'].filter(t=>!document.getElementById('pane-'+t).hidden));
+ok(shownPane.length===1,'画面が描画される: '+shownPane.join(','));
 const cssApplied = await page.evaluate(()=>getComputedStyle(document.querySelector('.card')).borderRadius);
 ok(cssApplied!=='0px','オフラインでもCSSが効いている: '+cssApplied);
 await page.click('#tab-simulator');
 await page.click('#subtab-plan');
 await page.waitForSelector('.plan-table',{timeout:5000});
 ok(true,'オフラインで育成計算タブも動く');
-await page.click('#tab-tracker');
+await page.click('#tab-monster');
 await page.click('#speciesGridToggle');
 await page.waitForSelector('.monster-cell',{timeout:5000});
 ok((await page.locator('.monster-cell img').count())>0,'オフラインでアイコンも表示される');

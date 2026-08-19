@@ -90,7 +90,7 @@ export function defaultItem() {
 function defaultState() {
   return {
     v: 1,
-    ui: { top: 'tracker', sim: 'basic', gridOpen: false },
+    ui: { top: 'monster', sim: 'plan', gridOpen: false },
     current: null,
     order: [],
     mon: {},
