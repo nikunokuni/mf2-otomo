@@ -165,6 +165,10 @@
 .plan-table .col-num {
   width: 50px;
 }
+/* 割当週は下に「トレ○週」が入るので少し広く */
+.plan-table .col-week {
+  width: 62px;
+}
 /* セット番号と、追加/削除ボタンをまとめた欄 */
 .plan-table .col-set {
   width: 54px;
@@ -222,7 +226,10 @@
   font-size: 10px;
   line-height: 1.3;
   color: var(--color-text-secondary);
-  white-space: nowrap;
+  /* はみ出したときだけ「次へ○週」を2行目に出す（途中では折り返さない） */
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 .train-weeks--over {
   color: var(--color-ng);

@@ -146,14 +146,23 @@ await weekCell.locator('[aria-label="パラドクシンの回数"]').fill('1');
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned-29}週`,'パラドクシン1個で18週減る: '+(await trainWeeks.textContent()));
 await weekCell.locator('[aria-label="パラドクシンの回数"]').fill('0');
 ok(Number(await weekInput.inputValue())===assigned,'イベントを入れても割当週は減らない');
-// 割当週を超えるイベントは赤くなる
-await weekInput.fill('5');
 ok((await page.locator('.plan-table thead').first().textContent()).includes('大会(-4)'),'ヘッダーに寿命の減りが出る');
-ok((await trainWeeks.getAttribute('class')).includes('train-weeks--over'),'割当週より多いイベントは警告色');
+// 割当週を超えたら、はみ出たぶんが次の段階から引かれる
 await weekCell.locator('[aria-label="大会の回数"]').fill('0');
 await weekCell.locator('[aria-label="修行の回数"]').fill('0');
-await weekInput.fill(String(assigned));
+const stageBadges = page.locator('.plan-table').first().locator('.stage-weeks');
+const nextTotal = Number((await stageBadges.nth(1).textContent()).split('/')[1].replace('週',''));
+// パラドクシン(-18)を、割当週を超える個数だけ使う。はみ出たぶんが次へ回る
+const doses = Math.floor(assigned/18)+1;
+await weekCell.locator('[aria-label="パラドクシンの回数"]').fill(String(doses));
+const over = doses*18 - assigned;
+ok((await trainWeeks.textContent()).trim()===`トレ0週\n次へ${over}週`,'トレは0になり、はみ出しが出る: '+(await trainWeeks.textContent()));
+ok((await trainWeeks.getAttribute('class')).includes('train-weeks--over'),'はみ出しは警告色');
+const nextAfter = Number((await stageBadges.nth(1).textContent()).split('/')[1].replace('週',''));
+ok(nextAfter===nextTotal-over,`次の段階が${over}週減る: ${nextTotal} → ${nextAfter}`);
+await weekCell.locator('[aria-label="パラドクシンの回数"]').fill('0');
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'戻せば元に戻る');
+ok(Number((await stageBadges.nth(1).textContent()).split('/')[1].replace('週',''))===nextTotal,'次の段階も戻る');
 
 console.log('— 段階が始まる時期 —');
 await page.click('#subtab-basic');

@@ -85,6 +85,36 @@ for(let gr=6;gr<=19;gr++) for(const gc of [10,12,17,19,24,29,35,42,50])
   for(const mt of [1.1,2.0,2.8,3.8,4.5,5.5,6.5,8.3])
     eq(newIdeal(gc,mt,gr),oldIdeal(gc,mt,gr),`ideal ${gr} ${gc} ${mt}`);
 
+/* ---- 割当週のはみ出しが次の段階を削る ---- */
+{
+  // 1段階10週 / 2段階20週 の作り物
+  const mk=(w,items={})=>({ht:-1,hc:2,lt:-1,tc:0,mc:0,ac:0,weeks:w,items});
+  const sim={life:100,gtype:'futsuu',month:1,week:1,
+    peach:[{use:false,si:4},{use:false,si:4}],
+    plan:{0:{0:[mk(10,{'パラドクシン':1})],1:[mk(20)]},1:{},2:{}}};
+  // 素の段階週数を 10/20 に見立てるため、cascade だけを直接みる
+  const base=N.calcStageWeeks(100,'futsuu');
+  eq(base[0],10,'1段階は10週');
+  // パラドクシン(-18) は 10週の割当を8週こえる
+  eq(N.lifeCost(sim.plan[0][0][0]),18,'パラドクシン1個で寿命-18');
+  eq(N.trainWeeks(sim.plan[0][0][0]),-8,'1段階は8週たりない');
+  const weeks=N.stageWeeksByGroup(sim);
+  eq(weeks[0][0],10,'1段階の週数はそのまま（トレーニングが0になる）');
+  eq(weeks[0][1],base[1]-8,'次の段階から8週引かれる');
+  // 割当を割り当て直しても同じ結果になる
+  N.normalizePlan(sim);
+  eq(N.stageWeeksByGroup(sim)[0][1],base[1]-8,'割り当て直しても変わらない');
+  eq(sim.plan[0][1][0].weeks,base[1]-8,'2段階の割当週も減る');
+  eq(N.planOverflow(sim)[0],0,'最後まではみ出さなければ0');
+  // 寿命が足りないほど使うと、最後まではみ出す
+  const heavy={...sim,plan:{0:{0:[mk(10,{'パラドクシン':20})]},1:{},2:{}}};
+  eq(N.planOverflow(heavy)[0]>0,true,'使いすぎたぶんは最後まで残る');
+}
+
+// 育成計画のアイテム列は寿命の減りが大きい順（パラドクシンが先頭）
+eq(N.AGE_ITEMS[0].name,'パラドクシン','アイテム列の先頭はパラドクシン');
+eq(N.AGE_ITEMS.map(i=>i.agePlus).every((v,i,a)=>i===0||a[i-1]>=v),true,'寿命の減りが大きい順');
+
 /* ---- 内部数値 ---- */
 // ヨイワルは初期値から±100、かつ全体の-100〜100に収まる
 eq(moralRange(0),[-100,100],'moralRange 0');

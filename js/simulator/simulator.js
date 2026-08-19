@@ -183,7 +183,9 @@ function trainOptions(list, selected, noneLabel) {
 }
 
 function trainWeeksLabel(set) {
-  return `トレ${trainWeeks(set)}週`;
+  const n = trainWeeks(set);
+  // 割当週を超えたぶんは次の段階から引かれるので、そのことを書いておく
+  return n < 0 ? `トレ0週\n次へ${-n}週` : `トレ${n}週`;
 }
 
 function trainWeeksClass(set) {
@@ -196,9 +198,10 @@ function planRow(g, si, idx, set, rowspanCells) {
   const apt = sim().apt;
   const stageKey = SKEYS[si];
   const numField = (field, value, label, extra = null) =>
-    h('td', { class: 'col-num' },
+    h('td', { class: 'col-num' + (field === 'weeks' ? ' col-week' : '') },
       h('input', {
         type: 'number',
+        id: `set-${field}-${g}-${si}-${idx}`,
         value,
         min: 0,
         dataset: { input: 'sim:setField', g: String(g), si: String(si), idx: String(idx), field },
@@ -303,7 +306,7 @@ function planTable(g, stageWeeks, starts) {
       h('th', { class: 'col-num', text: '回/月' }),
       h('th', { class: 'col-train', text: '軽トレ' }),
       h('th', { class: 'col-num', text: '自動' }),
-      h('th', { class: 'col-num', text: '割当週' }),
+      h('th', { class: 'col-num col-week', text: '割当週' }),
       h('th', { class: 'col-num', text: `大会(-${EV_COST.tc})` }),
       h('th', { class: 'col-num', text: `修行(-${EV_COST.mc})` }),
       h('th', { class: 'col-num', text: `冒険(-${EV_COST.ac})` }),
@@ -418,6 +421,38 @@ export function renderPlan() {
   save();
 }
 
+/**
+ * イベントやアイテムを変えると、はみ出しで次の段階の週数まで動く。
+ * 表そのものは作り直さずに、数字と日付だけ書き換える
+ * （入力中の欄はさわらない。作り直すとカーソルが飛ぶため）。
+ */
+function refreshPlanNumbers() {
+  const s = sim();
+  if (!s) return;
+  normalizePlan(s);
+  const groups = stageWeeksByGroup(s);
+
+  groups.forEach((stageWeeks, g) => {
+    for (let si = 0; si < 10; si++) {
+      const sets = (s.plan[g] && s.plan[g][si]) || [];
+      sets.forEach((set, idx) => {
+        const input = el(`set-weeks-${g}-${si}-${idx}`);
+        if (input && document.activeElement !== input) input.value = String(set.weeks || 0);
+        updateTrainWeeks(g, si, idx, set);
+      });
+      const used = sets.reduce((a, x) => a + (x.weeks || 0), 0);
+      const badge = el(`stageWeeks-${g}-${si}`);
+      if (badge) {
+        badge.textContent = `${used}/${stageWeeks[si]}週`;
+        badge.className =
+          'stage-weeks ' + (used > stageWeeks[si] ? 'stage-weeks--over' : 'stage-weeks--ok');
+      }
+    }
+  });
+  updateStageDates();
+  renderWarnings();
+}
+
 /** イベントやアイテムを変えると暦がずれるので、日付だけ書き換える */
 function updateStageDates() {
   const s = sim();
@@ -438,17 +473,6 @@ function updateTrainWeeks(g, si, idx, set) {
   node.className = trainWeeksClass(set);
 }
 
-function updateStageBadge(g, si) {
-  const s = sim();
-  const groups = stageWeeksByGroup(s);
-  const total = groups[g][si];
-  const sets = (s.plan[g] && s.plan[g][si]) || [];
-  const used = sets.reduce((a, x) => a + (x.weeks || 0), 0);
-  const badge = el(`stageWeeks-${g}-${si}`);
-  if (!badge) return;
-  badge.textContent = `${used}/${total}週`;
-  badge.className = 'stage-weeks ' + (used > total ? 'stage-weeks--over' : 'stage-weeks--ok');
-}
 
 /* ---------- 結果 ---------- */
 
@@ -674,9 +698,7 @@ export const inputActions = {
     // 使わないアイテムはキーごと持たない（保存データを小さく保つ）
     if (count === 0) delete set.items[name];
     else set.items[name] = count;
-    updateTrainWeeks(Number(g), Number(si), Number(idx), set);
-    updateStageDates();
-    renderWarnings();
+    refreshPlanNumbers();
     save();
   },
 
@@ -712,10 +734,7 @@ export const inputActions = {
     } else {
       set[field] = Math.max(0, parseInt(target.value, 10) || 0);
     }
-    updateStageBadge(Number(g), Number(si));
-    updateTrainWeeks(Number(g), Number(si), Number(idx), set);
-    updateStageDates();
-    renderWarnings();
+    refreshPlanNumbers();
     save();
   },
 };

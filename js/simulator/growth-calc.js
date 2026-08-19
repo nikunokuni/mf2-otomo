@@ -7,9 +7,12 @@ import { ITEMS } from '../data/items.js';
 
 /**
  * 育成計画で回数を入れるアイテム＝使うと寿命が進むもの。
+ * 減る寿命が大きい順に並べる（パラドクシンが先頭）。
  * items.js に agePlus 付きのアイテムを足せば、表の列も自動で増える。
  */
-export const AGE_ITEMS = ITEMS.filter((item) => item.agePlus > 0);
+export const AGE_ITEMS = ITEMS.filter((item) => item.agePlus > 0).sort(
+  (a, b) => b.agePlus - a.agePlus
+);
 const AGE_BY_NAME = Object.fromEntries(AGE_ITEMS.map((item) => [item.name, item.agePlus]));
 
 /** 寿命 total 週のうち e 週目が、寿命全体の何%か */
@@ -113,6 +116,7 @@ function setsOfStage(sim, g, si, fallbackWeeks) {
  */
 export function stageStartOffsets(sim) {
   const base = calcStageWeeks(sim.life, sim.gtype);
+  const eff = stageWeeksByGroup(sim); // はみ出しを織り込んだ週数
 
   // 通常育成を段階→セットの順にたどり、年齢と暦を並べて持っておく
   const segments = [];
@@ -120,9 +124,9 @@ export function stageStartOffsets(sim) {
   let age = 0;
   let cal = 0;
   for (let si = 0; si < 10; si++) {
-    if (base[si] === 0) continue;
+    if (eff[0][si] === 0) continue;
     stageCal[si] = cal;
-    setsOfStage(sim, 0, si, base[si]).forEach((set) => {
+    setsOfStage(sim, 0, si, eff[0][si]).forEach((set) => {
       const ageWeeks = Math.max(0, set.weeks || 0);
       const calWeeks = calendarWeeks(set);
       segments.push({ ageStart: age, ageWeeks, calStart: cal, calWeeks });
@@ -150,7 +154,7 @@ export function stageStartOffsets(sim) {
     const extra = peachExtra(pi);
     const at = stageStartWeek(base, p.si) + extra;
     if (at >= sim.life) continue; // 寿命を超えるなら使えない
-    const weeks = calcPeachWeeks(sim.life, sim.gtype, p.si, extra);
+    const weeks = eff[pi + 1];
     const stages = [];
     let len = 0;
     for (let si = 0; si < 10; si++) {
@@ -232,10 +236,10 @@ export function calendarWeeks(set) {
 }
 
 /**
- * 計画の全グループについて、段階ごとの総週数を返す。
+ * 寿命と成長タイプだけで決まる、素の段階週数。
  * g=0 は通常育成、g=1/2 は桃1/桃2 の追加分。
  */
-export function stageWeeksByGroup(sim) {
+function baseWeeksByGroup(sim) {
   const base = calcStageWeeks(sim.life, sim.gtype);
   const groups = [base];
   for (let pi = 0; pi < 2; pi++) {
@@ -247,30 +251,74 @@ export function stageWeeksByGroup(sim) {
   return groups;
 }
 
+/** そのセットで、割当週からはみ出た寿命の消費 */
+function setOverflow(set) {
+  return Math.max(0, lifeCost(set) - (set.weeks || 0));
+}
+
+/**
+ * 段階を順にたどって、はみ出たぶんを次の段階から引いていく。
+ * 例: 1段階10週にパラドクシン(-18)を使うと 1段階は0週になり、
+ *     はみ出た8週が次の段階から引かれる（2段階20週 → 12週）。
+ */
+function cascade(sim, g, base) {
+  const weeks = new Array(10).fill(0);
+  let carry = 0;
+  for (let si = 0; si < 10; si++) {
+    const avail = base[si] - carry;
+    weeks[si] = Math.max(0, avail);
+    carry = Math.max(0, -avail);
+    if (base[si] === 0) continue;
+    const sets = (sim.plan[g] && sim.plan[g][si]) || [];
+    carry += sets.reduce((a, set) => a + setOverflow(set), 0);
+  }
+  return { weeks, carry };
+}
+
+/**
+ * 計画の全グループについて、段階ごとの総週数を返す。
+ * 寿命の消費が割当を超えたぶんは、次の段階から引いてある。
+ */
+export function stageWeeksByGroup(sim) {
+  return baseWeeksByGroup(sim).map((base, g) => cascade(sim, g, base).weeks);
+}
+
+/** 最後の段階からもはみ出た週数（グループごと）。寿命が足りていない量 */
+export function planOverflow(sim) {
+  return baseWeeksByGroup(sim).map((base, g) => cascade(sim, g, base).carry);
+}
+
 /**
  * 寿命や成長タイプを変えたあと、計画の週数を総週数に合わせ直す。
  * 2セット目以降に入力した週数はそのまま残し、余りを1セット目に寄せる。
  */
 export function normalizePlan(sim) {
-  const groups = stageWeeksByGroup(sim);
-  groups.forEach((stageWeeks, g) => {
+  baseWeeksByGroup(sim).forEach((base, g) => {
     if (!sim.plan[g]) sim.plan[g] = {};
+    let carry = 0;
     for (let si = 0; si < 10; si++) {
-      const total = stageWeeks[si];
+      const avail = base[si] - carry;
+      const total = Math.max(0, avail);
+      carry = Math.max(0, -avail);
       const sets = sim.plan[g][si];
 
-      if (total === 0) {
+      if (base[si] === 0) {
         // その段階が消えたら計画も消す（桃を使わなくした場合など）
         if (g > 0) delete sim.plan[g][si];
         else if (sets) sets.forEach((s) => (s.weeks = 0));
         continue;
       }
-      if (!sets || !sets.length) {
+      if (total === 0) {
+        // 前の段階のはみ出しで丸ごと消えた段階
+        if (sets) sets.forEach((s) => (s.weeks = 0));
+      } else if (!sets || !sets.length) {
         sim.plan[g][si] = [newSet(total)];
-        continue;
+      } else {
+        const others = sets.slice(1).reduce((a, s) => a + (s.weeks || 0), 0);
+        sets[0].weeks = Math.max(0, total - others);
       }
-      const others = sets.slice(1).reduce((a, s) => a + (s.weeks || 0), 0);
-      sets[0].weeks = Math.max(0, total - others);
+      // 割り当て直したあとの中身で、次へ回るぶんを数える
+      carry += (sim.plan[g][si] || []).reduce((a, s) => a + setOverflow(s), 0);
     }
   });
   return sim;
@@ -374,6 +422,7 @@ export function computeResult(sim) {
 export function validatePlan(sim) {
   const warnings = [];
   const groups = stageWeeksByGroup(sim);
+  const overflow = planOverflow(sim);
 
   groups.forEach((stageWeeks, g) => {
     const prefix = g === 0 ? '' : `桃${g}後 `;
@@ -384,14 +433,9 @@ export function validatePlan(sim) {
       if (used > stageWeeks[si]) {
         warnings.push(`${prefix}${STAGES[si]}：${used}週 > 総${stageWeeks[si]}週`);
       }
-      sets.forEach((s, i) => {
-        const cost = lifeCost(s);
-        if (cost > (s.weeks || 0)) {
-          warnings.push(
-            `${prefix}${STAGES[si]} セット${i + 1}：寿命の消費${cost}週が割当${s.weeks || 0}週を超えています`
-          );
-        }
-      });
+    }
+    if (overflow[g] > 0) {
+      warnings.push(`${prefix}寿命の消費が${overflow[g]}週ぶん、最後の段階からもはみ出しています`);
     }
   });
   return warnings;
