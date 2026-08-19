@@ -2,7 +2,15 @@
    育成計算（画面に依存しない純粋な計算だけを置く）
    =========================================================== */
 
-import { SK, SKEYS, STAGES, HEAVY4, LIGHT6, HM, HS, LG, GTH, EV_COST } from '../data/growth.js';
+import { SK, SKEYS, STAGES, HEAVY4, LIGHT6, HM, HS, LG, GTH, EV_COST, EV_WEEKS } from '../data/growth.js';
+import { ITEMS } from '../data/items.js';
+
+/**
+ * 育成計画で回数を入れるアイテム＝使うと寿命が進むもの。
+ * items.js に agePlus 付きのアイテムを足せば、表の列も自動で増える。
+ */
+export const AGE_ITEMS = ITEMS.filter((item) => item.agePlus > 0);
+const AGE_BY_NAME = Object.fromEntries(AGE_ITEMS.map((item) => [item.name, item.agePlus]));
 
 /** 寿命 total 週のうち e 週目が、寿命全体の何%か */
 export function getPct(total, elapsed) {
@@ -86,21 +94,55 @@ export function weekToDate(startMonth, startWeek, offset) {
   };
 }
 
+/** その段階に組んであるセット（無ければ段階まるごと1セットとみなす） */
+function setsOfStage(sim, g, si, fallbackWeeks) {
+  const sets = (sim.plan[g] && sim.plan[g][si]) || [];
+  return sets.length ? sets : [newSet(fallbackWeeks)];
+}
+
 /**
  * 各段階が始まるのが、育成開始から数えて暦の何週目かを返す。
  * groups[g][si] = 週数（0始まり）。その段階が無いときは null。
  *
- * 桃を使うと年齢だけ戻って暦は進み続けるので、
- * 桃を与えたあとの段階は、そのぶん暦がうしろにずれる。
+ * 段階の長さは「年齢」で決まるが、実際に進む暦はイベントとアイテムでずれる
+ * （大会は寿命-4なのに1週しか進まない／アイテムは寿命だけ進めて暦は進めない）。
+ * ここでは計画に入っている中身から、段階ごとの「実際に進む暦」を積み上げる。
  *
- * ※ イベント（大会・修行・冒険）は減る寿命と実際に進む週数が違うため、
- *   計画にイベントを入れると、ここで出す暦とは実際にはずれる。
- *   いまは「育成開始 ＋ 段階の週数」だけで出している。
+ * 桃を使うと年齢だけ戻って暦は進み続けるので、
+ * 桃を与えたあとの段階は、桃の表ぶんだけ暦がうしろにずれる。
  */
 export function stageStartOffsets(sim) {
   const base = calcStageWeeks(sim.life, sim.gtype);
 
-  // 桃を与える時点（年齢の週）と、そこで暦だけ余分に進む週数
+  // 通常育成を段階→セットの順にたどり、年齢と暦を並べて持っておく
+  const segments = [];
+  const stageCal = new Array(10).fill(null);
+  let age = 0;
+  let cal = 0;
+  for (let si = 0; si < 10; si++) {
+    if (base[si] === 0) continue;
+    stageCal[si] = cal;
+    setsOfStage(sim, 0, si, base[si]).forEach((set) => {
+      const ageWeeks = Math.max(0, set.weeks || 0);
+      const calWeeks = calendarWeeks(set);
+      segments.push({ ageStart: age, ageWeeks, calStart: cal, calWeeks });
+      age += ageWeeks;
+      cal += calWeeks;
+    });
+  }
+
+  /** 年齢の週 → 暦の週。セットの途中なら、そのセットの中で割って出す */
+  const ageToCal = (target) => {
+    for (const seg of segments) {
+      if (target < seg.ageStart + seg.ageWeeks) {
+        const into = Math.max(0, target - seg.ageStart);
+        return seg.calStart + (seg.ageWeeks ? Math.floor((seg.calWeeks * into) / seg.ageWeeks) : 0);
+      }
+    }
+    return cal;
+  };
+
+  // 桃を与える時点と、桃の表ぶんの暦の長さ
   const peaches = [];
   for (let pi = 0; pi < 2; pi++) {
     const p = sim.peach[pi];
@@ -108,35 +150,38 @@ export function stageStartOffsets(sim) {
     const extra = peachExtra(pi);
     const at = stageStartWeek(base, p.si) + extra;
     if (at >= sim.life) continue; // 寿命を超えるなら使えない
-    peaches.push({ pi, at, extra });
+    const weeks = calcPeachWeeks(sim.life, sim.gtype, p.si, extra);
+    const stages = [];
+    let len = 0;
+    for (let si = 0; si < 10; si++) {
+      if (weeks[si] === 0) continue;
+      const calWeeks = setsOfStage(sim, pi + 1, si, weeks[si]).reduce(
+        (a, set) => a + calendarWeeks(set),
+        0
+      );
+      stages.push({ si, calWeeks });
+      len += calWeeks;
+    }
+    peaches.push({ pi, calAt: ageToCal(at), len, stages });
   }
-  peaches.sort((a, b) => a.at - b.at);
+  peaches.sort((a, b) => a.calAt - b.calAt);
 
-  /** 年齢の週 → 暦の週 */
-  const toCalendar = (age) =>
-    age + peaches.reduce((sum, p) => sum + (age > p.at ? p.extra : 0), 0);
+  /** その暦の位置より前に使った桃のぶん、うしろにずれる */
+  const shift = (calPos) =>
+    peaches.reduce((sum, p) => sum + (p.calAt < calPos ? p.len : 0), 0);
 
-  const normal = new Array(10).fill(null);
-  let cursor = 0;
-  for (let si = 0; si < 10; si++) {
-    if (base[si] > 0) normal[si] = toCalendar(cursor);
-    cursor += base[si];
-  }
+  const normal = stageCal.map((c) => (c === null ? null : c + shift(c)));
 
   const groups = [normal];
   for (let pi = 0; pi < 2; pi++) {
     const list = new Array(10).fill(null);
-    const used = peaches.find((x) => x.pi === pi);
-    if (used) {
-      // 桃を与えた週から、戻ったぶんの段階を順にたどる
-      let at = toCalendar(used.at);
-      const weeks = calcPeachWeeks(sim.life, sim.gtype, sim.peach[pi].si, used.extra);
-      for (let si = 0; si < 10; si++) {
-        if (weeks[si] > 0) {
-          list[si] = at;
-          at += weeks[si];
-        }
-      }
+    const p = peaches.find((x) => x.pi === pi);
+    if (p) {
+      let at = p.calAt + shift(p.calAt);
+      p.stages.forEach(({ si, calWeeks }) => {
+        list[si] = at;
+        at += calWeeks;
+      });
     }
     groups.push(list);
   }
@@ -149,12 +194,41 @@ export function peachExtra(peachIndex) {
 }
 
 export function newSet(weeks = 0) {
-  return { ht: -1, hc: 2, lt: -1, tc: 0, mc: 0, ac: 0, weeks };
+  // items は { アイテム名: 回数 }。使わないアイテムはキーごと持たない
+  return { ht: -1, hc: 2, lt: -1, tc: 0, mc: 0, ac: 0, weeks, items: {} };
 }
 
-/** そのセットでイベントに使う週数 */
-export function eventWeeks(set) {
-  return (set.tc || 0) * EV_COST.tc + (set.mc || 0) * EV_COST.mc + (set.ac || 0) * EV_COST.ac;
+/**
+ * そのセットで減る寿命の週数（イベント＋アイテム）。
+ * 割当週から引くのはこちら。段階の週数は「年齢」なので、寿命の減りぶんだけ削られる。
+ */
+export function lifeCost(set) {
+  const events =
+    (set.tc || 0) * EV_COST.tc + (set.mc || 0) * EV_COST.mc + (set.ac || 0) * EV_COST.ac;
+  const items = Object.entries(set.items || {}).reduce(
+    (sum, [name, count]) => sum + (AGE_BY_NAME[name] || 0) * (Number(count) || 0),
+    0
+  );
+  return events + items;
+}
+
+/** そのセットで実際にトレーニングできる週数 */
+export function trainWeeks(set) {
+  return (set.weeks || 0) - lifeCost(set);
+}
+
+/**
+ * そのセットで実際に進む暦の週数。
+ * トレーニングは1週で1週進む。イベントは減る寿命と進む週数が違い、
+ * アイテムは寿命だけ進めて暦は進めない（その週にトレーニングもできる）。
+ */
+export function calendarWeeks(set) {
+  return (
+    Math.max(0, trainWeeks(set)) +
+    (set.tc || 0) * EV_WEEKS.tc +
+    (set.mc || 0) * EV_WEEKS.mc +
+    (set.ac || 0) * EV_WEEKS.ac
+  );
 }
 
 /**
@@ -232,9 +306,9 @@ export function calcSetGain(set, stageKey, apt) {
   const gain = {};
   SK.forEach((k) => (gain[k] = 0));
 
-  const trainWeeks = Math.max(0, (set.weeks || 0) - eventWeeks(set));
-  const fullMonths = Math.floor(trainWeeks / 4);
-  const remainder = trainWeeks % 4;
+  const weeks = Math.max(0, trainWeeks(set));
+  const fullMonths = Math.floor(weeks / 4);
+  const remainder = weeks % 4;
 
   const heavyCount = Math.max(0, Math.min(4, parseInt(set.hc, 10) || 0));
   const lightCount = Math.max(0, 4 - heavyCount);
@@ -311,10 +385,10 @@ export function validatePlan(sim) {
         warnings.push(`${prefix}${STAGES[si]}：${used}週 > 総${stageWeeks[si]}週`);
       }
       sets.forEach((s, i) => {
-        const ev = eventWeeks(s);
-        if (ev > (s.weeks || 0)) {
+        const cost = lifeCost(s);
+        if (cost > (s.weeks || 0)) {
           warnings.push(
-            `${prefix}${STAGES[si]} セット${i + 1}：イベント${ev}週が割当${s.weeks || 0}週を超えています`
+            `${prefix}${STAGES[si]} セット${i + 1}：寿命の消費${cost}週が割当${s.weeks || 0}週を超えています`
           );
         }
       });

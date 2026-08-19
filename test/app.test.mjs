@@ -131,23 +131,27 @@ ok(/週目|寿命/.test(peachTiming),'タイミングに段階と週目（また
 
 console.log('— トレーニングに使える週数 —');
 const weekCell = page.locator('.plan-table').first().locator('tbody tr').first();
-const weekInput = weekCell.locator('input[type="number"]').last();
+const weekInput = weekCell.locator('[aria-label="割り当て週数"]');
 const trainWeeks = weekCell.locator('.train-weeks');
 const assigned = Number(await weekInput.inputValue());
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'イベント0なら割当週と同じ');
 // 大会1回=寿命-4 ぶんだけ減る
-await weekCell.locator('input[type="number"]').nth(1).fill('1');
+await weekCell.locator('[aria-label="大会の回数"]').fill('1');
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned-4}週`,'大会1回で4週減る: '+(await trainWeeks.textContent()));
 // 修行1回=寿命-7 も足すと合わせて11週減る
-await weekCell.locator('input[type="number"]').nth(2).fill('1');
+await weekCell.locator('[aria-label="修行の回数"]').fill('1');
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned-11}週`,'修行1回でさらに7週減る: '+(await trainWeeks.textContent()));
+// アイテムも寿命ぶん減る（パラドクシンは-18）
+await weekCell.locator('[aria-label="パラドクシンの回数"]').fill('1');
+ok((await trainWeeks.textContent()).trim()===`トレ${assigned-29}週`,'パラドクシン1個で18週減る: '+(await trainWeeks.textContent()));
+await weekCell.locator('[aria-label="パラドクシンの回数"]').fill('0');
 ok(Number(await weekInput.inputValue())===assigned,'イベントを入れても割当週は減らない');
 // 割当週を超えるイベントは赤くなる
 await weekInput.fill('5');
 ok((await page.locator('.plan-table thead').first().textContent()).includes('大会(-4)'),'ヘッダーに寿命の減りが出る');
 ok((await trainWeeks.getAttribute('class')).includes('train-weeks--over'),'割当週より多いイベントは警告色');
-await weekCell.locator('input[type="number"]').nth(1).fill('0');
-await weekCell.locator('input[type="number"]').nth(2).fill('0');
+await weekCell.locator('[aria-label="大会の回数"]').fill('0');
+await weekCell.locator('[aria-label="修行の回数"]').fill('0');
 await weekInput.fill(String(assigned));
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'戻せば元に戻る');
 
@@ -164,6 +168,24 @@ ok(dates[0]==='4月1週','1段階は育成開始と同じ: '+dates[0]);
 // 寿命300・普通型なら 1段階30週 → 2段階は30週後 = 11月3週
 ok(dates[1]==='11月3週','2段階は30週後: '+dates[1]);
 ok(dates.every(d=>/^\d+月[1-4]週$/.test(d)),'すべて○月◎週の形: '+dates.join(','));
+
+// 列の並びと、イベント/アイテムで暦がずれること
+const heads = await page.locator('.plan-table').first().locator('thead th').allTextContents();
+ok(heads.slice(0,10).join(',')==='段階(週数),セット,重トレ,回/月,軽トレ,自動,割当週,大会(-4),修行(-7),冒険(-2)','列の並び: '+heads.join(','));
+ok(heads.some(t=>t.includes('パラドクシン(-18)')),'寿命が減るアイテムの列がある: '+heads.slice(10).join(','));
+ok((await page.locator('.plan-table').first().locator('tbody tr').first().locator('.col-set .icon-btn--add').count())===1,'セット欄に＋がある');
+// 1段階に大会2回 → 年齢30週ぶんが暦24週になり、2段階が6週手前にずれる
+const firstRow = page.locator('.plan-table').first().locator('tbody tr').first();
+await firstRow.locator('[aria-label="大会の回数"]').fill('2');
+const shifted = await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent();
+ok(shifted==='10月1週','大会2回で2段階が6週手前になる: '+shifted);
+// アイテムは暦を進めないので、さらに前に寄る
+await firstRow.locator('[aria-label="トロロンの回数"]').fill('1');
+const shifted2 = await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent();
+ok(shifted2==='8月3週','トロロン1個でさらに6週手前になる: '+shifted2);
+await firstRow.locator('[aria-label="大会の回数"]').fill('0');
+await firstRow.locator('[aria-label="トロロンの回数"]').fill('0');
+ok((await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent())==='11月3週','戻せば元に戻る');
 // このあとの保存テストのために設定を戻す
 await page.click('#subtab-basic');
 await page.fill('#simLife','400');

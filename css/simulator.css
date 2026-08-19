@@ -165,6 +165,18 @@
 .plan-table .col-num {
   width: 50px;
 }
+/* セット番号と、追加/削除ボタンをまとめた欄 */
+.plan-table .col-set {
+  width: 54px;
+}
+.set-no {
+  display: inline-block;
+  min-width: 12px;
+  margin-right: 2px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
 /* --- 選んだトレーニングの上昇値（select の下） --- */
 .train-gain {
   display: flex;

@@ -10,7 +10,9 @@ import { state, save, currentMon, MORAL_STEP, normalizeMoral } from '../store.js
 import { el, h, replace, clampInt } from '../dom.js';
 import {
   newSet,
-  eventWeeks,
+  lifeCost,
+  trainWeeks,
+  AGE_ITEMS,
   stageWeeksByGroup,
   normalizePlan,
   computeResult,
@@ -180,11 +182,6 @@ function trainOptions(list, selected, noneLabel) {
   ];
 }
 
-/** 割当週からイベント週を引いた、実際にトレーニングできる週数 */
-function trainWeeks(set) {
-  return (set.weeks || 0) - eventWeeks(set);
-}
-
 function trainWeeksLabel(set) {
   return `トレ${trainWeeks(set)}週`;
 }
@@ -234,9 +231,6 @@ function planRow(g, si, idx, set, rowspanCells) {
     h('td', { class: 'col-num' },
       h('span', { class: 'light-count', id: `lc-${g}-${si}-${idx}`, text: String(light) })
     ),
-    numField('tc', set.tc || 0, '大会の回数'),
-    numField('mc', set.mc || 0, '修行の回数'),
-    numField('ac', set.ac || 0, '冒険の回数'),
     numField(
       'weeks',
       set.weeks || 0,
@@ -247,17 +241,48 @@ function planRow(g, si, idx, set, rowspanCells) {
         text: trainWeeksLabel(set),
       })
     ),
-    h('td', { style: 'width:32px' },
-      idx > 0
-        ? h('button', {
-            type: 'button',
-            class: 'icon-btn icon-btn--del',
-            text: '✕',
-            dataset: { action: 'sim:delSet', g: String(g), si: String(si), idx: String(idx) },
-            attrs: { 'aria-label': 'このセットを削除' },
-          })
-        : null
+    numField('tc', set.tc || 0, '大会の回数'),
+    numField('mc', set.mc || 0, '修行の回数'),
+    numField('ac', set.ac || 0, '冒険の回数'),
+    ...AGE_ITEMS.map((item) =>
+      h('td', { class: 'col-num' },
+        h('input', {
+          type: 'number',
+          value: (set.items && set.items[item.name]) || 0,
+          min: 0,
+          dataset: {
+            input: 'sim:setItem',
+            g: String(g),
+            si: String(si),
+            idx: String(idx),
+            name: item.name,
+          },
+          attrs: { 'aria-label': `${item.name}の回数` },
+        })
+      )
     )
+  );
+}
+
+/** セット番号と、追加/削除ボタンをまとめた欄 */
+function setCell(g, si, idx) {
+  return h('td', { class: 'col-set' },
+    h('span', { class: 'set-no', text: String(idx + 1) }),
+    idx === 0
+      ? h('button', {
+          type: 'button',
+          class: 'icon-btn icon-btn--add',
+          text: '＋',
+          dataset: { action: 'sim:addSet', g: String(g), si: String(si) },
+          attrs: { 'aria-label': `${STAGES[si]}にセットを追加` },
+        })
+      : h('button', {
+          type: 'button',
+          class: 'icon-btn icon-btn--del',
+          text: '✕',
+          dataset: { action: 'sim:delSet', g: String(g), si: String(si), idx: String(idx) },
+          attrs: { 'aria-label': 'このセットを削除' },
+        })
   );
 }
 
@@ -273,16 +298,18 @@ function planTable(g, stageWeeks, starts) {
   const head = h('thead', {},
     h('tr', {},
       h('th', { style: 'width:78px', text: '段階(週数)' }),
-      h('th', { style: 'width:32px', text: '＋' }),
+      h('th', { class: 'col-set', text: 'セット' }),
       h('th', { class: 'col-train', text: '重トレ' }),
       h('th', { class: 'col-num', text: '回/月' }),
       h('th', { class: 'col-train', text: '軽トレ' }),
       h('th', { class: 'col-num', text: '自動' }),
+      h('th', { class: 'col-num', text: '割当週' }),
       h('th', { class: 'col-num', text: `大会(-${EV_COST.tc})` }),
       h('th', { class: 'col-num', text: `修行(-${EV_COST.mc})` }),
       h('th', { class: 'col-num', text: `冒険(-${EV_COST.ac})` }),
-      h('th', { class: 'col-num', text: '割当週' }),
-      h('th', { style: 'width:32px' })
+      ...AGE_ITEMS.map((item) =>
+        h('th', { class: 'col-num', text: `${item.name}(-${item.agePlus})` })
+      )
     )
   );
 
@@ -304,20 +331,15 @@ function planTable(g, stageWeeks, starts) {
                   id: `stageWeeks-${g}-${si}`,
                   text: `${used}/${total}週`,
                 }),
-                h('span', { class: 'stage-date', text: stageDateLabel(s, starts && starts[si]) })
-              ),
-              h('td', { attrs: { rowspan: sets.length } },
-                h('button', {
-                  type: 'button',
-                  class: 'icon-btn icon-btn--add',
-                  text: '＋',
-                  dataset: { action: 'sim:addSet', g: String(g), si: String(si) },
-                  attrs: { 'aria-label': `${STAGES[si]}にセットを追加` },
+                h('span', {
+                  class: 'stage-date',
+                  id: `stageDate-${g}-${si}`,
+                  text: stageDateLabel(s, starts && starts[si]),
                 })
               ),
             ]
           : [];
-      rows.push(planRow(g, si, idx, set, rowspanCells));
+      rows.push(planRow(g, si, idx, set, [...rowspanCells, setCell(g, si, idx)]));
     });
   }
 
@@ -394,6 +416,19 @@ export function renderPlan() {
   renderPeach(groups, starts);
   renderWarnings();
   save();
+}
+
+/** イベントやアイテムを変えると暦がずれるので、日付だけ書き換える */
+function updateStageDates() {
+  const s = sim();
+  if (!s) return;
+  const starts = stageStartOffsets(s);
+  starts.forEach((list, g) => {
+    for (let si = 0; si < 10; si++) {
+      const node = el(`stageDate-${g}-${si}`);
+      if (node) node.textContent = stageDateLabel(s, list[si]);
+    }
+  });
 }
 
 function updateTrainWeeks(g, si, idx, set) {
@@ -629,6 +664,22 @@ export const changeActions = {
 };
 
 export const inputActions = {
+  'sim:setItem': (target) => {
+    const s = sim();
+    const { g, si, idx, name } = target.dataset;
+    const set = setsAt(s, Number(g), Number(si))[Number(idx)];
+    if (!set) return;
+    if (!set.items) set.items = {};
+    const count = Math.max(0, parseInt(target.value, 10) || 0);
+    // 使わないアイテムはキーごと持たない（保存データを小さく保つ）
+    if (count === 0) delete set.items[name];
+    else set.items[name] = count;
+    updateTrainWeeks(Number(g), Number(si), Number(idx), set);
+    updateStageDates();
+    renderWarnings();
+    save();
+  },
+
   'sim:init': (target) => {
     const s = sim();
     const key = target.dataset.key;
@@ -663,6 +714,7 @@ export const inputActions = {
     }
     updateStageBadge(Number(g), Number(si));
     updateTrainWeeks(Number(g), Number(si), Number(idx), set);
+    updateStageDates();
     renderWarnings();
     save();
   },
@@ -679,5 +731,3 @@ export const simpleChanges = {
 export function eventCostLabel() {
   return `大会-${EV_COST.tc}週 / 修行-${EV_COST.mc}週 / 冒険-${EV_COST.ac}週`;
 }
-
-export { eventWeeks };
