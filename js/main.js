@@ -98,6 +98,7 @@ function start() {
     ...monster.inputActions,
     ...tracker.inputActions,
     ...simulator.inputActions,
+    ...rotation.inputActions,
     ...reference.inputActions,
   });
   startActionDelegation();
@@ -111,7 +112,10 @@ function start() {
     simulator.renderResult();
   });
 
-  tabs.onSubShown((name) => simulator.onSubTabShown(name));
+  tabs.onSubShown((name) => {
+    if (name === 'rotation') rotation.render();
+    else simulator.onSubTabShown(name);
+  });
 
   // モンスタータブで直した値は、ほかのタブの表示に効く。
   // 上位タブを開くたびに、そのタブだけ作り直しておけば食い違わない。

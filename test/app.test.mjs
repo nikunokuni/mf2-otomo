@@ -229,11 +229,40 @@ await page.fill('#simLife','400');
 await page.selectOption('#simGtype','bansei');
 await page.click('#tab-simulator');
 
-console.log('— 調整ローテ（器だけ） —');
+console.log('— 調整ローテ —');
 await page.click('#subtab-rotation');
 ok(await page.locator('#subpane-rotation').isVisible(),'調整ローテのペインが出る');
-ok((await page.locator('#rotationArea').textContent()).includes('短期詳細版'),'これから作る旨の案内が出る');
 ok(await page.locator('#simActions').isHidden(),'調整ローテでは計算実行/リセットを出さない');
+// 開始時点の内部数値（体型 / ヨイワル / ストレス / 疲労 / 恐れ度 / 甘え度）
+const startInputs = page.locator('.rota-start-grid input');
+ok((await startInputs.count())===6,'開始時点の内部数値は6つ: '+(await startInputs.count()));
+const startLabels = await page.locator('.rota-start-grid label').allTextContents();
+ok(startLabels.join(',')==='体型,ヨイワル,ストレス,疲労,恐れ度,甘え度','並び: '+startLabels.join(','));
+const startValues = await startInputs.evaluateAll(ns=>ns.map(n=>n.value));
+// ヨイワルだけは初期ヨイワル（この時点で-35）から±100の範囲に収まるので 100→65
+ok(startValues.join(',')==='-100,65,0,0,100,100','初期値: '+startValues.join(','));
+ok((await page.locator('#rotaStart-moral').getAttribute('max'))==='65','初期ヨイワル-35なら上限は+65');
+ok((await page.locator('#rotaStart-form').getAttribute('min'))==='-100'
+   && (await page.locator('#rotaStart-form').getAttribute('max'))==='100','体型は-100〜100');
+ok((await page.locator('#rotaStart-stress').getAttribute('min'))==='0','ストレスは0から');
+// 範囲の外を入れても収まる
+await page.fill('#rotaStart-stress','250');
+await page.click('#subtab-plan');
+await page.click('#subtab-rotation');
+ok((await page.locator('#rotaStart-stress').inputValue())==='100','範囲の外は上限で止まる');
+await page.fill('#rotaStart-stress','40');
+// ヨイワルは初期ヨイワルから±100までしか動かない
+await page.click('#tab-monster');
+await page.selectOption('#simMoral','-90');
+await page.click('#tab-simulator');
+await page.click('#subtab-rotation');
+ok((await page.locator('#rotaStart-moral').getAttribute('max'))==='10','初期ヨイワル-90なら上限は+10');
+ok((await page.locator('#rotaStart-moral').inputValue())==='10','はみ出したぶんは範囲に収める');
+await page.click('#tab-monster');
+await page.selectOption('#simMoral','-35');
+await page.click('#tab-simulator');
+await page.click('#subtab-rotation');
+ok((await page.locator('#rotationArea').textContent()).includes('まだ作っていません'),'毎週/毎月ぶんは未実装の案内');
 await page.click('#subtab-plan');
 ok(await page.locator('#simActions').isVisible(),'育成計画では出る');
 

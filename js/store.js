@@ -59,6 +59,21 @@ export function defaultSim() {
   };
 }
 
+/**
+ * 調整ローテの初期値。
+ * start は「調整ローテを始める時点の内部数値」で、
+ * ここに入っている数は仕様で決まっている開始時の値。
+ * （js/data/items.js の INNER.init は「生まれた直後の値」なので別もの）
+ */
+export function defaultRota() {
+  return {
+    start: { form: -100, moral: 100, stress: 0, fatigue: 0, fear: 100, spoil: 100 },
+    // 毎週のアイテムと行動 / 毎月のエサ。中身の形はこれから決める
+    weeks: [],
+    feeds: [],
+  };
+}
+
 /** 1種族ぶんの初期値 */
 export function defaultMon() {
   return {
@@ -69,6 +84,7 @@ export function defaultMon() {
     selected: [],
     progress: {},
     sim: defaultSim(),
+    rota: defaultRota(),
   };
 }
 
@@ -216,6 +232,10 @@ function normalize(loaded) {
     m.sim.apt = Object.assign(defaultSim().apt, m.sim.apt || {});
     m.sim.init = Object.assign(defaultSim().init, m.sim.init || {});
     m.sim.plan = Object.assign({ 0: {}, 1: {}, 2: {} }, m.sim.plan || {});
+    m.rota = Object.assign(defaultRota(), m.rota || {});
+    m.rota.start = Object.assign(defaultRota().start, m.rota.start || {});
+    m.rota.weeks = Array.isArray(m.rota.weeks) ? m.rota.weeks : [];
+    m.rota.feeds = Array.isArray(m.rota.feeds) ? m.rota.feeds : [];
     m.selected = Array.isArray(m.selected) ? m.selected : [];
     m.progress = m.progress || {};
     m.log = Array.isArray(m.log) ? m.log : [];

@@ -3,28 +3,120 @@
    -----------------------------------------------------------
    育成計画の短期詳細版。
    育成計画が「全期間を段階ごとにざっくり組む」ものなのに対して、
-   こちらは短い期間（育成の最初と最後など）を1週ずつ細かく組むための画面。
+   こちらは短い期間を1週ずつ細かく組むための画面。
 
-   ここでアイテムを1週ずつ置いて、内部数値（疲労・ストレス・恐れ度…）を
-   追いかけられるようにする。使うのは js/data/items.js の数値のほう。
-   アイテムの効果そのものを一覧で確かめたいときは早見タブを見る。
+   いまできること
+     ・調整ローテを始める時点の内部数値を入れる（mon.rota.start）
 
-   まだ中身は無い。設計のメモは docs/roadmap.md の②。
+   これから作るもの
+     ・毎週のアイテムと行動、毎月のエサを入れる表
+     ・それをもとに内部数値を1週ずつ計算して出す
+
+   計算に使うのは js/data/items.js の数値のほう。
+   アイテムの効果そのものを思い出したいときは早見タブを見る
+   （ユーザーは効果を覚えている前提なので、この画面には出さない）。
+
+   設計のメモは docs/roadmap.md の②。
    =========================================================== */
 
-import { el, h, replace } from '../dom.js';
+import { INNER } from '../data/items.js';
+import { save, currentMon } from '../store.js';
+import { el, h, replace, clampInt } from '../dom.js';
+import { moralRange } from './inner-calc.js';
+
+/**
+ * 開始時点に入れる内部数値。並びは画面に出す順。
+ * 人気（fame）はいまのところ調整ローテでは使わないので出していない。
+ */
+const START_KEYS = ['form', 'moral', 'stress', 'fatigue', 'fear', 'spoil'];
+
+function rota() {
+  const mon = currentMon();
+  return mon ? mon.rota : null;
+}
+
+/**
+ * そのキーが取れる範囲。
+ * ヨイワルだけは、そのモンスターの初期ヨイワル（モンスタータブ）から
+ * ±100 までしか動かないので、範囲が狭くなることがある。
+ */
+function rangeOf(key) {
+  const mon = currentMon();
+  if (key === 'moral') return moralRange(mon ? mon.sim.moral : 0);
+  return [INNER[key].min, INNER[key].max];
+}
+
+function startField(key) {
+  const r = rota();
+  const [min, max] = rangeOf(key);
+  const value = clampInt(r.start[key], min, max, min);
+  return h(
+    'div',
+    { class: 'field' },
+    h('label', { attrs: { for: `rotaStart-${key}` }, text: INNER[key].label }),
+    h('input', {
+      type: 'number',
+      id: `rotaStart-${key}`,
+      value,
+      min,
+      max,
+      dataset: { input: 'rota:start', key },
+      attrs: { 'aria-label': `開始時点の${INNER[key].label}` },
+    }),
+    h('span', { class: 'rota-range', text: `${min}〜${max}` })
+  );
+}
+
+function startSection() {
+  const mon = currentMon();
+  return h(
+    'div',
+    { class: 'sim-section' },
+    h('div', { class: 'sim-section__title', text: '調整ローテを始める時点の内部数値' }),
+    h('div', { class: 'rota-start-grid' }, ...START_KEYS.map(startField)),
+    h('div', {
+      class: 'note',
+      style: 'margin-top:6px',
+      text:
+        `ヨイワルは、モンスタータブの初期ヨイワル（${mon ? mon.sim.moral : 0}）から` +
+        '±100までしか動かないので、範囲がせまくなることがあります。',
+    })
+  );
+}
+
+/** まだ作っていないぶんの案内 */
+function todoSection() {
+  return h(
+    'div',
+    { class: 'sim-section' },
+    h('div', { class: 'sim-section__title', text: '毎週のアイテムと行動 / 毎月のエサ' }),
+    h('div', { class: 'callout callout--info' },
+      h('div', { text: 'ここはまだ作っていません。' }),
+      h('div', { text: '1週ずつアイテムと行動を並べて、内部数値がどう動くかをその場で出す予定です。' })
+    ),
+    h('div', { class: 'empty' },
+      h('div', { text: 'アイテムの効果は早見タブで確認できます。' })
+    )
+  );
+}
 
 export function render() {
   const area = el('rotationArea');
   if (!area) return;
-  replace(
-    area,
-    h('div', { class: 'callout callout--info' },
-      h('div', { text: '育成計画の短期詳細版です。まだ作っていません。' })
-    ),
-    h('div', { class: 'empty' },
-      h('div', { text: '1週ずつアイテムと行動を並べて、内部数値を追えるようにする予定です。' }),
-      h('div', { class: 'note', text: 'アイテムの効果は早見タブで確認できます。' })
-    )
-  );
+  if (!rota()) {
+    replace(area, h('div', { class: 'empty', text: '「モンスター」タブから種族を選んでください' }));
+    return;
+  }
+  replace(area, startSection(), todoSection());
 }
+
+export const inputActions = {
+  'rota:start': (target) => {
+    const r = rota();
+    if (!r) return;
+    const key = target.dataset.key;
+    const [min, max] = rangeOf(key);
+    r.start[key] = clampInt(target.value, min, max, min);
+    save();
+  },
+};

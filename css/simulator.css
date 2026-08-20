@@ -32,6 +32,23 @@
   flex-shrink: 0;
 }
 
+/* --- 調整ローテ：開始時点の内部数値 --- */
+.rota-start-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.rota-range {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 400px) {
+  .rota-start-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 /* --- 成長適正の読み取り専用の帯（計画表の上） --- */
 .plan-apt {
   display: flex;
