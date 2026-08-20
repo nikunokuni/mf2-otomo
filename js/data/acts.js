@@ -84,9 +84,39 @@ export function conditionValue(fatigue, stress) {
   return fatigue + stress * 2;
 }
 
+/* ===========================================================
+   寿命の減り方は2本立て
+   -----------------------------------------------------------
+   A 週経過ぶん … 1週たてば、それだけで寿命が1週減る。暦も1週進む。
+   B 追加ぶん   … 週経過に「加えて」かかるぶん。暦は進まない。
+                  ふだんの週は体調値から決まる。
+                  イベントの週は、体調値のかわりにイベントの決まった値になる。
+
+   合計（A+B）は育成計画の EV_COST と一致する。
+     大会 週経過1 + 追加3 = 4
+     修行 週経過4 + 追加3 = 7
+     冒険 週経過0 + 追加2 = 2 … 冒険の4週だけは週経過を寿命に数えない
+   =========================================================== */
+
+/** 1週たつと、それだけで減る寿命（A） */
+export const WEEK_AGE = 1;
+
 /**
- * 体調値から、その週に減る寿命。
+ * イベントの寿命の内訳。
+ *   weeks    暦が進む週数
+ *   ageWeeks そのうち寿命に数える週経過（冒険だけ0。ここは特別に数えない）
+ *   extra    週経過に加えてかかる追加ぶん（イベント1回まるごとで1回）
+ */
+export const EVENT_LIFE = {
+  tc: { weeks: 1, ageWeeks: 1, extra: 3 },
+  mc: { weeks: 4, ageWeeks: 4, extra: 3 },
+  ac: { weeks: ADVENTURE_WEEKS, ageWeeks: 0, extra: 2 },
+};
+
+/**
+ * 体調値から、その週にかかる「追加ぶん（B）」。
  * 上限まで（max を含む）がその段。いちばん下の段は上限なし。
+ * ★これは週経過ぶん（A）とは別に、加えてかかる★
  */
 export const CONDITION_LIFE = [
   { max: 69, life: 1 },
@@ -99,7 +129,7 @@ export const CONDITION_LIFE = [
   { max: Infinity, life: 8 },
 ];
 
-/** その体調値のときに1週で減る寿命 */
+/** その体調値のときに1週でかかる追加ぶん（週経過ぶんは含まない） */
 export function lifeLoss(condition) {
   const row = CONDITION_LIFE.find((r) => condition <= r.max);
   return row ? row.life : 8;

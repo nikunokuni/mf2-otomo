@@ -343,7 +343,9 @@ const cond = (n) => page.locator(`#rotaCond-${n}`).textContent();
 const lifeOf = (n) => page.locator(`#rotaLife-${n}`).textContent();
 ok((await valRow(0)).slice(0,2).join(',')==='15,12','重トレで疲労+15 ストレス+12');
 ok((await cond(0))==='39','体調値 = 15 + 12×2 = 39');
-ok((await lifeOf(0))==='-1','体調39なら寿命-1');
+ok((await lifeOf(0))==='-2','体調39なら 週経過-1 ＋ 追加-1 = -2');
+ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('体調値'),
+   'ふだんの週の追加ぶんは体調値から');
 // 休養は成長段階で変わる
 await page.locator('[aria-label="1か月目 第2週の行動"]').selectOption('rest');
 ok((await valRow(1)).slice(0,2).join(',')==='0,7','第1段階の休養 疲労-36 ストレス-5（下限0で止まる）');
@@ -366,7 +368,10 @@ ok(await page.locator('[aria-label="2か月目 第1週の行動"]').isDisabled()
 ok(await page.locator('[aria-label="2か月目 第1週のアイテム"]').isDisabled(),'出ているあいだはアイテムも使えない');
 // 出ているあいだは体調値なし
 ok((await page.locator('#rotaCond-3').textContent())==='冒険中','冒険中は体調値を出さない');
-ok((await page.locator('#rotaLife-4').textContent())==='—','冒険中は寿命も数えない');
+ok((await page.locator('#rotaLife-4').textContent())==='0','冒険中の週は寿命がかからない');
+ok((await page.locator('#rotaLife-3').textContent())==='-2','出発の週に冒険ぶんの追加-2');
+ok((await page.locator('#rotaLifeCell-3').getAttribute('title')).includes('冒険'),
+   '内訳が出る: '+(await page.locator('#rotaLifeCell-3').getAttribute('title')));
 // 帰ってきた週に疲労がまとめて乗る
 const beforeAdv = Number((await valRow(2))[0]);
 const backFatigue = Number((await valRow(7))[0]);
@@ -374,6 +379,11 @@ ok(backFatigue===Math.min(100,beforeAdv+70),
    `帰ってきた週に疲労+70: ${beforeAdv} → ${backFatigue}`);
 ok((await page.locator('.rota-total').textContent()).includes('うち冒険 4週'),
    '冒険の週数が合計に出る: '+(await page.locator('.rota-total').textContent()));
+// 大会は 週経過1 + 追加3 = 4
+await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('tc:win');
+ok((await page.locator('#rotaLife-0').textContent())==='-4','大会は 週経過1+追加3 = -4');
+ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('大会'),'追加ぶんは大会から');
+await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('heavy:0');
 // 取りやめると残りの3週も空く
 await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('rest');
 const afterCancel = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));
@@ -381,13 +391,16 @@ ok(afterCancel.slice(3,7).every((v,i)=>i===0?v==='rest':v===''),
    '冒険をやめると残りの3週も空く: '+afterCancel.join(','));
 
 // 減る寿命の合計
-ok((await page.locator('#rotaLifeTotal').textContent()).includes('合計'),'減る寿命の合計が出る');
+ok((await page.locator('#rotaLifeTotal').textContent()).includes('週経過'),
+   '寿命は内訳つきで出る: '+(await page.locator('#rotaLifeTotal').textContent()));
 await page.fill('#rotaJugs','3');
-const totalLife = Number((await page.locator('#rotaLifeTotal').textContent()).match(/(\d+)週/)[1]);
+const lifeTotalText = await page.locator('#rotaLifeTotal').textContent();
+const [tAge,tExtra,tSum] = lifeTotalText.match(/週経過-(\d+) ＋ 追加-(\d+) ＝ 合計-(\d+)/).slice(1).map(Number);
+ok(tAge+tExtra===tSum,`合計は内訳の和: ${tAge}+${tExtra}=${tSum}`);
 const perWeek = await page.locator('[id^="rotaLife-"]').allTextContents();
 // いちばん下の行は「次の週」の入力欄なので、まだ組んだ週には数えない
-ok(totalLife===perWeek.slice(0,-1).reduce((a,v)=>a+Number(v.replace('-','')),0),
-   '合計は最後の空行をのぞく各週の和と一致: '+totalLife+' / '+perWeek.join(','));
+ok(tSum===perWeek.slice(0,-1).reduce((a,v)=>a+Number(v.replace('-','')),0),
+   '合計は最後の空行をのぞく各週の和と一致: '+tSum+' / '+perWeek.join(','));
 ok((await page.locator('.rota-table__inputs.rota-table--pending').count())===1,
    '「次の週」の行は1つだけ薄く出る');
 // 表は5行あるが、いちばん下は「次の週」の入力欄なので4週ぶん

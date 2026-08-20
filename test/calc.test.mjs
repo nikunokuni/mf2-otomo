@@ -256,11 +256,37 @@ eq(advRows[1].advStart,true,'冒険の最初の週');
 eq(advRows[2].advStart,false,'2週目以降は最初の週ではない');
 eq(advRows.slice(1,5).map(r=>r.values.fatigue).join(','),'25,25,25,25','出ているあいだは疲労が動かない');
 eq(advRows.slice(1,5).map(r=>r.condition).join(','),',,,','出ているあいだは体調値なし');
-eq(advRows.slice(1,5).map(r=>r.lifeLoss).join(','),'0,0,0,0','出ているあいだは寿命も数えない');
+eq(advRows.slice(1,5).map(r=>r.ageWeeks).join(','),'0,0,0,0','出ているあいだは週経過を寿命に数えない');
 eq(advRows[5].returned,true,'6週目に帰ってくる');
 eq(advRows[5].values.fatigue,95,'帰ってきた週に疲労+70（25→95）');
 eq(advRows[5].condition,95+22*2,'帰ってきた週から体調値が戻る');
 eq(R.adventureWeeks(advRows),4,'冒険で出かけた週数');
+
+/* ---- 寿命の減り方（週経過ぶん + 追加ぶん） ---- */
+eq(A.WEEK_AGE,1,'1週たてば寿命が1週減る');
+const life=(weeks)=>R.lifeTotals(R.simulate({
+  start:{...base,fatigue:0,stress:0},weeks,
+  feeds:['','',''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1',
+}));
+// 育成計画の EV_COST と一致する（大会-4 / 修行-7 / 冒険-2）
+eq(life([{act:'tc:win'}]),{age:1,extra:3,total:4},'大会 週経過1+追加3=4（EV_COST.tc と一致）');
+eq(life([{act:'mc'},{act:'mc'},{act:'mc'},{act:'mc'}]),{age:4,extra:3,total:7},
+   '修行 週経過4+追加3=7（EV_COST.mc と一致）');
+eq(life([{act:'ac'},{act:'ac'},{act:'ac'},{act:'ac'}]),{age:0,extra:2,total:2},
+   '冒険 週経過0+追加2=2（EV_COST.ac と一致）');
+eq([EV_COST.tc,EV_COST.mc,EV_COST.ac].join(','),'4,7,2','育成計画側の EV_COST');
+// ふだんの週は 週経過1 + 体調値ぶん
+eq(life([{act:'light:0'}]),{age:1,extra:1,total:2},'ふつうの週 週経過1+体調値ぶん1');
+const heavyRows=R.simulate({start:{...base,fatigue:0,stress:0},
+  weeks:[{act:'heavy:0'},{act:'heavy:0'},{act:'heavy:0'}],
+  feeds:[''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1'});
+eq(heavyRows.map(r=>r.extraFrom).join(','),'condition,condition,condition','ふだんの週の追加ぶんは体調値から');
+eq(heavyRows.map(r=>r.lifeCost).join(','),'2,3,4','週ごとの合計（週経過1+追加）');
+eq(R.lifeTotals(heavyRows).total,9,'合計');
+// 修行を続けて選んでも、追加ぶんは1回だけ
+eq(life([{act:'mc'},{act:'mc'}]),{age:2,extra:3,total:5},'途中で切り上げた修行でも追加は1回');
+eq(life([{act:'mc'},{act:''},{act:'mc'}]),{age:3,extra:7,total:10},
+   '間があいたら別の修行として2回ぶん（3+1+3）');
 // 冒険中はエサも水差しもアイテムも効かない
 const advFeed=R.simulate({
   start:{...base,fatigue:0,stress:50},
@@ -293,7 +319,7 @@ eq(act('tc:last',{stress:3}).stress,0,'順位に関係なくストレス0');
 /* ---- 体調値と減る寿命 ---- */
 eq(A.conditionValue(40,30),100,'体調値 = 疲労 + ストレス×2');
 eq([0,69,70,104,105,139,140,174,175,209,210,244,245,269,270,300].map(A.lifeLoss).join(','),
-   '1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8','体調値ごとの減る寿命');
+   '1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8','体調値ごとの追加ぶん');
 const lifeRows=R.simulate({
   start:{...base,fatigue:0,stress:0},
   weeks:[{act:'heavy:0'},{act:'heavy:0'},{act:'heavy:0'}],
@@ -301,8 +327,9 @@ const lifeRows=R.simulate({
 });
 // 1週目 疲15 ス12 → 体調39 → -1 ／ 2週目 疲30 ス24 → 78 → -2 ／ 3週目 疲45 ス36 → 117 → -3
 eq(lifeRows.map(r=>r.condition).join(','),'39,78,117','各週の体調値');
-eq(lifeRows.map(r=>r.lifeLoss).join(','),'1,2,3','各週に減る寿命');
-eq(R.totalLifeLoss(lifeRows),6,'減る寿命の合計');
+eq(lifeRows.map(r=>r.extraLife).join(','),'1,2,3','各週の追加ぶん（体調値から）');
+eq(lifeRows.map(r=>r.lifeCost).join(','),'2,3,4','各週の合計（週経過1を足す）');
+eq(R.lifeTotals(lifeRows),{age:3,extra:6,total:9},'合計の内訳');
 
 console.log(`\n照合 ${checks}件 / 不一致 ${fail}件`);
 

@@ -40,7 +40,7 @@ import {
   monthCount,
   totalAgePlus,
   totalFeedPrice,
-  totalLifeLoss,
+  lifeTotals,
   adventureWeeks,
   JUG_NAME,
 } from './rota-calc.js';
@@ -89,6 +89,25 @@ function rangeOf(key) {
   const mon = currentMon();
   if (key === 'moral') return moralRange(mon ? mon.sim.moral : 0);
   return [INNER[key].min, INNER[key].max];
+}
+
+/**
+ * その週の寿命の減り。「週経過ぶん＋追加ぶん」の合計を出す。
+ * 内訳はマウスを乗せたときに出す（狭い画面に全部は入らない）。
+ */
+function lifeText(row) {
+  return row.lifeCost ? `-${row.lifeCost}` : '0';
+}
+
+function lifeTitle(row) {
+  const from = {
+    condition: '体調値',
+    tc: '大会',
+    mc: '修行',
+    ac: '冒険',
+  }[row.extraFrom];
+  const age = row.adventuring ? '週経過は数えない（冒険）' : `週経過 -${row.ageWeeks}`;
+  return `${age} ＋ 追加 -${row.extraLife}（${from}）＝ 合計 -${row.lifeCost}`;
 }
 
 /** 数字を +3 / -3 / 0 の形にそろえる */
@@ -345,12 +364,16 @@ function weekRows(row, i) {
         ),
         h(
           'span',
-          { class: 'rota-vals__cell rota-vals__life', attrs: { title: 'その週に減る寿命' } },
-          h('span', { class: 'rota-vals__label', text: row.adventuring ? '' : '寿命' }),
+          {
+            class: 'rota-vals__cell rota-vals__life',
+            id: `rotaLifeCell-${i}`,
+            attrs: { title: lifeTitle(row) },
+          },
+          h('span', { class: 'rota-vals__label', text: '寿命' }),
           h('span', {
             class: 'rota-vals__num',
             id: `rotaLife-${i}`,
-            text: row.adventuring ? '—' : `-${row.lifeLoss}`,
+            text: lifeText(row),
           })
         )
       )
@@ -358,6 +381,12 @@ function weekRows(row, i) {
   );
 
   return [inputs, values];
+}
+
+/** 寿命の合計を「週経過 ＋ 追加 ＝ 合計」の形で出す */
+function lifeTotalText(rows) {
+  const t = lifeTotals(rows);
+  return `寿命 週経過-${t.age} ＋ 追加-${t.extra} ＝ 合計-${t.total}週`;
 }
 
 /**
@@ -399,12 +428,12 @@ function refreshValues() {
     const cond = el(`rotaCond-${i}`);
     if (cond) cond.textContent = row.adventuring ? '冒険中' : String(row.condition);
     const life = el(`rotaLife-${i}`);
-    if (life) life.textContent = row.adventuring ? '—' : `-${row.lifeLoss}`;
+    if (life) life.textContent = lifeText(row);
+    const cell = el(`rotaLifeCell-${i}`);
+    if (cell) cell.setAttribute('title', lifeTitle(row));
   });
   const total = el('rotaLifeTotal');
-  if (total) {
-    total.textContent = `体調で減る寿命 合計 ${totalLifeLoss(rows.slice(0, plannedCount()))}週`;
-  }
+  if (total) total.textContent = lifeTotalText(rows.slice(0, plannedCount()));
 }
 
 function weekTable() {
@@ -443,8 +472,9 @@ function planSection() {
     h('div', { class: 'callout callout--info' },
       h('div', { text: '月初め（第1週）は、エサ → 双子の水差し の順に効いてから、その週のアイテムと行動です。' }),
       h('div', { text: '1週ぶん入れると、その下に次の週の欄が出てきます。' }),
-      h('div', { text: '体調値＝疲労＋ストレス×2。その週に減る寿命は体調値で決まります。' }),
-      h('div', { text: `冒険は${ADVENTURE_WEEKS}週まとめて出かけます。出ているあいだは体調値を出さず、疲労は帰ってきた週にまとめて乗ります。` })
+      h('div', { text: '体調値＝疲労＋ストレス×2。' }),
+      h('div', { text: '寿命は「週経過ぶん（1週たてば-1）＋ 追加ぶん」で減ります。追加ぶんは、ふだんの週は体調値から、イベントの週はイベントの決まった値から決まります（大会-3 / 修行-3 / 冒険-2）。' }),
+      h('div', { text: `冒険は${ADVENTURE_WEEKS}週まとめて出かけます。出ているあいだは体調値を出さず、この4週ぶんの週経過は寿命に数えません。疲労は帰ってきた週にまとめて乗ります。` })
     ),
     weekTable(),
     h('div', { class: 'rota-legend' },
@@ -457,12 +487,12 @@ function planSection() {
       h('span', {
         class: 'rota-total__life',
         id: 'rotaLifeTotal',
-        text: `体調で減る寿命 合計 ${totalLifeLoss(rows.slice(0, planned))}週`,
+        text: lifeTotalText(rows.slice(0, planned)),
       }),
       h('span', { text: `アイテムで進む寿命 ${totalAgePlus(r.weeks)}週` }),
       h('span', { text: `エサ代 ${totalFeedPrice(r.feeds, planned)}G` }),
       adventureWeeks(rows.slice(0, planned))
-        ? h('span', { text: `うち冒険 ${adventureWeeks(rows.slice(0, planned))}週（体調値なし）` })
+        ? h('span', { text: `うち冒険 ${adventureWeeks(rows.slice(0, planned))}週（週経過を数えない）` })
         : null
     )
   );

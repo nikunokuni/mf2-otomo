@@ -15,8 +15,15 @@
                 出かけているあいだは体調値を出さない（寿命も数えない）
          休養   成長段階ごと。体型+5
          大会   疲労は体型で変わる。大会後はストレス0
-     ・最後に、その週が終わった時点の体調値（疲労+ストレス×2）から
-       その週に減る寿命を出す
+     ・最後に、その週にかかる寿命を出す
+
+   寿命の減り方は2本立て（js/data/acts.js）
+     A 週経過ぶん … 1週たてば寿命が1週減る。暦も1週進む
+     B 追加ぶん   … 週経過に加えてかかるぶん。暦は進まない
+                    ふだんの週は体調値から決まる。
+                    イベントの週は、体調値のかわりにイベントの決まった値になる
+   合計（A+B）は育成計画の EV_COST と一致する
+     大会 1+3=4 ／ 修行 4+3=7 ／ 冒険 0+2=2
 
    ★ゲーム内の計算は、途中で小数点以下を切り捨てる★
      割合の効果は pctDelta() を通す（js/simulator/inner-calc.js）。
@@ -36,6 +43,8 @@ import {
   tournamentFatigue,
   conditionValue,
   lifeLoss,
+  WEEK_AGE,
+  EVENT_LIFE,
 } from '../data/acts.js';
 import { clampInner, pctDelta } from './inner-calc.js';
 
@@ -206,8 +215,35 @@ export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, speci
       values = applyAct(values, w.act, initMoral, stage);
     }
 
-    // 冒険中は体調値を出さない（そのぶんの寿命も数えない）
+    // 冒険中は体調値を出さない
     const condition = adventuring ? null : conditionValue(values.fatigue, values.stress);
+
+    // A 週経過ぶん。冒険の4週だけは、暦は進むが寿命に数えない
+    const ageWeeks = adventuring ? 0 : WEEK_AGE;
+
+    // B 追加ぶん。イベントの週は体調値のかわりにイベントの決まった値になる。
+    //   大会は1週で1回、修行は続いているあいだの最初の週で1回、冒険は出発の週で1回
+    let extraLife;
+    let extraFrom;
+    if (advStart) {
+      extraLife = EVENT_LIFE.ac.extra;
+      extraFrom = 'ac';
+    } else if (adventuring) {
+      extraLife = 0;
+      extraFrom = 'ac';
+    } else if (w.act && w.act.startsWith('tc:')) {
+      extraLife = EVENT_LIFE.tc.extra;
+      extraFrom = 'tc';
+    } else if (w.act === 'mc') {
+      // 続けて選んだ修行は1回ぶんとして数える
+      const campStart = i === 0 || weeks[i - 1].act !== 'mc';
+      extraLife = campStart ? EVENT_LIFE.mc.extra : 0;
+      extraFrom = 'mc';
+    } else {
+      extraLife = lifeLoss(condition);
+      extraFrom = 'condition';
+    }
+
     return {
       weekIdx: i,
       monthStart,
@@ -219,7 +255,10 @@ export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, speci
       returned,
       values: { ...values },
       condition,
-      lifeLoss: adventuring ? 0 : lifeLoss(condition),
+      ageWeeks,
+      extraLife,
+      extraFrom,
+      lifeCost: ageWeeks + extraLife,
     };
   });
 }
@@ -229,9 +268,17 @@ export function adventureWeeks(rows) {
   return rows.filter((r) => r.adventuring).length;
 }
 
-/** 体調値で減る寿命の合計（アイテムで進む寿命とは別） */
-export function totalLifeLoss(rows) {
-  return rows.reduce((sum, r) => sum + r.lifeLoss, 0);
+/**
+ * 寿命の減りの合計。内訳もいっしょに返す。
+ *   age   週経過ぶん（A）
+ *   extra 追加ぶん（B）
+ *   total 合計
+ * アイテムで進む寿命（agePlus）はここには入れない。
+ */
+export function lifeTotals(rows) {
+  const age = rows.reduce((sum, r) => sum + r.ageWeeks, 0);
+  const extra = rows.reduce((sum, r) => sum + r.extraLife, 0);
+  return { age, extra, total: age + extra };
 }
 
 /** その調整ローテで寿命がどれだけ進むか（アイテムの agePlus の合計） */
