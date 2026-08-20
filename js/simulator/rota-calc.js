@@ -4,26 +4,28 @@
    1週ずつ、内部数値がどう動くかを追いかける。
 
    1週のなかの順番
-     ・月初め（第1週）のときだけ
-         1. エサ（その月に選んだもの。好き嫌いで効き方が変わる）
-         2. 双子の水差し（持っている数だけ重なる）
-     ・そのあと、その週に使ったアイテム
-     ・そのあと、その週の行動（js/data/acts.js）
-         軽トレ 疲労+10 ストレス+5 ／ 重トレ 疲労+15 ストレス+12
-         修行   1週ぶん 疲労+18 ストレス+7（4週で +72 / +28）
-         冒険   4週まとめて出かける。疲労+70 は帰ってきた週にまとめて乗る。
-                出かけているあいだは体調値を出さない（寿命も数えない）
-         休養   成長段階ごと。体型+5
-         大会   疲労は体型で変わる。大会後はストレス0
-     ・最後に、その週にかかる寿命を出す
+     1. 月初め（第1週）なら エサ → 双子の水差し
+     2. その週に使ったアイテム
+     3. その週の行動（js/data/acts.js）
+     4. その週にかかる寿命
+
+   修行と冒険は「4週まとめて出かける」ひとかたまり
+     修行 出かける週にはエサもアイテムも間に合う（先にエサをあげてから出かける）。
+          2〜4週目はエサもアイテムも無し。疲労とストレスは毎週たまる
+     冒険 出かける週にエサは間に合うが、アイテムは使えない。
+          出かけているあいだは何も起きず、体調値も出さない。
+          疲労+70 は帰ってきた週にまとめて乗る
+     どちらも、帰ってきた週からはふつうにアイテムを使えて行動も選べる
 
    寿命の減り方は2本立て（js/data/acts.js）
      A 週経過ぶん … 1週たてば寿命が1週減る。暦も1週進む
-     B 追加ぶん   … 週経過に加えてかかるぶん。暦は進まない
-                    ふだんの週は体調値から決まる。
-                    イベントの週は、体調値のかわりにイベントの決まった値になる
-   合計（A+B）は育成計画の EV_COST と一致する
-     大会 1+3=4 ／ 修行 4+3=7 ／ 冒険 0+2=2
+                    （冒険の4週だけは、暦は進むが寿命に数えない）
+     B 追加ぶん   … 週経過に加えてかかるぶん。暦は進まない。
+                    体調値ぶんと、イベントぶんの両方がかかる
+   修行は体調値ぶんだけ（修行そのものの追加は無い）。
+   4週まとめて1回、修行が終わった時点の体調値で数える。
+   疲労0・ストレス0から修行に出れば 週経過4 + 体調値ぶん3 = -7 になり、
+   育成計画の EV_COST.mc と一致する。
 
    ★ゲーム内の計算は、途中で小数点以下を切り捨てる★
      割合の効果は pctDelta() を通す（js/simulator/inner-calc.js）。
@@ -35,6 +37,7 @@ import {
   TRAIN_LIGHT,
   TRAIN_HEAVY,
   TRAINING_CAMP,
+  TRAINING_CAMP_WEEKS,
   ADVENTURE,
   ADVENTURE_WEEKS,
   REST,
@@ -159,6 +162,7 @@ export function applyAct(values, act, initMoral, stage = 's1') {
   // 冒険は出かけている週には何も起きない。疲労は帰ってきた週に simulate() が乗せる
   if (act === 'ac') return { ...values };
 
+  // 修行は出かけているあいだ、毎週たまる
   if (act === 'mc') return applyInner(values, { inner: TRAINING_CAMP }, initMoral);
 
   if (act.startsWith('light:')) return applyInner(values, { inner: TRAIN_LIGHT }, initMoral);
@@ -180,84 +184,103 @@ export function applyAct(values, act, initMoral, stage = 's1') {
  *
  * 戻り値は週ごとの行。values はその週が終わった時点の内部数値。
  */
+/** 4週まとめて出かける行動と、その週数 */
+const BLOCK_WEEKS = { mc: TRAINING_CAMP_WEEKS, ac: ADVENTURE_WEEKS };
+
+/** その行動が「4週まとめて出かける」ものかどうか */
+export function isBlockAct(act) {
+  return Object.prototype.hasOwnProperty.call(BLOCK_WEEKS, act);
+}
+
+/** その行動が何週ぶんのかたまりか（かたまりでなければ1） */
+export function blockWeeksOf(act) {
+  return BLOCK_WEEKS[act] || 1;
+}
+
 export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, species, stage }) {
   let values = { ...start };
-  // 冒険で出かけている区間と、帰ってくる週
-  let advEnd = -1;
-  let advReturn = -1;
+  // いま出かけている最中のかたまり { kind, start, end }
+  let block = null;
 
   return weeks.map((w, i) => {
-    // 冒険から帰ってきた週。まず疲労がまとめて乗る
+    // かたまりが終わった。冒険なら、帰ってきたこの週に疲労がまとめて乗る
     let returned = false;
-    if (i === advReturn) {
-      values = applyInner(values, { inner: { fatigue: ADVENTURE.fatigue } }, initMoral);
-      advReturn = -1;
-      returned = true;
-    }
-
-    // 出かけている途中なら、その週は何も起きない
-    const advStart = i > advEnd && w.act === 'ac';
-    if (advStart) {
-      advEnd = i + ADVENTURE_WEEKS - 1;
-      advReturn = advEnd + 1;
-    }
-    const adventuring = advStart || i <= advEnd;
-
-    const monthStart = isMonthStart(i);
-    const feedName = !adventuring && monthStart ? feeds[monthOf(i)] || '' : '';
-
-    if (!adventuring) {
-      if (monthStart) {
-        values = applyFeed(values, feedName, feedLike && feedLike[feedName], initMoral);
-        values = applyJugs(values, jugs, initMoral);
+    if (block && i > block.end) {
+      if (block.kind === 'ac') {
+        values = applyInner(values, { inner: { fatigue: ADVENTURE.fatigue } }, initMoral);
+        returned = true;
       }
-      values = applyItem(values, w.item, initMoral, species);
-      values = applyAct(values, w.act, initMoral, stage);
+      block = null;
     }
 
-    // 冒険中は体調値を出さない
+    // 新しく出かける週か
+    const blockStart = !block && isBlockAct(w.act);
+    if (blockStart) block = { kind: w.act, start: i, end: i + BLOCK_WEEKS[w.act] - 1 };
+
+    const kind = block ? block.kind : null;
+    const inBlock = !!block;
+    const blockEnd = inBlock && i === block.end;
+    const adventuring = kind === 'ac';
+    const camping = kind === 'mc';
+
+    // エサは月初めに1回。出かける週なら、出かける前にあげられる。
+    // 出かけている途中（2〜4週目）はあげられない
+    const monthStart = isMonthStart(i);
+    const canFeed = monthStart && (!inBlock || blockStart);
+    const feedName = canFeed ? feeds[monthOf(i)] || '' : '';
+    if (canFeed) {
+      values = applyFeed(values, feedName, feedLike && feedLike[feedName], initMoral);
+      values = applyJugs(values, jugs, initMoral);
+    }
+
+    // アイテムは、冒険では使えない。修行は出かける週だけ使える
+    const canItem = !inBlock || (camping && blockStart);
+    if (canItem) values = applyItem(values, w.item, initMoral, species);
+
+    // 行動。冒険で出かけているあいだは何も起きない
+    if (!adventuring) values = applyAct(values, w.act, initMoral, stage);
+
+    // 体調値。冒険で出かけているあいだだけ出さない
     const condition = adventuring ? null : conditionValue(values.fatigue, values.stress);
 
     // A 週経過ぶん。冒険の4週だけは、暦は進むが寿命に数えない
     const ageWeeks = adventuring ? 0 : WEEK_AGE;
 
-    // B 追加ぶん。イベントの週は体調値のかわりにイベントの決まった値になる。
-    //   大会は1週で1回、修行は続いているあいだの最初の週で1回、冒険は出発の週で1回
-    let extraLife;
-    let extraFrom;
-    if (advStart) {
-      extraLife = EVENT_LIFE.ac.extra;
-      extraFrom = 'ac';
-    } else if (adventuring) {
-      extraLife = 0;
-      extraFrom = 'ac';
-    } else if (w.act && w.act.startsWith('tc:')) {
-      extraLife = EVENT_LIFE.tc.extra;
-      extraFrom = 'tc';
-    } else if (w.act === 'mc') {
-      // 続けて選んだ修行は1回ぶんとして数える
-      const campStart = i === 0 || weeks[i - 1].act !== 'mc';
-      extraLife = campStart ? EVENT_LIFE.mc.extra : 0;
-      extraFrom = 'mc';
+    // B 追加ぶん = 体調値ぶん ＋ イベントぶん
+    let fromCondition = 0;
+    let fromEvent = 0;
+    if (adventuring) {
+      // 体調値は出さない。冒険ぶんの追加を出発の週に1回
+      fromEvent = blockStart ? EVENT_LIFE.ac.extra : 0;
+    } else if (camping) {
+      // 修行は体調値ぶんだけ。4週まとめて1回、終わった時点の体調値で数える
+      fromCondition = blockEnd ? lifeLoss(condition) : 0;
     } else {
-      extraLife = lifeLoss(condition);
-      extraFrom = 'condition';
+      fromCondition = lifeLoss(condition);
+      if (w.act && w.act.startsWith('tc:')) fromEvent = EVENT_LIFE.tc.extra;
     }
+    const extraLife = fromCondition + fromEvent;
 
     return {
       weekIdx: i,
       monthStart,
       feed: feedName,
-      item: adventuring ? '' : w.item || '',
+      item: canItem ? w.item || '' : '',
       act: w.act || '',
+      blockKind: kind,
+      blockStart,
+      blockEnd,
       adventuring,
-      advStart,
+      camping,
       returned,
+      canFeed,
+      canItem,
       values: { ...values },
       condition,
       ageWeeks,
+      fromCondition,
+      fromEvent,
       extraLife,
-      extraFrom,
       lifeCost: ageWeeks + extraLife,
     };
   });

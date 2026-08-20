@@ -237,11 +237,18 @@ eq([act('heavy:0').fatigue,act('heavy:0').stress],[35,32],'重トレ 疲労+15 �
 eq([0,1,2,3,4,5].every(i=>act(`light:${i}`).fatigue===30),true,'軽トレはどれも同じ');
 eq([0,1,2,3].every(i=>act(`heavy:${i}`).stress===32),true,'重トレはどれも同じ');
 
-// 修行は1週ぶん。4週続けると「修行合計」と一致する
+// 修行は4週まとめて。疲労とストレスは毎週たまる
 eq([act('mc').fatigue,act('mc').stress],[38,27],'修行1週 疲労+18 ストレス+7');
-let mcV={...base,fatigue:0,stress:0};
-for(let i=0;i<4;i++) mcV=R.applyAct(mcV,'mc',0);
-eq([mcV.fatigue,mcV.stress],[72,28],'修行4週で 疲労+72 ストレス+28（修行合計と一致）');
+eq(A.TRAINING_CAMP_WEEKS,4,'修行は4週');
+eq([R.isBlockAct('mc'),R.isBlockAct('ac'),R.isBlockAct('rest')].join(','),'true,true,false',
+   '4週まとめてなのは修行と冒険');
+const mcRows=R.simulate({start:{...base,fatigue:0,stress:0},
+  weeks:[{act:'mc'},{act:'mc'},{act:'mc'},{act:'mc'}],
+  feeds:['ニクもどき','ニクもどき'],jugs:3,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1'});
+eq([mcRows[3].values.fatigue,mcRows[3].values.stress],[72,28],
+   '修行4週で 疲労+72 ストレス+28（修行合計と一致）');
+eq(mcRows.map(r=>r.canFeed).join(','),'true,false,false,false','エサは出かける週だけ間に合う');
+eq(mcRows.map(r=>r.canItem).join(','),'true,false,false,false','アイテムも出かける週だけ');
 
 // 冒険は4週まとめて。出ているあいだは何も起きず、疲労は帰ってきた週にまとめて乗る
 eq([act('ac',{fatigue:0}).fatigue,act('ac',{fatigue:0}).stress],[0,20],'冒険の週そのものでは何も起きない');
@@ -252,8 +259,8 @@ const advRows=R.simulate({
   feeds:['',''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1',
 });
 eq(advRows.map(r=>r.adventuring).join(','),'false,true,true,true,true,false,false','2〜5週目が冒険中');
-eq(advRows[1].advStart,true,'冒険の最初の週');
-eq(advRows[2].advStart,false,'2週目以降は最初の週ではない');
+eq(advRows[1].blockStart,true,'冒険の最初の週');
+eq(advRows[2].blockStart,false,'2週目以降は最初の週ではない');
 eq(advRows.slice(1,5).map(r=>r.values.fatigue).join(','),'25,25,25,25','出ているあいだは疲労が動かない');
 eq(advRows.slice(1,5).map(r=>r.condition).join(','),',,,','出ているあいだは体調値なし');
 eq(advRows.slice(1,5).map(r=>r.ageWeeks).join(','),'0,0,0,0','出ているあいだは週経過を寿命に数えない');
@@ -269,32 +276,53 @@ const life=(weeks)=>R.lifeTotals(R.simulate({
   feeds:['','',''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1',
 }));
 // 育成計画の EV_COST と一致する（大会-4 / 修行-7 / 冒険-2）
-eq(life([{act:'tc:win'}]),{age:1,extra:3,total:4},'大会 週経過1+追加3=4（EV_COST.tc と一致）');
+// 修行は体調値ぶんだけ。疲労0ストレス0から出れば 週経過4+体調値3 = -7
 eq(life([{act:'mc'},{act:'mc'},{act:'mc'},{act:'mc'}]),{age:4,extra:3,total:7},
-   '修行 週経過4+追加3=7（EV_COST.mc と一致）');
+   '修行 週経過4+体調値3=7（EV_COST.mc と一致）');
+// 冒険は週経過を数えず、冒険ぶんの追加だけ
 eq(life([{act:'ac'},{act:'ac'},{act:'ac'},{act:'ac'}]),{age:0,extra:2,total:2},
-   '冒険 週経過0+追加2=2（EV_COST.ac と一致）');
+   '冒険 週経過0+冒険2=2（EV_COST.ac と一致）');
 eq([EV_COST.tc,EV_COST.mc,EV_COST.ac].join(','),'4,7,2','育成計画側の EV_COST');
+// 大会は 体調値ぶん と 大会ぶん の両方がかかる
+const tcRows=R.simulate({start:{...base,fatigue:0,stress:0},weeks:[{act:'tc:win'}],
+  feeds:[''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1'});
+eq([tcRows[0].fromCondition,tcRows[0].fromEvent],[1,3],'大会は体調値ぶん+大会ぶん');
+// 修行の体調値ぶんは、終わった週にまとめて1回だけ
+const mcLife=R.simulate({start:{...base,fatigue:0,stress:0},
+  weeks:[{act:'mc'},{act:'mc'},{act:'mc'},{act:'mc'}],
+  feeds:[''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1'});
+eq(mcLife.map(r=>r.fromCondition).join(','),'0,0,0,3','体調値ぶんは修行が終わった週で1回');
+eq(mcLife.map(r=>r.fromEvent).join(','),'0,0,0,0','修行そのものの追加は無い');
+eq(mcLife.map(r=>r.lifeCost).join(','),'1,1,1,4','週ごとの寿命');
 // ふだんの週は 週経過1 + 体調値ぶん
 eq(life([{act:'light:0'}]),{age:1,extra:1,total:2},'ふつうの週 週経過1+体調値ぶん1');
 const heavyRows=R.simulate({start:{...base,fatigue:0,stress:0},
   weeks:[{act:'heavy:0'},{act:'heavy:0'},{act:'heavy:0'}],
   feeds:[''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1'});
-eq(heavyRows.map(r=>r.extraFrom).join(','),'condition,condition,condition','ふだんの週の追加ぶんは体調値から');
+eq(heavyRows.map(r=>r.fromCondition).join(','),'1,2,3','ふだんの週の追加ぶんは体調値から');
+eq(heavyRows.map(r=>r.fromEvent).join(','),'0,0,0','ふだんの週にイベントぶんは無い');
 eq(heavyRows.map(r=>r.lifeCost).join(','),'2,3,4','週ごとの合計（週経過1+追加）');
 eq(R.lifeTotals(heavyRows).total,9,'合計');
-// 修行を続けて選んでも、追加ぶんは1回だけ
-eq(life([{act:'mc'},{act:'mc'}]),{age:2,extra:3,total:5},'途中で切り上げた修行でも追加は1回');
-eq(life([{act:'mc'},{act:''},{act:'mc'}]),{age:3,extra:7,total:10},
-   '間があいたら別の修行として2回ぶん（3+1+3）');
+// 出かける週にはエサが間に合う（冒険はアイテムだけ使えない）
+const acFeed=R.simulate({start:{...base,fatigue:0,stress:50},
+  weeks:[{item:'カララギマンゴー',act:'ac'},{act:'ac'},{act:'ac'},{act:'ac'},{act:''}],
+  feeds:['ニクもどき','ニクもどき'],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1'});
+eq(acFeed[0].canFeed,true,'冒険に出かける週もエサは間に合う');
+eq(acFeed[0].canItem,false,'冒険はアイテムだけ使えない');
+eq(acFeed[0].values.stress,44,'出発の週のエサは効く（50-6）');
+eq(acFeed[0].values.fatigue,0,'アイテムは効かない');
+// 帰ってきた週はふつうに戻る
+eq([acFeed[4].canFeed,acFeed[4].canItem].join(','),'true,true','帰ってきた週はエサもアイテムも戻る');
 // 冒険中はエサも水差しもアイテムも効かない
 const advFeed=R.simulate({
   start:{...base,fatigue:0,stress:50},
   weeks:[{act:'ac'},{act:'ac'},{act:'ac'},{act:'ac'},{act:''}],
   feeds:['ニクもどき','ニクもどき'],jugs:3,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1',
 });
-eq(advFeed[0].values.stress,50,'冒険中は月初めのエサも水差しも効かない');
-eq(advFeed[4].values.stress,50-6-3,'帰ってきた月（5週目＝2か月目第1週）はエサも水差しも効く');
+// 出発の週にはエサが間に合う（ニクもどき普通-6、水差し3個-3）
+eq(advFeed[0].values.stress,50-6-3,'冒険に出かける週もエサと水差しは効く');
+eq(advFeed[1].values.stress,41,'出かけている途中は何も効かない');
+eq(advFeed[4].values.stress,41-6-3,'帰ってきた月（2か月目第1週）もエサと水差しが効く');
 eq(advFeed[4].values.fatigue,70,'帰ってきた週の疲労は+70');
 
 // 休養は成長段階で変わる。値は最低値

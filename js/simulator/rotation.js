@@ -16,8 +16,9 @@
 
    休養は成長段階で効き方が変わるので、段階もここで選ぶ（mon.rota.stage）。
    大会は結果（優勝 / 他 / ビリ）で疲労が変わり、そのあとストレスが0になる。
-   冒険を選ぶと4週ぶんまとめて埋まる。出ているあいだは何も起きず体調値も出さない。
-   疲労+70 は帰ってきた週にまとめて乗る。
+   修行と冒険は4週ぶんまとめて埋まる。
+   出かける週にはエサが間に合う（冒険はアイテムだけ使えない）。
+   2〜4週目はエサもアイテムも無し。帰ってきた週からはふつうに戻る。
 
    アイテムの効果そのものを思い出したいときは早見タブを見る
    （ユーザーは効果を覚えている前提なので、この画面には出さない）。
@@ -28,7 +29,7 @@
 import { INNER, ITEMS } from '../data/items.js';
 import { FEEDS, LIKING_LABEL, feedEffect } from '../data/feeds.js';
 import { HEAVY4, LIGHT6, STAGES, SKEYS } from '../data/growth.js';
-import { TOURNAMENT, ADVENTURE_WEEKS } from '../data/acts.js';
+import { TOURNAMENT, ADVENTURE_WEEKS, TRAINING_CAMP_WEEKS } from '../data/acts.js';
 import { save, currentMon, state } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import { moralRange } from './inner-calc.js';
@@ -42,6 +43,8 @@ import {
   totalFeedPrice,
   lifeTotals,
   adventureWeeks,
+  isBlockAct,
+  blockWeeksOf,
   JUG_NAME,
 } from './rota-calc.js';
 
@@ -100,14 +103,14 @@ function lifeText(row) {
 }
 
 function lifeTitle(row) {
-  const from = {
-    condition: '体調値',
-    tc: '大会',
-    mc: '修行',
-    ac: '冒険',
-  }[row.extraFrom];
   const age = row.adventuring ? '週経過は数えない（冒険）' : `週経過 -${row.ageWeeks}`;
-  return `${age} ＋ 追加 -${row.extraLife}（${from}）＝ 合計 -${row.lifeCost}`;
+  const parts = [];
+  if (row.fromCondition) {
+    parts.push(row.camping ? `体調値 -${row.fromCondition}（修行4週ぶん）` : `体調値 -${row.fromCondition}`);
+  }
+  if (row.fromEvent) parts.push(`${row.adventuring ? '冒険' : '大会'} -${row.fromEvent}`);
+  const extra = parts.length ? `追加 ${parts.join(' ＋ ')}` : '追加なし';
+  return `${age} ＋ ${extra} ＝ 合計 -${row.lifeCost}`;
 }
 
 /** 数字を +3 / -3 / 0 の形にそろえる */
@@ -258,10 +261,20 @@ function options(list, selected) {
   );
 }
 
-/** エサは月初めの行だけで選ぶ。ほかの週は「その月のエサが続いている」印だけ出す */
-function feedCell(i) {
+/**
+ * エサは月初めの行だけで選ぶ。ほかの週は「その月のエサが続いている」印だけ出す。
+ * 修行や冒険で出かけている途中の月初めは、エサをあげられないので「—」。
+ */
+function feedCell(row, i) {
   const r = rota();
   if (!isMonthStart(i)) return h('td', { class: 'rota-table__same', text: '↑' });
+  if (!row.canFeed) {
+    return h('td', {
+      class: 'rota-table__same',
+      text: '—',
+      attrs: { title: '出かけているのでエサはあげられません' },
+    });
+  }
   const m = monthOf(i);
   return h(
     'td',
@@ -292,22 +305,22 @@ function weekRows(row, i) {
 
   // いちばん下の「次の週」の行は、まだ組んでいないので薄く出す
   const pending = i >= plannedCount() ? ' rota-table--pending' : '';
-  // 冒険で出かけている週は、そのあいだ何もできないので入力を閉じる。
-  // 取りやめられるように、冒険を選んだ最初の週だけは開けておく
-  const locked = row.adventuring && !row.advStart;
+  // 修行や冒険で出かけている途中は、そのあいだ何もできないので入力を閉じる。
+  // 取りやめられるように、出かけた最初の週だけは開けておく
+  const locked = !!row.blockKind && !row.blockStart;
 
   const inputs = h(
     'tr',
     { class: 'rota-table__inputs' + cls + pending },
     h('td', { class: 'rota-table__week', text: weekLabel(i) }),
-    row.adventuring ? h('td', { class: 'rota-table__same', text: '—' }) : feedCell(i),
+    feedCell(row, i),
     h(
       'td',
       {},
       h(
         'select',
         {
-          disabled: row.adventuring,
+          disabled: !row.canItem,
           dataset: { change: 'rota:week', idx: String(i), field: 'item' },
           attrs: { 'aria-label': `${weekLabel(i)}のアイテム` },
         },
@@ -473,8 +486,9 @@ function planSection() {
       h('div', { text: '月初め（第1週）は、エサ → 双子の水差し の順に効いてから、その週のアイテムと行動です。' }),
       h('div', { text: '1週ぶん入れると、その下に次の週の欄が出てきます。' }),
       h('div', { text: '体調値＝疲労＋ストレス×2。' }),
-      h('div', { text: '寿命は「週経過ぶん（1週たてば-1）＋ 追加ぶん」で減ります。追加ぶんは、ふだんの週は体調値から、イベントの週はイベントの決まった値から決まります（大会-3 / 修行-3 / 冒険-2）。' }),
-      h('div', { text: `冒険は${ADVENTURE_WEEKS}週まとめて出かけます。出ているあいだは体調値を出さず、この4週ぶんの週経過は寿命に数えません。疲労は帰ってきた週にまとめて乗ります。` })
+      h('div', { text: '寿命は「週経過ぶん（1週たてば-1）＋ 追加ぶん」で減ります。追加ぶんは、体調値ぶんとイベントぶんの両方です（大会-3 / 冒険-2。修行は体調値ぶんだけ）。' }),
+      h('div', { text: `修行と冒険は${TRAINING_CAMP_WEEKS}週まとめて出かけます。出かける週にはエサが間に合いますが（冒険はアイテムだけ使えません）、2〜4週目はエサもアイテムもありません。` }),
+      h('div', { text: `修行は疲労とストレスが毎週たまり、寿命は4週まとめて1回、終わった時点の体調値で数えます。冒険は出ているあいだ何も起きず、体調値も出さず、この4週ぶんの週経過は寿命に数えません。疲労+70 は帰ってきた週にまとめて乗ります。` })
     ),
     weekTable(),
     h('div', { class: 'rota-legend' },
@@ -521,21 +535,24 @@ export const changeActions = {
     const idx = Number(target.dataset.idx);
     if (!r.weeks[idx]) return;
     const field = target.dataset.field;
-    const wasAdvStart = field === 'act' && (currentRows()[idx] || {}).advStart;
+    const before = currentRows()[idx] || {};
+    const wasBlockStart = field === 'act' && before.blockStart;
+    const wasKind = before.blockKind;
 
     r.weeks[idx][field] = target.value;
 
-    if (field === 'act' && target.value === 'ac') {
-      // 冒険は4週まとめて。出ているあいだはアイテムも使えない
-      for (let j = idx; j < idx + ADVENTURE_WEEKS; j += 1) {
+    if (field === 'act' && isBlockAct(target.value)) {
+      // 修行と冒険は4週まとめて。出かけている途中はアイテムを使えない
+      const span = blockWeeksOf(target.value);
+      for (let j = idx; j < idx + span; j += 1) {
         if (!r.weeks[j]) r.weeks[j] = { item: '', act: '' };
-        r.weeks[j].act = 'ac';
-        r.weeks[j].item = '';
+        r.weeks[j].act = target.value;
+        if (j > idx || target.value === 'ac') r.weeks[j].item = '';
       }
-    } else if (wasAdvStart) {
-      // 冒険をやめたら、残りの3週ぶんも空ける
-      for (let j = idx + 1; j < idx + ADVENTURE_WEEKS; j += 1) {
-        if (r.weeks[j] && r.weeks[j].act === 'ac') r.weeks[j] = { item: '', act: '' };
+    } else if (wasBlockStart) {
+      // やめたら、残りの3週ぶんも空ける
+      for (let j = idx + 1; j < idx + blockWeeksOf(wasKind); j += 1) {
+        if (r.weeks[j] && r.weeks[j].act === wasKind) r.weeks[j] = { item: '', act: '' };
       }
     }
     save();

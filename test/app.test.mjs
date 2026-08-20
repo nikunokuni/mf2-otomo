@@ -370,8 +370,10 @@ ok(await page.locator('[aria-label="2か月目 第1週のアイテム"]').isDisa
 ok((await page.locator('#rotaCond-3').textContent())==='冒険中','冒険中は体調値を出さない');
 ok((await page.locator('#rotaLife-4').textContent())==='0','冒険中の週は寿命がかからない');
 ok((await page.locator('#rotaLife-3').textContent())==='-2','出発の週に冒険ぶんの追加-2');
-ok((await page.locator('#rotaLifeCell-3').getAttribute('title')).includes('冒険'),
+ok(await page.locator('[aria-label="1か月目 第4週のアイテム"]').isDisabled(),'冒険はアイテムを使えない');
+ok((await page.locator('#rotaLifeCell-3').getAttribute('title')).includes('冒険 -2'),
    '内訳が出る: '+(await page.locator('#rotaLifeCell-3').getAttribute('title')));
+
 // 帰ってきた週に疲労がまとめて乗る
 const beforeAdv = Number((await valRow(2))[0]);
 const backFatigue = Number((await valRow(7))[0]);
@@ -381,14 +383,41 @@ ok((await page.locator('.rota-total').textContent()).includes('うち冒険 4週
    '冒険の週数が合計に出る: '+(await page.locator('.rota-total').textContent()));
 // 大会は 週経過1 + 追加3 = 4
 await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('tc:win');
-ok((await page.locator('#rotaLife-0').textContent())==='-4','大会は 週経過1+追加3 = -4');
-ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('大会'),'追加ぶんは大会から');
+// 大会は 週経過1 + 体調値ぶん + 大会ぶん3
+ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('大会 -3'),
+   '大会ぶんが内訳に出る: '+(await page.locator('#rotaLifeCell-0').getAttribute('title')));
+ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('体調値'),
+   '体調値ぶんも同時にかかる');
 await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('heavy:0');
 // 取りやめると残りの3週も空く
 await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('rest');
 const afterCancel = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));
 ok(afterCancel.slice(3,7).every((v,i)=>i===0?v==='rest':v===''),
    '冒険をやめると残りの3週も空く: '+afterCancel.join(','));
+
+console.log('— 修行（4週セット） —');
+// 修行も4週まとめて。出かける週はエサもアイテムも間に合う
+await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('mc');
+const mcActs = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));
+ok(mcActs.slice(3,7).join(',')==='mc,mc,mc,mc','修行を選ぶと4週ぶん埋まる: '+mcActs.join(','));
+ok(await page.locator('[aria-label="1か月目 第4週のアイテム"]').isEnabled(),
+   '修行に出かける週はアイテムを使える');
+ok(await page.locator('[aria-label="2か月目 第1週のアイテム"]').isDisabled(),
+   '出かけている途中はアイテムなし');
+ok(await page.locator('[aria-label="2か月目 第1週の行動"]').isDisabled(),'途中の週は行動も閉じる');
+// 途中の月初めはエサをあげられない
+ok((await page.locator('.rota-table__inputs').nth(4).locator('[aria-label$="か月目のエサ"]').count())===0,
+   '出かけている途中の月初めはエサを選べない');
+// 修行中も体調値は出る（冒険とちがう）
+ok((await page.locator('#rotaCond-4').textContent())!=='冒険中','修行中は体調値が出る');
+// 寿命は 週経過だけ → 最後の週にまとめて体調値ぶん
+ok((await page.locator('#rotaLife-4').textContent())==='-1','修行の途中は週経過ぶんだけ');
+ok((await page.locator('#rotaLifeCell-6').getAttribute('title')).includes('修行4週ぶん'),
+   '修行の体調値ぶんは終わった週で1回: '+(await page.locator('#rotaLifeCell-6').getAttribute('title')));
+// やめると残りも空く
+await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('rest');
+const afterMc = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));
+ok(afterMc.slice(4,7).every(v=>v===''),'修行をやめると残りの3週も空く: '+afterMc.join(','));
 
 // 減る寿命の合計
 ok((await page.locator('#rotaLifeTotal').textContent()).includes('週経過'),
