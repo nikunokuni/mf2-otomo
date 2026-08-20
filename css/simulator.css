@@ -114,6 +114,20 @@
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
+/* 体調値と、そのせいで減る寿命は少し離して見せる */
+.rota-vals__cond {
+  margin-left: auto;
+}
+.rota-vals__life .rota-vals__num {
+  color: var(--color-ng);
+}
+.rota-total__life {
+  color: var(--color-ng);
+}
+/* いちばん下の「次の週」の行は、まだ組んでいないので薄く */
+.rota-table--pending {
+  opacity: 0.55;
+}
 .rota-legend {
   display: flex;
   flex-wrap: wrap;

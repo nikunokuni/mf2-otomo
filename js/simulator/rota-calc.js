@@ -8,9 +8,14 @@
          1. エサ（その月に選んだもの。好き嫌いで効き方が変わる）
          2. 双子の水差し（持っている数だけ重なる）
      ・そのあと、その週に使ったアイテム
-     ・そのあと、その週の行動
-       ★行動（トレーニング・休養・大会など）の内部数値のデータはまだ無い★
-         いまは計算に入れていない。データが入ったら applyAct() を埋める。
+     ・そのあと、その週の行動（js/data/acts.js）
+         軽トレ 疲労+10 ストレス+5 ／ 重トレ 疲労+15 ストレス+12
+         修行   1週ぶん 疲労+18 ストレス+7（4週で +72 / +28）
+         冒険   疲労+70 ストレス0
+         休養   成長段階ごと。体型+5
+         大会   疲労は体型で変わる。大会後はストレス0
+     ・最後に、その週が終わった時点の体調値（疲労+ストレス×2）から
+       その週に減る寿命を出す
 
    ★ゲーム内の計算は、途中で小数点以下を切り捨てる★
      割合の効果は pctDelta() を通す（js/simulator/inner-calc.js）。
@@ -18,6 +23,18 @@
 
 import { ITEMS } from '../data/items.js';
 import { FEEDS, DEFAULT_LIKING, feedEffect } from '../data/feeds.js';
+import {
+  TRAIN_LIGHT,
+  TRAIN_HEAVY,
+  TRAINING_CAMP,
+  ADVENTURE,
+  REST,
+  REST_FORM,
+  REST_SPOIL,
+  tournamentFatigue,
+  conditionValue,
+  lifeLoss,
+} from '../data/acts.js';
 import { clampInner, pctDelta } from './inner-calc.js';
 
 /** 1か月は4週 */
@@ -100,15 +117,45 @@ export function applyItem(values, itemName, initMoral, species) {
 
 /**
  * 行動1回ぶん。
- * ★トレーニング・休養・大会などの内部数値のデータがまだ無いので、
- *   いまは何も動かさない。データが入ったらここを埋める★
+ *   act   'light:N' / 'heavy:N' / 'rest' / 'mc' / 'ac' / 'tc:win' / 'tc:mid' / 'tc:last'
+ *   stage 成長段階のキー（休養の効き方が変わる）
+ * 大会だけは、そのときの体型で疲労が変わり、そのあとストレスが0になる。
  */
-export function applyAct(values) {
+export function applyAct(values, act, initMoral, stage = 's1') {
+  if (!act) return { ...values };
+
+  if (act.startsWith('tc:')) {
+    const rank = act.slice(3);
+    const next = applyInner(
+      values,
+      { inner: { fatigue: tournamentFatigue(rank, values.form) } },
+      initMoral
+    );
+    // 大会のあとはストレス0
+    next.stress = clampInner('stress', 0, initMoral);
+    return next;
+  }
+
+  if (act === 'rest') {
+    const r = REST[stage] || REST.s1;
+    return applyInner(
+      values,
+      { inner: { ...r, form: REST_FORM, spoil: REST_SPOIL } },
+      initMoral
+    );
+  }
+
+  const table = {
+    mc: TRAINING_CAMP,
+    ac: ADVENTURE,
+  };
+  if (table[act]) return applyInner(values, { inner: table[act] }, initMoral);
+
+  if (act.startsWith('light:')) return applyInner(values, { inner: TRAIN_LIGHT }, initMoral);
+  if (act.startsWith('heavy:')) return applyInner(values, { inner: TRAIN_HEAVY }, initMoral);
+
   return { ...values };
 }
-
-/** 行動の内部数値がまだ入っていないことを、画面から確かめられるようにしておく */
-export const ACT_EFFECTS_READY = false;
 
 /**
  * 調整ローテを1週ずつたどる。
@@ -123,7 +170,7 @@ export const ACT_EFFECTS_READY = false;
  *
  * 戻り値は週ごとの行。values はその週が終わった時点の内部数値。
  */
-export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, species }) {
+export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, species, stage }) {
   let values = { ...start };
   return weeks.map((w, i) => {
     const monthStart = isMonthStart(i);
@@ -134,8 +181,9 @@ export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, speci
       values = applyJugs(values, jugs, initMoral);
     }
     values = applyItem(values, w.item, initMoral, species);
-    values = applyAct(values, w.act);
+    values = applyAct(values, w.act, initMoral, stage);
 
+    const condition = conditionValue(values.fatigue, values.stress);
     return {
       weekIdx: i,
       monthStart,
@@ -143,8 +191,15 @@ export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, speci
       item: w.item || '',
       act: w.act || '',
       values: { ...values },
+      condition,
+      lifeLoss: lifeLoss(condition),
     };
   });
+}
+
+/** 体調値で減る寿命の合計（アイテムで進む寿命とは別） */
+export function totalLifeLoss(rows) {
+  return rows.reduce((sum, r) => sum + r.lifeLoss, 0);
 }
 
 /** その調整ローテで寿命がどれだけ進むか（アイテムの agePlus の合計） */

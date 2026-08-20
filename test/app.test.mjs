@@ -262,7 +262,7 @@ await page.click('#tab-monster');
 await page.selectOption('#simMoral','-35');
 await page.click('#tab-simulator');
 await page.click('#subtab-rotation');
-ok((await page.locator('#rotationArea').textContent()).includes('行動'),'行動が未対応であることの注意書き');
+ok((await page.locator('#rotationArea').textContent()).includes('体調値'),'体調値の説明が出る');
 
 console.log('— エサ —');
 const feedRows = page.locator('.feed-table tbody tr');
@@ -295,6 +295,9 @@ await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOpt
 ok((await weekRows.count())===2,'入れると次の週が出る: '+(await weekRows.count()));
 await page.locator('[aria-label="1か月目 第2週の行動"]').selectOption('rest');
 ok((await weekRows.count())===3,'行動だけでも次の週が出る');
+const actLabels = await page.locator('[aria-label="1か月目 第2週の行動"] option').allTextContents();
+ok(actLabels.filter(t=>t.startsWith('大会')).join(',')==='大会（優勝）,大会（他）,大会（ビリ）',
+   '大会は結果ごとに選ぶ: '+actLabels.filter(t=>t.startsWith('大会')).join(','));
 for(const w of ['1か月目 第3週','1か月目 第4週']) await page.locator(`[aria-label="${w}の行動"]`).selectOption('rest');
 ok((await weekRows.count())===5,'4週を超えると2か月目に入る');
 ok((await page.locator('.rota-table__week').last().textContent())==='2か月目 第1週','5行目は2か月目 第1週');
@@ -313,23 +316,67 @@ await page.fill('#rotaStart-moral','0');
 await page.fill('#rotaJugs','2');
 await page.locator('[aria-label="1か月目のエサ"]').selectOption('ニクもどき');
 // ニクもどき(普通) ス-6 甘+4 体+6 → 水差し×2 ス-2 恐+2 → マンゴー 疲-10 恐+1 甘+1 体+1
-const valRow = (n) => page.locator('.rota-table__values').nth(n).locator('.rota-vals__num').allTextContents();
+// 帯は 内部数値6つ + 体調 + 寿命 の順。内部数値だけ取り出す
+const valRow = async (n) =>
+  (await page.locator('.rota-table__values').nth(n).locator('.rota-vals__num').allTextContents()).slice(0,6);
 const w1 = await valRow(0);
 ok(w1.join(',')==='40,42,53,55,7,0','1週目の内部数値（疲ス恐甘体ヨ）: '+w1.join(','));
-// 月初めでない週にはエサも水差しも効かない
+// 月初めでない週にはエサも水差しも効かない。
+// 2週目は休養だけが乗る（第1段階: 疲労-36 ストレス-5 体型+5）
 const w2 = await valRow(1);
-ok(w2.join(',')==='40,42,53,55,7,0','2週目はエサも水差しも効かない: '+w2.join(','));
+ok(w2.join(',')==='4,37,53,55,12,0','2週目は休養だけが乗る: '+w2.join(','));
+ok(w2[2]==='53','恐れ度は動かない（水差しは月初めだけ）');
 // 打ちなおしても入力欄からカーソルが飛ばない（表ごと作り直していない）
 await page.locator('#rotaStart-stress').fill('80');
 ok(await page.locator('#rotaStart-stress').evaluate(n=>n===document.activeElement),'入力中に作り直さない');
 ok((await valRow(0))[1]==='72','数値だけ追いかける（80→72）');
 await page.fill('#rotaStart-stress','50');
+console.log('— 行動と体調値 —');
+// 重トレ 疲労+15 ストレス+12。開始をそろえて1週目だけで確かめる
+await page.fill('#rotaStart-stress','0');
+await page.fill('#rotaStart-fatigue','0');
+await page.locator('[aria-label="1か月目のエサ"]').selectOption('');
+await page.fill('#rotaJugs','0');
+await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOption('');
+await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('heavy:0');
+const cond = (n) => page.locator(`#rotaCond-${n}`).textContent();
+const lifeOf = (n) => page.locator(`#rotaLife-${n}`).textContent();
+ok((await valRow(0)).slice(0,2).join(',')==='15,12','重トレで疲労+15 ストレス+12');
+ok((await cond(0))==='39','体調値 = 15 + 12×2 = 39');
+ok((await lifeOf(0))==='-1','体調39なら寿命-1');
+// 休養は成長段階で変わる
+await page.locator('[aria-label="1か月目 第2週の行動"]').selectOption('rest');
+ok((await valRow(1)).slice(0,2).join(',')==='0,7','第1段階の休養 疲労-36 ストレス-5（下限0で止まる）');
+await page.selectOption('#rotaStage','peak');
+ok((await valRow(1)).slice(0,2).join(',')==='0,3','ピークの休養はストレス-9');
+await page.selectOption('#rotaStage','s1');
+// 大会はそのときの体型で疲労が決まり、そのあとストレス0
+await page.fill('#rotaStart-form','-100');
+await page.locator('[aria-label="1か月目 第3週の行動"]').selectOption('tc:win');
+ok((await valRow(2))[1]==='0','大会のあとはストレス0');
+ok((await valRow(2))[0]==='23','優勝・体型-100 なら疲労+23（目安表と一致）');
+// 減る寿命の合計
+ok((await page.locator('#rotaLifeTotal').textContent()).includes('合計'),'減る寿命の合計が出る');
+await page.fill('#rotaJugs','3');
+const totalLife = Number((await page.locator('#rotaLifeTotal').textContent()).match(/(\d+)週/)[1]);
+const perWeek = await page.locator('[id^="rotaLife-"]').allTextContents();
+// いちばん下の行は「次の週」の入力欄なので、まだ組んだ週には数えない
+ok(totalLife===perWeek.slice(0,-1).reduce((a,v)=>a+Number(v.replace('-','')),0),
+   '合計は最後の空行をのぞく各週の和と一致: '+totalLife+' / '+perWeek.join(','));
+ok((await page.locator('.rota-table__inputs.rota-table--pending').count())===1,
+   '「次の週」の行は1つだけ薄く出る');
+// 表は5行あるが、いちばん下は「次の週」の入力欄なので4週ぶん
+ok((await page.locator('.rota-table__inputs').count())===5,'表は5行');
+ok((await page.locator('.rota-total').textContent()).includes('組んだ週数 4週'),
+   '組んだ週数に「次の週」の行は入らない: '+(await page.locator('.rota-total').textContent()));
+
 // 保存されるか
 await page.reload({waitUntil:'networkidle'});
 await page.click('#subtab-rotation');
 ok((await page.locator('.rota-table__inputs').count())===5,'週の入力が保存されている');
-ok((await page.locator('#rotaJugs').inputValue())==='2','双子の水差しの数が保存されている');
-ok((await page.locator('[aria-label="1か月目のエサ"]').inputValue())==='ニクもどき','エサが保存されている');
+ok((await page.locator('#rotaJugs').inputValue())==='3','双子の水差しの数が保存されている');
+ok((await page.locator('#rotaStage').inputValue())==='s1','成長段階が保存されている');
+ok((await page.locator('[aria-label="1か月目 第3週の行動"]').inputValue())==='tc:win','行動が保存されている');
 await page.click('#subtab-plan');
 ok(await page.locator('#simActions').isVisible(),'育成計画では出る');
 

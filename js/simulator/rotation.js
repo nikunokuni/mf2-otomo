@@ -14,8 +14,8 @@
    計算そのものは rota-calc.js（画面に依存しない）に置いてある。
    1週のなかの順番は「月初めならエサ → 双子の水差し、そのあとアイテム → 行動」。
 
-   ★行動（トレーニング・休養・大会など）の内部数値のデータはまだ無い★
-     選ぶことはできるが、計算にはまだ入っていない。
+   休養は成長段階で効き方が変わるので、段階もここで選ぶ（mon.rota.stage）。
+   大会は結果（優勝 / 他 / ビリ）で疲労が変わり、そのあとストレスが0になる。
 
    アイテムの効果そのものを思い出したいときは早見タブを見る
    （ユーザーは効果を覚えている前提なので、この画面には出さない）。
@@ -25,7 +25,8 @@
 
 import { INNER, ITEMS } from '../data/items.js';
 import { FEEDS, LIKING_LABEL, feedEffect } from '../data/feeds.js';
-import { HEAVY4, LIGHT6 } from '../data/growth.js';
+import { HEAVY4, LIGHT6, STAGES, SKEYS } from '../data/growth.js';
+import { TOURNAMENT } from '../data/acts.js';
 import { save, currentMon, state } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import { moralRange } from './inner-calc.js';
@@ -37,7 +38,7 @@ import {
   monthCount,
   totalAgePlus,
   totalFeedPrice,
-  ACT_EFFECTS_READY,
+  totalLifeLoss,
   JUG_NAME,
 } from './rota-calc.js';
 
@@ -63,7 +64,7 @@ const ACTS = [
   ...HEAVY4.map((t, i) => [`heavy:${i}`, `重・${t.name}`]),
   ...LIGHT6.map((t, i) => [`light:${i}`, `軽・${t.name}`]),
   ['rest', '休養'],
-  ['tc', '大会'],
+  ...Object.entries(TOURNAMENT).map(([key, t]) => [`tc:${key}`, `大会（${t.label}）`]),
   ['mc', '修行'],
   ['ac', '冒険'],
 ];
@@ -149,6 +150,21 @@ function startSection() {
         attrs: { 'aria-label': `${JUG_NAME}の所持数` },
       }),
       h('span', { class: 'note', text: '個（月初めに、持っている数だけ重なって効く）' })
+    ),
+    h(
+      'div',
+      { class: 'sim-row', style: 'margin-top:8px' },
+      h('label', { class: 'note', attrs: { for: 'rotaStage' }, text: '成長段階' }),
+      h(
+        'select',
+        {
+          id: 'rotaStage',
+          dataset: { change: 'rota:stage' },
+          attrs: { 'aria-label': '成長段階' },
+        },
+        options(STAGES.map((label, i) => [SKEYS[i], label]), mon.rota.stage)
+      ),
+      h('span', { class: 'note', text: '（休養の効き方が変わります）' })
     ),
     h('div', {
       class: 'note',
@@ -252,9 +268,12 @@ function weekRows(row, i) {
   const monthStart = isMonthStart(i);
   const cls = monthStart ? ' rota-table__month-start' : '';
 
+  // いちばん下の「次の週」の行は、まだ組んでいないので薄く出す
+  const pending = i >= plannedCount() ? ' rota-table--pending' : '';
+
   const inputs = h(
     'tr',
-    { class: 'rota-table__inputs' + cls },
+    { class: 'rota-table__inputs' + cls + pending },
     h('td', { class: 'rota-table__week', text: weekLabel(i) }),
     feedCell(i),
     h(
@@ -285,7 +304,7 @@ function weekRows(row, i) {
 
   const values = h(
     'tr',
-    { class: 'rota-table__values' + cls },
+    { class: 'rota-table__values' + cls + pending },
     h(
       'td',
       { attrs: { colspan: 4 } },
@@ -303,12 +322,33 @@ function weekRows(row, i) {
               text: String(row.values[key]),
             })
           )
+        ),
+        // 体調値（疲労+ストレス×2）と、そのせいでその週に減る寿命
+        h(
+          'span',
+          { class: 'rota-vals__cell rota-vals__cond', attrs: { title: '体調値（疲労＋ストレス×2）' } },
+          h('span', { class: 'rota-vals__label', text: '体調' }),
+          h('span', { class: 'rota-vals__num', id: `rotaCond-${i}`, text: String(row.condition) })
+        ),
+        h(
+          'span',
+          { class: 'rota-vals__cell rota-vals__life', attrs: { title: 'その週に減る寿命' } },
+          h('span', { class: 'rota-vals__label', text: '寿命' }),
+          h('span', { class: 'rota-vals__num', id: `rotaLife-${i}`, text: `-${row.lifeLoss}` })
         )
       )
     )
   );
 
   return [inputs, values];
+}
+
+/**
+ * いちばん下の行は「次の週の入力欄」なので、まだ組んだ週には数えない。
+ * 途中の空行は「その週は何もしない」として数える。
+ */
+function plannedCount() {
+  return Math.max(0, rota().weeks.length - 1);
 }
 
 /** いまの入力から1週ずつたどった結果 */
@@ -323,6 +363,7 @@ function currentRows() {
     feedLike: mon.feedLike,
     initMoral: mon.sim.moral,
     species: state.current,
+    stage: r.stage,
   });
 }
 
@@ -332,12 +373,21 @@ function currentRows() {
  * 打っているあいだはこちらだけを呼ぶ。
  */
 function refreshValues() {
-  currentRows().forEach((row, i) => {
+  const rows = currentRows();
+  rows.forEach((row, i) => {
     TRACK_KEYS.forEach(([key]) => {
       const cell = el(`rotaVal-${i}-${key}`);
       if (cell) cell.textContent = String(row.values[key]);
     });
+    const cond = el(`rotaCond-${i}`);
+    if (cond) cond.textContent = String(row.condition);
+    const life = el(`rotaLife-${i}`);
+    if (life) life.textContent = `-${row.lifeLoss}`;
   });
+  const total = el('rotaLifeTotal');
+  if (total) {
+    total.textContent = `体調で減る寿命 合計 ${totalLifeLoss(rows.slice(0, plannedCount()))}週`;
+  }
 }
 
 function weekTable() {
@@ -366,7 +416,8 @@ function weekTable() {
 function planSection() {
   const mon = currentMon();
   const r = mon.rota;
-  const filled = r.weeks.filter((w) => w.item || w.act).length;
+  const rows = currentRows();
+  const planned = plannedCount();
 
   return h(
     'div',
@@ -375,12 +426,7 @@ function planSection() {
     h('div', { class: 'callout callout--info' },
       h('div', { text: '月初め（第1週）は、エサ → 双子の水差し の順に効いてから、その週のアイテムと行動です。' }),
       h('div', { text: '1週ぶん入れると、その下に次の週の欄が出てきます。' }),
-      ACT_EFFECTS_READY
-        ? null
-        : h('div', {
-            class: 'rota-warn',
-            text: '※ 行動（トレーニング・休養・大会）の内部数値のデータがまだ無いので、下の帯の数字には入っていません。',
-          })
+      h('div', { text: '体調値＝疲労＋ストレス×2。その週に減る寿命は体調値で決まります。' })
     ),
     weekTable(),
     h('div', { class: 'rota-legend' },
@@ -388,10 +434,15 @@ function planSection() {
       ...TRACK_KEYS.map(([key, short]) => h('span', { text: `${short}=${INNER[key].label}` }))
     ),
     h('div', { class: 'rota-total' },
-      h('span', { text: `組んだ週数 ${filled}週` }),
-      h('span', { text: `月の数 ${monthCount(r.weeks.length)}か月` }),
+      h('span', { text: `組んだ週数 ${planned}週` }),
+      h('span', { text: `月の数 ${monthCount(Math.max(1, planned))}か月` }),
+      h('span', {
+        class: 'rota-total__life',
+        id: 'rotaLifeTotal',
+        text: `体調で減る寿命 合計 ${totalLifeLoss(rows.slice(0, planned))}週`,
+      }),
       h('span', { text: `アイテムで進む寿命 ${totalAgePlus(r.weeks)}週` }),
-      h('span', { text: `エサ代 ${totalFeedPrice(r.feeds, r.weeks.length)}G` })
+      h('span', { text: `エサ代 ${totalFeedPrice(r.feeds, planned)}G` })
     )
   );
 }
@@ -419,6 +470,14 @@ export const changeActions = {
     const idx = Number(target.dataset.idx);
     if (!r.weeks[idx]) return;
     r.weeks[idx][target.dataset.field] = target.value;
+    save();
+    render();
+  },
+
+  'rota:stage': (target) => {
+    const r = rota();
+    if (!r) return;
+    r.stage = target.value;
     save();
     render();
   },

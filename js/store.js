@@ -8,6 +8,7 @@
    =========================================================== */
 
 import { SK } from './data/growth.js';
+import { SKEYS } from './data/growth.js';
 import { FEEDS, DEFAULT_LIKING } from './data/feeds.js';
 
 const STORAGE_KEY = 'monfar_state_v1';
@@ -83,6 +84,8 @@ export function defaultRota() {
     start: { form: -100, moral: 100, stress: 0, fatigue: 0, fear: 100, spoil: 100 },
     // 双子の水差しの所持数。月初めに、持っている数だけ重なって効く
     jugs: 0,
+    // 成長段階。休養の効き方が段階で変わるので持っておく
+    stage: 's1',
     // weeks[i] = i週目（0はじまり）の { item, act }
     // feeds[m] = mか月目（0はじまり）のエサ名。1か月は4週で、月初めに1回効く
     weeks: [],
@@ -252,9 +255,11 @@ function normalize(loaded) {
     m.rota = Object.assign(defaultRota(), m.rota || {});
     m.rota.start = Object.assign(defaultRota().start, m.rota.start || {});
     m.rota.jugs = Math.max(0, Math.min(99, parseInt(m.rota.jugs, 10) || 0));
+    m.rota.stage = SKEYS.includes(m.rota.stage) ? m.rota.stage : 's1';
     m.rota.weeks = (Array.isArray(m.rota.weeks) ? m.rota.weeks : []).map((w) => ({
       item: String((w && w.item) || ''),
-      act: String((w && w.act) || ''),
+      // 大会は結果ごとに分かれたので、結果の無い古い 'tc' は「他」として読む
+      act: String((w && w.act) === 'tc' ? 'tc:mid' : (w && w.act) || ''),
     }));
     m.rota.feeds = (Array.isArray(m.rota.feeds) ? m.rota.feeds : []).map((f) => String(f || ''));
     m.feedLike = Object.assign(defaultFeedLike(), m.feedLike || {});

@@ -6,6 +6,7 @@ import {normalizeMoral} from '../js/store.js';
 import {moralRange,clampInner,pctDelta,applyPct,applyDelta} from '../js/simulator/inner-calc.js';
 import * as R from '../js/simulator/rota-calc.js';
 import {FEEDS,feedEffect} from '../js/data/feeds.js';
+import * as A from '../js/data/acts.js';
 
 /* ---- 旧実装をそのまま写したもの ---- */
 const O={};
@@ -225,9 +226,58 @@ eq(R.totalAgePlus([{item:'パラドクシン'},{item:'トロロン'},{item:'カ�
 eq(R.totalFeedPrice(['ニクもどき','ゼリーもどき'],5),450,'エサ代は月ごとに1回ぶん(300+150)');
 eq(R.totalFeedPrice(['ニクもどき','ゼリーもどき'],4),300,'4週なら1か月ぶんだけ');
 
-// 行動のデータはまだ入っていない
-eq(R.ACT_EFFECTS_READY,false,'行動の内部数値はまだ未対応');
-eq(JSON.stringify(R.applyAct({stress:50},'heavy:0')),JSON.stringify({stress:50}),'行動はまだ何も動かさない');
+/* ---- 行動 ---- */
+const base={form:0,moral:0,stress:20,fatigue:20,fear:50,spoil:50};
+const act=(a,over={},stage='s1')=>R.applyAct({...base,...over},a,0,stage);
+
+// トレーニング
+eq([act('light:0').fatigue,act('light:0').stress],[30,25],'軽トレ 疲労+10 ストレス+5');
+eq([act('heavy:0').fatigue,act('heavy:0').stress],[35,32],'重トレ 疲労+15 ストレス+12');
+// 軽トレ6種・重トレ4種はどれも同じ内部数値
+eq([0,1,2,3,4,5].every(i=>act(`light:${i}`).fatigue===30),true,'軽トレはどれも同じ');
+eq([0,1,2,3].every(i=>act(`heavy:${i}`).stress===32),true,'重トレはどれも同じ');
+
+// 修行は1週ぶん。4週続けると「修行合計」と一致する
+eq([act('mc').fatigue,act('mc').stress],[38,27],'修行1週 疲労+18 ストレス+7');
+let mcV={...base,fatigue:0,stress:0};
+for(let i=0;i<4;i++) mcV=R.applyAct(mcV,'mc',0);
+eq([mcV.fatigue,mcV.stress],[72,28],'修行4週で 疲労+72 ストレス+28（修行合計と一致）');
+
+// 冒険
+eq([act('ac',{fatigue:0}).fatigue,act('ac',{fatigue:0}).stress],[70,20],'冒険 疲労+70 ストレス0');
+
+// 休養は成長段階で変わる。値は最低値
+eq([act('rest',{fatigue:90,stress:60},'s1').fatigue,act('rest',{fatigue:90,stress:60},'s1').stress],
+   [54,55],'第1段階の休養 疲労-36 ストレス-5');
+eq([act('rest',{fatigue:90,stress:60},'peak').fatigue,act('rest',{fatigue:90,stress:60},'peak').stress],
+   [46,51],'ピークの休養 疲労-44 ストレス-9');
+eq(act('rest',{fatigue:90,stress:60}).form,5,'休養で体型+5（段階に関係なく）');
+eq(A.REST_SPOIL,0,'甘え度は最低値（0）をとる');
+eq(Object.keys(A.REST).length,10,'休養は10段階ぶん');
+
+// 大会。疲労は体型で変わり、そのあとストレスは0
+eq(A.tournamentFatigue('win',-100),23,'優勝・超激ガリ +23（目安表と一致）');
+eq(A.tournamentFatigue('win',0),30,'優勝・体型中間 +30');
+eq(A.tournamentFatigue('win',100),37,'優勝・超激デブ +37');
+eq(A.tournamentFatigue('mid',0),40,'大会(他) +40');
+eq(A.tournamentFatigue('last',0),50,'大会(ビリ) +50');
+eq(act('tc:win',{fatigue:0,form:-100}).fatigue,23,'大会の疲労はそのときの体型で決まる');
+eq(act('tc:win',{stress:100}).stress,0,'大会のあとはストレス0');
+eq(act('tc:last',{stress:3}).stress,0,'順位に関係なくストレス0');
+
+/* ---- 体調値と減る寿命 ---- */
+eq(A.conditionValue(40,30),100,'体調値 = 疲労 + ストレス×2');
+eq([0,69,70,104,105,139,140,174,175,209,210,244,245,269,270,300].map(A.lifeLoss).join(','),
+   '1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8','体調値ごとの減る寿命');
+const lifeRows=R.simulate({
+  start:{...base,fatigue:0,stress:0},
+  weeks:[{act:'heavy:0'},{act:'heavy:0'},{act:'heavy:0'}],
+  feeds:[''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1',
+});
+// 1週目 疲15 ス12 → 体調39 → -1 ／ 2週目 疲30 ス24 → 78 → -2 ／ 3週目 疲45 ス36 → 117 → -3
+eq(lifeRows.map(r=>r.condition).join(','),'39,78,117','各週の体調値');
+eq(lifeRows.map(r=>r.lifeLoss).join(','),'1,2,3','各週に減る寿命');
+eq(R.totalLifeLoss(lifeRows),6,'減る寿命の合計');
 
 console.log(`\n照合 ${checks}件 / 不一致 ${fail}件`);
 
