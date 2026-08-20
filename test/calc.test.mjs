@@ -4,6 +4,8 @@ import {calcIdeal as newIdeal} from '../js/tracker/ideal.js';
 import {ITEMS,INNER} from '../js/data/items.js';
 import {normalizeMoral} from '../js/store.js';
 import {moralRange,clampInner,pctDelta,applyPct,applyDelta} from '../js/simulator/inner-calc.js';
+import * as R from '../js/simulator/rota-calc.js';
+import {FEEDS,feedEffect} from '../js/data/feeds.js';
 
 /* ---- 旧実装をそのまま写したもの ---- */
 const O={};
@@ -162,6 +164,70 @@ ITEMS.forEach(it=>{
   eq(it.kind==='hold',!!it.monthly,`${it.name}: hold と monthly の対応`);
   if(it.statPctWeekly) eq(it.weeks>0,true,`${it.name}: 毎週の効果には weeks が要る`);
 });
+
+/* ---- 調整ローテ ---- */
+// 週番号と月の区切り（1か月は4週。第1週が月初め）
+eq([0,1,3,4,7,8].map(R.isMonthStart).join(','),'true,false,false,true,false,true','月初めは4週ごと');
+eq([0,3,4,11].map(R.monthOf).join(','),'0,0,1,2','何か月目か');
+eq(R.weekLabel(0),'1か月目 第1週','週の見出し');
+eq(R.weekLabel(6),'2か月目 第3週','週の見出し（2か月目）');
+eq([0,1,4,5].map(R.monthCount).join(','),'1,1,1,2','週数から月の数');
+
+// エサの好き嫌い
+eq(JSON.stringify(feedEffect(FEEDS[4],'like')),'{"stress":-8,"fear":0,"spoil":6,"form":6}','ニクもどき（好き）');
+eq(JSON.stringify(feedEffect(FEEDS[4],'normal')),'{"stress":-6,"fear":0,"spoil":4,"form":6}','ニクもどき（普通）');
+eq(FEEDS.every(f=>f.like.form===undefined),true,'体型は好き嫌いの中に持たない');
+
+// 1週ずつの流れ。月初めは エサ → 双子の水差し、そのあと アイテム
+const rotaStart={form:0,moral:0,stress:50,fatigue:50,fear:50,spoil:50};
+const rotaRows=R.simulate({
+  start:rotaStart,
+  weeks:[{item:'カララギマンゴー',act:''},{item:'ないちゃい草',act:''}],
+  feeds:['ニクもどき'],
+  jugs:2,
+  feedLike:{},              // 空なら「普通」として扱う
+  initMoral:0,
+  species:'ピクシー',
+});
+// 1週目: エサ(ス-6 甘+4 体+6) → 水差し×2(ス-2 恐+2) → マンゴー(疲-10 恐+1 甘+1 体+1)
+eq(JSON.stringify(rotaRows[0].values),
+   JSON.stringify({form:7,moral:0,stress:42,fatigue:40,fear:53,spoil:55}),
+   '1週目（エサ→水差し→アイテム）');
+// 2週目: 月初めではないのでエサも水差しも効かない。
+//        ないちゃい草 ストレス-40% は 42→42+trunc(-16.8)=42-16=26（切り捨て）
+eq(rotaRows[1].values.stress,26,'割合は切り捨ててから引く');
+eq(rotaRows[1].values.fatigue,50,'2週目の疲労（40+10）');
+eq(rotaRows[1].values.fear,53,'月初めでなければ水差しは効かない');
+eq(rotaRows[1].values.form,6,'月初めでなければエサも効かない');
+
+// 種族条件つきの効果（オイリーオイルのストレス-20%）
+const oily=(species)=>R.simulate({
+  start:{...rotaStart},weeks:[{item:'オイリーオイル',act:''}],feeds:[''],jugs:0,
+  feedLike:{},initMoral:0,species,
+})[0].values.stress;
+eq(oily('ヘンガー'),40,'ヘンガーならストレス-20%が乗る（50→40）');
+eq(oily('ピクシー'),50,'種族が合わなければ乗らない');
+
+// ヨイワルは初期ヨイワルから±100までしか動かない
+const moralRows=R.simulate({
+  start:{...rotaStart,moral:5},
+  weeks:[{item:'フルーツグミ'},{item:'フルーツグミ'},{item:'フルーツグミ'}],
+  feeds:[''],jugs:0,feedLike:{},initMoral:-90,species:'ピクシー',
+});
+eq(moralRows.map(r=>r.values.moral).join(','),'10,10,10','初期ヨイワル-90なら+10で頭打ち');
+
+// 0〜100 の下限でも止まる
+eq(R.simulate({start:{...rotaStart,stress:3},weeks:[{item:'ソンナバナナ'}],feeds:[''],jugs:0,
+   feedLike:{},initMoral:0,species:'ピクシー'})[0].values.stress,0,'ストレスは0より下がらない');
+
+// 合計
+eq(R.totalAgePlus([{item:'パラドクシン'},{item:'トロロン'},{item:'カララギマンゴー'}]),24,'寿命が進む合計(18+6)');
+eq(R.totalFeedPrice(['ニクもどき','ゼリーもどき'],5),450,'エサ代は月ごとに1回ぶん(300+150)');
+eq(R.totalFeedPrice(['ニクもどき','ゼリーもどき'],4),300,'4週なら1か月ぶんだけ');
+
+// 行動のデータはまだ入っていない
+eq(R.ACT_EFFECTS_READY,false,'行動の内部数値はまだ未対応');
+eq(JSON.stringify(R.applyAct({stress:50},'heavy:0')),JSON.stringify({stress:50}),'行動はまだ何も動かさない');
 
 console.log(`\n照合 ${checks}件 / 不一致 ${fail}件`);
 

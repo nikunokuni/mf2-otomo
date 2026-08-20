@@ -262,7 +262,7 @@ await page.click('#tab-monster');
 await page.selectOption('#simMoral','-35');
 await page.click('#tab-simulator');
 await page.click('#subtab-rotation');
-ok((await page.locator('#rotationArea').textContent()).includes('まだ作っていません'),'毎週/毎月ぶんは未実装の案内');
+ok((await page.locator('#rotationArea').textContent()).includes('行動'),'行動が未対応であることの注意書き');
 
 console.log('— エサ —');
 const feedRows = page.locator('.feed-table tbody tr');
@@ -285,7 +285,51 @@ const vita = await feedRows.nth(5).locator('td').allTextContents();
 ok(vita.join(',')==='ビタミンもどき,嫌い,-10,+2,-1,+3,500','嫌いのビタミンもどき: '+vita.join(','));
 // 体型と買値は好き嫌いで変わらない
 ok((await jaga())[5]==='-1' && (await jaga())[6]==='10','体型と買値は好き嫌いで変わらない');
+
+console.log('— 週ごとの表 —');
+const weekRows = page.locator('.rota-table__inputs');
+ok((await weekRows.count())===1,'はじめは空の1行だけ: '+(await weekRows.count()));
+ok((await page.locator('.rota-table__week').first().textContent())==='1か月目 第1週','週の見出し');
+// 1週ぶん入れると次の週の欄が出てくる（上限なし）
+await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOption('カララギマンゴー');
+ok((await weekRows.count())===2,'入れると次の週が出る: '+(await weekRows.count()));
+await page.locator('[aria-label="1か月目 第2週の行動"]').selectOption('rest');
+ok((await weekRows.count())===3,'行動だけでも次の週が出る');
+for(const w of ['1か月目 第3週','1か月目 第4週']) await page.locator(`[aria-label="${w}の行動"]`).selectOption('rest');
+ok((await weekRows.count())===5,'4週を超えると2か月目に入る');
+ok((await page.locator('.rota-table__week').last().textContent())==='2か月目 第1週','5行目は2か月目 第1週');
+// エサは月初めの行だけで選ぶ
+ok((await page.locator('.rota-table [aria-label$="か月目のエサ"]').count())===2,'エサの欄は月初めの行だけ');
+ok((await page.locator('.rota-table__same').count())===3,'月初め以外は「↑」');
+
+console.log('— 内部数値の計算 —');
+// 開始時点をそろえてから、月初めの並び（エサ → 双子の水差し → アイテム）を確かめる
+await page.fill('#rotaStart-stress','50');
+await page.fill('#rotaStart-fatigue','50');
+await page.fill('#rotaStart-fear','50');
+await page.fill('#rotaStart-spoil','50');
+await page.fill('#rotaStart-form','0');
+await page.fill('#rotaStart-moral','0');
+await page.fill('#rotaJugs','2');
+await page.locator('[aria-label="1か月目のエサ"]').selectOption('ニクもどき');
+// ニクもどき(普通) ス-6 甘+4 体+6 → 水差し×2 ス-2 恐+2 → マンゴー 疲-10 恐+1 甘+1 体+1
+const valRow = (n) => page.locator('.rota-table__values').nth(n).locator('.rota-vals__num').allTextContents();
+const w1 = await valRow(0);
+ok(w1.join(',')==='40,42,53,55,7,0','1週目の内部数値（疲ス恐甘体ヨ）: '+w1.join(','));
+// 月初めでない週にはエサも水差しも効かない
+const w2 = await valRow(1);
+ok(w2.join(',')==='40,42,53,55,7,0','2週目はエサも水差しも効かない: '+w2.join(','));
+// 打ちなおしても入力欄からカーソルが飛ばない（表ごと作り直していない）
+await page.locator('#rotaStart-stress').fill('80');
+ok(await page.locator('#rotaStart-stress').evaluate(n=>n===document.activeElement),'入力中に作り直さない');
+ok((await valRow(0))[1]==='72','数値だけ追いかける（80→72）');
+await page.fill('#rotaStart-stress','50');
+// 保存されるか
+await page.reload({waitUntil:'networkidle'});
 await page.click('#subtab-rotation');
+ok((await page.locator('.rota-table__inputs').count())===5,'週の入力が保存されている');
+ok((await page.locator('#rotaJugs').inputValue())==='2','双子の水差しの数が保存されている');
+ok((await page.locator('[aria-label="1か月目のエサ"]').inputValue())==='ニクもどき','エサが保存されている');
 await page.click('#subtab-plan');
 ok(await page.locator('#simActions').isVisible(),'育成計画では出る');
 

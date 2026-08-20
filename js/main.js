@@ -92,6 +92,7 @@ function start() {
     ...tracker.changeActions,
     ...simulator.changeActions,
     ...simulator.simpleChanges,
+    ...rotation.changeActions,
     ...backupChanges,
   });
   registerActions('input', {
