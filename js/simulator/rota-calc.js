@@ -22,10 +22,13 @@
                     （冒険の4週だけは、暦は進むが寿命に数えない）
      B 追加ぶん   … 週経過に加えてかかるぶん。暦は進まない。
                     体調値ぶんと、イベントぶんの両方がかかる
-   修行は体調値ぶんだけ（修行そのものの追加は無い）。
-   4週まとめて1回、修行が終わった時点の体調値で数える。
-   疲労0・ストレス0から修行に出れば 週経過4 + 体調値ぶん3 = -7 になり、
-   育成計画の EV_COST.mc と一致する。
+   ★体調値の表は週経過ぶんを含んだ合計なので、追加ぶんは「表の値 − 1」★
+     体調値69以下なら追加は0（減るのは週経過ぶんだけ）。
+
+   疲労0・ストレス0から始めた場合、育成計画の EV_COST と一致する
+     大会 1 + 体調値0 + ベース3 = -4
+     修行 4週ぶんの週経過と体調値ぶん（0+0+1+2）で -7
+     冒険 週経過なし + 冒険ぶん2 = -2
 
    ★ゲーム内の計算は、途中で小数点以下を切り捨てる★
      割合の効果は pctDelta() を通す（js/simulator/inner-calc.js）。
@@ -45,7 +48,8 @@ import {
   REST_SPOIL,
   tournamentFatigue,
   conditionValue,
-  lifeLoss,
+  conditionExtra,
+  tournamentBase,
   WEEK_AGE,
   EVENT_LIFE,
 } from '../data/acts.js';
@@ -247,17 +251,17 @@ export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, speci
     const ageWeeks = adventuring ? 0 : WEEK_AGE;
 
     // B 追加ぶん = 体調値ぶん ＋ イベントぶん
+    //   体調値の表は週経過ぶんを含んだ合計なので、追加ぶんは conditionExtra() で出す
     let fromCondition = 0;
     let fromEvent = 0;
     if (adventuring) {
-      // 体調値は出さない。冒険ぶんの追加を出発の週に1回
+      // 体調値は出さない。冒険ぶんを出発の週に1回
       fromEvent = blockStart ? EVENT_LIFE.ac.extra : 0;
-    } else if (camping) {
-      // 修行は体調値ぶんだけ。4週まとめて1回、終わった時点の体調値で数える
-      fromCondition = blockEnd ? lifeLoss(condition) : 0;
     } else {
-      fromCondition = lifeLoss(condition);
-      if (w.act && w.act.startsWith('tc:')) fromEvent = EVENT_LIFE.tc.extra;
+      // 修行も、出かけているあいだ毎週ぶん体調値で減る（修行そのものの追加は無い）
+      fromCondition = conditionExtra(condition);
+      // 大会のベースは -3。大会後の疲労が70を越えていると倍の -6
+      if (w.act && w.act.startsWith('tc:')) fromEvent = tournamentBase(values.fatigue);
     }
     const extraLife = fromCondition + fromEvent;
 

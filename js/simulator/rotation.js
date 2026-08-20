@@ -105,9 +105,7 @@ function lifeText(row) {
 function lifeTitle(row) {
   const age = row.adventuring ? '週経過は数えない（冒険）' : `週経過 -${row.ageWeeks}`;
   const parts = [];
-  if (row.fromCondition) {
-    parts.push(row.camping ? `体調値 -${row.fromCondition}（修行4週ぶん）` : `体調値 -${row.fromCondition}`);
-  }
+  if (row.fromCondition) parts.push(`体調値 -${row.fromCondition}`);
   if (row.fromEvent) parts.push(`${row.adventuring ? '冒険' : '大会'} -${row.fromEvent}`);
   const extra = parts.length ? `追加 ${parts.join(' ＋ ')}` : '追加なし';
   return `${age} ＋ ${extra} ＝ 合計 -${row.lifeCost}`;
@@ -485,8 +483,8 @@ function planSection() {
     h('div', { class: 'callout callout--info' },
       h('div', { text: '月初め（第1週）は、エサ → 双子の水差し の順に効いてから、その週のアイテムと行動です。' }),
       h('div', { text: '1週ぶん入れると、その下に次の週の欄が出てきます。' }),
-      h('div', { text: '体調値＝疲労＋ストレス×2。' }),
-      h('div', { text: '寿命は「週経過ぶん（1週たてば-1）＋ 追加ぶん」で減ります。追加ぶんは、体調値ぶんとイベントぶんの両方です（大会-3 / 冒険-2。修行は体調値ぶんだけ）。' }),
+      h('div', { text: '体調値＝疲労＋ストレス×2。体調値が69以下なら、寿命は週経過ぶん（-1）だけ減ります。' }),
+      h('div', { text: '寿命は「週経過ぶん ＋ 追加ぶん」で減ります。追加ぶんは体調値ぶんとイベントぶんの両方です。大会は出場で-3、大会後の疲労が70を越えるとその倍の-6。冒険は-2。修行そのものの追加はありません。' }),
       h('div', { text: `修行と冒険は${TRAINING_CAMP_WEEKS}週まとめて出かけます。出かける週にはエサが間に合いますが（冒険はアイテムだけ使えません）、2〜4週目はエサもアイテムもありません。` }),
       h('div', { text: `修行は疲労とストレスが毎週たまり、寿命は4週まとめて1回、終わった時点の体調値で数えます。冒険は出ているあいだ何も起きず、体調値も出さず、この4週ぶんの週経過は寿命に数えません。疲労+70 は帰ってきた週にまとめて乗ります。` })
     ),

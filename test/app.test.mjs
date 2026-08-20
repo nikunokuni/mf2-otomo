@@ -343,9 +343,9 @@ const cond = (n) => page.locator(`#rotaCond-${n}`).textContent();
 const lifeOf = (n) => page.locator(`#rotaLife-${n}`).textContent();
 ok((await valRow(0)).slice(0,2).join(',')==='15,12','重トレで疲労+15 ストレス+12');
 ok((await cond(0))==='39','体調値 = 15 + 12×2 = 39');
-ok((await lifeOf(0))==='-2','体調39なら 週経過-1 ＋ 追加-1 = -2');
-ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('体調値'),
-   'ふだんの週の追加ぶんは体調値から');
+ok((await lifeOf(0))==='-1','体調39は69以下なので週経過ぶんだけ = -1');
+ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('追加なし'),
+   '体調値69以下なら追加ぶんは無い: '+(await page.locator('#rotaLifeCell-0').getAttribute('title')));
 // 休養は成長段階で変わる
 await page.locator('[aria-label="1か月目 第2週の行動"]').selectOption('rest');
 ok((await valRow(1)).slice(0,2).join(',')==='0,7','第1段階の休養 疲労-36 ストレス-5（下限0で止まる）');
@@ -384,10 +384,8 @@ ok((await page.locator('.rota-total').textContent()).includes('うち冒険 4週
 // 大会は 週経過1 + 追加3 = 4
 await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('tc:win');
 // 大会は 週経過1 + 体調値ぶん + 大会ぶん3
-ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('大会 -3'),
-   '大会ぶんが内訳に出る: '+(await page.locator('#rotaLifeCell-0').getAttribute('title')));
-ok((await page.locator('#rotaLifeCell-0').getAttribute('title')).includes('体調値'),
-   '体調値ぶんも同時にかかる');
+const tcTitle = await page.locator('#rotaLifeCell-0').getAttribute('title');
+ok(/大会 -(3|6)/.test(tcTitle),'大会ぶんが内訳に出る: '+tcTitle);
 await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('heavy:0');
 // 取りやめると残りの3週も空く
 await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('rest');
@@ -410,10 +408,14 @@ ok((await page.locator('.rota-table__inputs').nth(4).locator('[aria-label$="か�
    '出かけている途中の月初めはエサを選べない');
 // 修行中も体調値は出る（冒険とちがう）
 ok((await page.locator('#rotaCond-4').textContent())!=='冒険中','修行中は体調値が出る');
-// 寿命は 週経過だけ → 最後の週にまとめて体調値ぶん
-ok((await page.locator('#rotaLife-4').textContent())==='-1','修行の途中は週経過ぶんだけ');
-ok((await page.locator('#rotaLifeCell-6').getAttribute('title')).includes('修行4週ぶん'),
-   '修行の体調値ぶんは終わった週で1回: '+(await page.locator('#rotaLifeCell-6').getAttribute('title')));
+// 修行は毎週ぶん体調値で減る。修行そのものの追加は無い
+const mcTitles = await Promise.all([3,4,5,6].map(n=>
+  page.locator(`#rotaLifeCell-${n}`).getAttribute('title')));
+ok(mcTitles.every(t=>!t.includes('大会')&&!t.includes('冒険')),
+   '修行そのものの追加は無い: '+mcTitles[3]);
+ok(mcTitles.every(t=>t.includes('週経過 -1')),'修行の各週に週経過ぶんがかかる');
+const mcCosts = await Promise.all([3,4,5,6].map(n=>page.locator(`#rotaLife-${n}`).textContent()));
+ok(mcCosts.every(v=>Number(v.replace('-',''))>=1),'修行の各週に寿命がかかる: '+mcCosts.join(','));
 // やめると残りも空く
 await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('rest');
 const afterMc = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));
