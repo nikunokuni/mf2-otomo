@@ -355,6 +355,31 @@ await page.fill('#rotaStart-form','-100');
 await page.locator('[aria-label="1か月目 第3週の行動"]').selectOption('tc:win');
 ok((await valRow(2))[1]==='0','大会のあとはストレス0');
 ok((await valRow(2))[0]==='23','優勝・体型-100 なら疲労+23（目安表と一致）');
+console.log('— 冒険（4週まとめて） —');
+// 4週目に冒険を選ぶと、そこから4週ぶんが埋まる
+await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('ac');
+const advActs = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));
+ok(advActs.slice(3,7).join(',')==='ac,ac,ac,ac','冒険を選ぶと4週ぶん埋まる: '+advActs.join(','));
+// 最初の週だけ変えられる（取りやめられるように）
+ok(await page.locator('[aria-label="1か月目 第4週の行動"]').isEnabled(),'冒険の最初の週は変えられる');
+ok(await page.locator('[aria-label="2か月目 第1週の行動"]').isDisabled(),'出ているあいだの週は閉じる');
+ok(await page.locator('[aria-label="2か月目 第1週のアイテム"]').isDisabled(),'出ているあいだはアイテムも使えない');
+// 出ているあいだは体調値なし
+ok((await page.locator('#rotaCond-3').textContent())==='冒険中','冒険中は体調値を出さない');
+ok((await page.locator('#rotaLife-4').textContent())==='—','冒険中は寿命も数えない');
+// 帰ってきた週に疲労がまとめて乗る
+const beforeAdv = Number((await valRow(2))[0]);
+const backFatigue = Number((await valRow(7))[0]);
+ok(backFatigue===Math.min(100,beforeAdv+70),
+   `帰ってきた週に疲労+70: ${beforeAdv} → ${backFatigue}`);
+ok((await page.locator('.rota-total').textContent()).includes('うち冒険 4週'),
+   '冒険の週数が合計に出る: '+(await page.locator('.rota-total').textContent()));
+// 取りやめると残りの3週も空く
+await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('rest');
+const afterCancel = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));
+ok(afterCancel.slice(3,7).every((v,i)=>i===0?v==='rest':v===''),
+   '冒険をやめると残りの3週も空く: '+afterCancel.join(','));
+
 // 減る寿命の合計
 ok((await page.locator('#rotaLifeTotal').textContent()).includes('合計'),'減る寿命の合計が出る');
 await page.fill('#rotaJugs','3');

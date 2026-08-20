@@ -243,8 +243,33 @@ let mcV={...base,fatigue:0,stress:0};
 for(let i=0;i<4;i++) mcV=R.applyAct(mcV,'mc',0);
 eq([mcV.fatigue,mcV.stress],[72,28],'修行4週で 疲労+72 ストレス+28（修行合計と一致）');
 
-// 冒険
-eq([act('ac',{fatigue:0}).fatigue,act('ac',{fatigue:0}).stress],[70,20],'冒険 疲労+70 ストレス0');
+// 冒険は4週まとめて。出ているあいだは何も起きず、疲労は帰ってきた週にまとめて乗る
+eq([act('ac',{fatigue:0}).fatigue,act('ac',{fatigue:0}).stress],[0,20],'冒険の週そのものでは何も起きない');
+eq(A.ADVENTURE_WEEKS,4,'冒険は4週');
+const advRows=R.simulate({
+  start:{...base,fatigue:10,stress:10},
+  weeks:[{act:'heavy:0'},{act:'ac'},{act:'ac'},{act:'ac'},{act:'ac'},{act:''},{act:''}],
+  feeds:['',''],jugs:0,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1',
+});
+eq(advRows.map(r=>r.adventuring).join(','),'false,true,true,true,true,false,false','2〜5週目が冒険中');
+eq(advRows[1].advStart,true,'冒険の最初の週');
+eq(advRows[2].advStart,false,'2週目以降は最初の週ではない');
+eq(advRows.slice(1,5).map(r=>r.values.fatigue).join(','),'25,25,25,25','出ているあいだは疲労が動かない');
+eq(advRows.slice(1,5).map(r=>r.condition).join(','),',,,','出ているあいだは体調値なし');
+eq(advRows.slice(1,5).map(r=>r.lifeLoss).join(','),'0,0,0,0','出ているあいだは寿命も数えない');
+eq(advRows[5].returned,true,'6週目に帰ってくる');
+eq(advRows[5].values.fatigue,95,'帰ってきた週に疲労+70（25→95）');
+eq(advRows[5].condition,95+22*2,'帰ってきた週から体調値が戻る');
+eq(R.adventureWeeks(advRows),4,'冒険で出かけた週数');
+// 冒険中はエサも水差しもアイテムも効かない
+const advFeed=R.simulate({
+  start:{...base,fatigue:0,stress:50},
+  weeks:[{act:'ac'},{act:'ac'},{act:'ac'},{act:'ac'},{act:''}],
+  feeds:['ニクもどき','ニクもどき'],jugs:3,feedLike:{},initMoral:0,species:'ピクシー',stage:'s1',
+});
+eq(advFeed[0].values.stress,50,'冒険中は月初めのエサも水差しも効かない');
+eq(advFeed[4].values.stress,50-6-3,'帰ってきた月（5週目＝2か月目第1週）はエサも水差しも効く');
+eq(advFeed[4].values.fatigue,70,'帰ってきた週の疲労は+70');
 
 // 休養は成長段階で変わる。値は最低値
 eq([act('rest',{fatigue:90,stress:60},'s1').fatigue,act('rest',{fatigue:90,stress:60},'s1').stress],

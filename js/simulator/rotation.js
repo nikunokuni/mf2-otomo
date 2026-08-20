@@ -16,6 +16,8 @@
 
    休養は成長段階で効き方が変わるので、段階もここで選ぶ（mon.rota.stage）。
    大会は結果（優勝 / 他 / ビリ）で疲労が変わり、そのあとストレスが0になる。
+   冒険を選ぶと4週ぶんまとめて埋まる。出ているあいだは何も起きず体調値も出さない。
+   疲労+70 は帰ってきた週にまとめて乗る。
 
    アイテムの効果そのものを思い出したいときは早見タブを見る
    （ユーザーは効果を覚えている前提なので、この画面には出さない）。
@@ -26,7 +28,7 @@
 import { INNER, ITEMS } from '../data/items.js';
 import { FEEDS, LIKING_LABEL, feedEffect } from '../data/feeds.js';
 import { HEAVY4, LIGHT6, STAGES, SKEYS } from '../data/growth.js';
-import { TOURNAMENT } from '../data/acts.js';
+import { TOURNAMENT, ADVENTURE_WEEKS } from '../data/acts.js';
 import { save, currentMon, state } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import { moralRange } from './inner-calc.js';
@@ -39,6 +41,7 @@ import {
   totalAgePlus,
   totalFeedPrice,
   totalLifeLoss,
+  adventureWeeks,
   JUG_NAME,
 } from './rota-calc.js';
 
@@ -270,18 +273,22 @@ function weekRows(row, i) {
 
   // いちばん下の「次の週」の行は、まだ組んでいないので薄く出す
   const pending = i >= plannedCount() ? ' rota-table--pending' : '';
+  // 冒険で出かけている週は、そのあいだ何もできないので入力を閉じる。
+  // 取りやめられるように、冒険を選んだ最初の週だけは開けておく
+  const locked = row.adventuring && !row.advStart;
 
   const inputs = h(
     'tr',
     { class: 'rota-table__inputs' + cls + pending },
     h('td', { class: 'rota-table__week', text: weekLabel(i) }),
-    feedCell(i),
+    row.adventuring ? h('td', { class: 'rota-table__same', text: '—' }) : feedCell(i),
     h(
       'td',
       {},
       h(
         'select',
         {
+          disabled: row.adventuring,
           dataset: { change: 'rota:week', idx: String(i), field: 'item' },
           attrs: { 'aria-label': `${weekLabel(i)}のアイテム` },
         },
@@ -294,6 +301,7 @@ function weekRows(row, i) {
       h(
         'select',
         {
+          disabled: locked,
           dataset: { change: 'rota:week', idx: String(i), field: 'act' },
           attrs: { 'aria-label': `${weekLabel(i)}の行動` },
         },
@@ -304,7 +312,7 @@ function weekRows(row, i) {
 
   const values = h(
     'tr',
-    { class: 'rota-table__values' + cls + pending },
+    { class: 'rota-table__values' + cls + pending + (row.adventuring ? ' rota-table--adv' : '') },
     h(
       'td',
       { attrs: { colspan: 4 } },
@@ -323,18 +331,27 @@ function weekRows(row, i) {
             })
           )
         ),
-        // 体調値（疲労+ストレス×2）と、そのせいでその週に減る寿命
+        // 体調値（疲労+ストレス×2）と、そのせいでその週に減る寿命。
+        // 冒険で出かけているあいだは体調値を出さない
         h(
           'span',
           { class: 'rota-vals__cell rota-vals__cond', attrs: { title: '体調値（疲労＋ストレス×2）' } },
-          h('span', { class: 'rota-vals__label', text: '体調' }),
-          h('span', { class: 'rota-vals__num', id: `rotaCond-${i}`, text: String(row.condition) })
+          h('span', { class: 'rota-vals__label', text: row.adventuring ? '' : '体調' }),
+          h('span', {
+            class: 'rota-vals__num',
+            id: `rotaCond-${i}`,
+            text: row.adventuring ? '冒険中' : String(row.condition),
+          })
         ),
         h(
           'span',
           { class: 'rota-vals__cell rota-vals__life', attrs: { title: 'その週に減る寿命' } },
-          h('span', { class: 'rota-vals__label', text: '寿命' }),
-          h('span', { class: 'rota-vals__num', id: `rotaLife-${i}`, text: `-${row.lifeLoss}` })
+          h('span', { class: 'rota-vals__label', text: row.adventuring ? '' : '寿命' }),
+          h('span', {
+            class: 'rota-vals__num',
+            id: `rotaLife-${i}`,
+            text: row.adventuring ? '—' : `-${row.lifeLoss}`,
+          })
         )
       )
     )
@@ -380,9 +397,9 @@ function refreshValues() {
       if (cell) cell.textContent = String(row.values[key]);
     });
     const cond = el(`rotaCond-${i}`);
-    if (cond) cond.textContent = String(row.condition);
+    if (cond) cond.textContent = row.adventuring ? '冒険中' : String(row.condition);
     const life = el(`rotaLife-${i}`);
-    if (life) life.textContent = `-${row.lifeLoss}`;
+    if (life) life.textContent = row.adventuring ? '—' : `-${row.lifeLoss}`;
   });
   const total = el('rotaLifeTotal');
   if (total) {
@@ -426,7 +443,8 @@ function planSection() {
     h('div', { class: 'callout callout--info' },
       h('div', { text: '月初め（第1週）は、エサ → 双子の水差し の順に効いてから、その週のアイテムと行動です。' }),
       h('div', { text: '1週ぶん入れると、その下に次の週の欄が出てきます。' }),
-      h('div', { text: '体調値＝疲労＋ストレス×2。その週に減る寿命は体調値で決まります。' })
+      h('div', { text: '体調値＝疲労＋ストレス×2。その週に減る寿命は体調値で決まります。' }),
+      h('div', { text: `冒険は${ADVENTURE_WEEKS}週まとめて出かけます。出ているあいだは体調値を出さず、疲労は帰ってきた週にまとめて乗ります。` })
     ),
     weekTable(),
     h('div', { class: 'rota-legend' },
@@ -442,7 +460,10 @@ function planSection() {
         text: `体調で減る寿命 合計 ${totalLifeLoss(rows.slice(0, planned))}週`,
       }),
       h('span', { text: `アイテムで進む寿命 ${totalAgePlus(r.weeks)}週` }),
-      h('span', { text: `エサ代 ${totalFeedPrice(r.feeds, planned)}G` })
+      h('span', { text: `エサ代 ${totalFeedPrice(r.feeds, planned)}G` }),
+      adventureWeeks(rows.slice(0, planned))
+        ? h('span', { text: `うち冒険 ${adventureWeeks(rows.slice(0, planned))}週（体調値なし）` })
+        : null
     )
   );
 }
@@ -469,7 +490,24 @@ export const changeActions = {
     if (!r) return;
     const idx = Number(target.dataset.idx);
     if (!r.weeks[idx]) return;
-    r.weeks[idx][target.dataset.field] = target.value;
+    const field = target.dataset.field;
+    const wasAdvStart = field === 'act' && (currentRows()[idx] || {}).advStart;
+
+    r.weeks[idx][field] = target.value;
+
+    if (field === 'act' && target.value === 'ac') {
+      // 冒険は4週まとめて。出ているあいだはアイテムも使えない
+      for (let j = idx; j < idx + ADVENTURE_WEEKS; j += 1) {
+        if (!r.weeks[j]) r.weeks[j] = { item: '', act: '' };
+        r.weeks[j].act = 'ac';
+        r.weeks[j].item = '';
+      }
+    } else if (wasAdvStart) {
+      // 冒険をやめたら、残りの3週ぶんも空ける
+      for (let j = idx + 1; j < idx + ADVENTURE_WEEKS; j += 1) {
+        if (r.weeks[j] && r.weeks[j].act === 'ac') r.weeks[j] = { item: '', act: '' };
+      }
+    }
     save();
     render();
   },

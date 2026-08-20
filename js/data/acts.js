@@ -28,8 +28,16 @@ export const TRAIN_HEAVY = { fatigue: 15, stress: 12 };
  */
 export const TRAINING_CAMP = { fatigue: 18, stress: 7 };
 
-/** 冒険1回ぶん */
+/**
+ * 冒険。4週まとめて出かける。
+ * 疲労+70 は「合計」で、**帰ってきた週**（4週のあとの週）にまとめて乗る。
+ * 出かけているあいだは体調値を出さない（＝そのぶんの寿命も数えない）。
+ * ストレスは動かない。
+ */
 export const ADVENTURE = { fatigue: 70, stress: 0 };
+
+/** 冒険に出ている週数 */
+export const ADVENTURE_WEEKS = 4;
 
 /** 休養。成長段階ごとに効き方が違う。値は最低値（いちばん減らない側） */
 export const REST = {

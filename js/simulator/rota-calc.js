@@ -11,7 +11,8 @@
      ・そのあと、その週の行動（js/data/acts.js）
          軽トレ 疲労+10 ストレス+5 ／ 重トレ 疲労+15 ストレス+12
          修行   1週ぶん 疲労+18 ストレス+7（4週で +72 / +28）
-         冒険   疲労+70 ストレス0
+         冒険   4週まとめて出かける。疲労+70 は帰ってきた週にまとめて乗る。
+                出かけているあいだは体調値を出さない（寿命も数えない）
          休養   成長段階ごと。体型+5
          大会   疲労は体型で変わる。大会後はストレス0
      ・最後に、その週が終わった時点の体調値（疲労+ストレス×2）から
@@ -28,6 +29,7 @@ import {
   TRAIN_HEAVY,
   TRAINING_CAMP,
   ADVENTURE,
+  ADVENTURE_WEEKS,
   REST,
   REST_FORM,
   REST_SPOIL,
@@ -145,11 +147,10 @@ export function applyAct(values, act, initMoral, stage = 's1') {
     );
   }
 
-  const table = {
-    mc: TRAINING_CAMP,
-    ac: ADVENTURE,
-  };
-  if (table[act]) return applyInner(values, { inner: table[act] }, initMoral);
+  // 冒険は出かけている週には何も起きない。疲労は帰ってきた週に simulate() が乗せる
+  if (act === 'ac') return { ...values };
+
+  if (act === 'mc') return applyInner(values, { inner: TRAINING_CAMP }, initMoral);
 
   if (act.startsWith('light:')) return applyInner(values, { inner: TRAIN_LIGHT }, initMoral);
   if (act.startsWith('heavy:')) return applyInner(values, { inner: TRAIN_HEAVY }, initMoral);
@@ -172,29 +173,60 @@ export function applyAct(values, act, initMoral, stage = 's1') {
  */
 export function simulate({ start, weeks, feeds, jugs, feedLike, initMoral, species, stage }) {
   let values = { ...start };
+  // 冒険で出かけている区間と、帰ってくる週
+  let advEnd = -1;
+  let advReturn = -1;
+
   return weeks.map((w, i) => {
-    const monthStart = isMonthStart(i);
-    const feedName = monthStart ? feeds[monthOf(i)] || '' : '';
-
-    if (monthStart) {
-      values = applyFeed(values, feedName, feedLike && feedLike[feedName], initMoral);
-      values = applyJugs(values, jugs, initMoral);
+    // 冒険から帰ってきた週。まず疲労がまとめて乗る
+    let returned = false;
+    if (i === advReturn) {
+      values = applyInner(values, { inner: { fatigue: ADVENTURE.fatigue } }, initMoral);
+      advReturn = -1;
+      returned = true;
     }
-    values = applyItem(values, w.item, initMoral, species);
-    values = applyAct(values, w.act, initMoral, stage);
 
-    const condition = conditionValue(values.fatigue, values.stress);
+    // 出かけている途中なら、その週は何も起きない
+    const advStart = i > advEnd && w.act === 'ac';
+    if (advStart) {
+      advEnd = i + ADVENTURE_WEEKS - 1;
+      advReturn = advEnd + 1;
+    }
+    const adventuring = advStart || i <= advEnd;
+
+    const monthStart = isMonthStart(i);
+    const feedName = !adventuring && monthStart ? feeds[monthOf(i)] || '' : '';
+
+    if (!adventuring) {
+      if (monthStart) {
+        values = applyFeed(values, feedName, feedLike && feedLike[feedName], initMoral);
+        values = applyJugs(values, jugs, initMoral);
+      }
+      values = applyItem(values, w.item, initMoral, species);
+      values = applyAct(values, w.act, initMoral, stage);
+    }
+
+    // 冒険中は体調値を出さない（そのぶんの寿命も数えない）
+    const condition = adventuring ? null : conditionValue(values.fatigue, values.stress);
     return {
       weekIdx: i,
       monthStart,
       feed: feedName,
-      item: w.item || '',
+      item: adventuring ? '' : w.item || '',
       act: w.act || '',
+      adventuring,
+      advStart,
+      returned,
       values: { ...values },
       condition,
-      lifeLoss: lifeLoss(condition),
+      lifeLoss: adventuring ? 0 : lifeLoss(condition),
     };
   });
+}
+
+/** 冒険で出かけている週数（体調値を数えていない週） */
+export function adventureWeeks(rows) {
+  return rows.filter((r) => r.adventuring).length;
 }
 
 /** 体調値で減る寿命の合計（アイテムで進む寿命とは別） */

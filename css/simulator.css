@@ -128,6 +128,17 @@
 .rota-table--pending {
   opacity: 0.55;
 }
+/* 冒険で出かけている週は、体調値を出さないので色を落とす */
+.rota-table--adv .rota-vals {
+  background: transparent;
+}
+.rota-table--adv .rota-vals__num {
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+.rota-table select:disabled {
+  opacity: 0.55;
+}
 .rota-legend {
   display: flex;
   flex-wrap: wrap;
