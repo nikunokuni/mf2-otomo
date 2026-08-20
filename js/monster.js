@@ -14,6 +14,7 @@
    =========================================================== */
 
 import { STATS, SK, SC } from './data/growth.js';
+import { FEEDS, LIKING } from './data/feeds.js';
 import { state, save, currentMon, MORAL_STEP, normalizeMoral } from './store.js';
 import { el, h, replace, clampInt } from './dom.js';
 
@@ -126,6 +127,36 @@ function updateStatBar(key) {
   if (bar && s) bar.style.width = statBarWidth(s.init[key] || 0) + '%';
 }
 
+/* ---------- エサの好き嫌い ---------- */
+
+/**
+ * エサ1つぶんの好き嫌いを選ぶ。
+ * どのエサが好きかはモンスターごとに違うので、ゲームを見て入れてもらう。
+ */
+function renderFeedLike(mon) {
+  replace(
+    el('feedLikeGrid'),
+    FEEDS.map((feed) =>
+      h(
+        'div',
+        { class: 'feed-like' },
+        h('span', { class: 'feed-like__name', text: feed.name }),
+        h(
+          'select',
+          {
+            class: 'feed-like__select',
+            dataset: { change: 'mon:feedLike', name: feed.name },
+            attrs: { 'aria-label': `${feed.name}の好き嫌い` },
+          },
+          LIKING.map(([key, label]) =>
+            h('option', { value: key, text: label, selected: mon.feedLike[feed.name] === key })
+          )
+        )
+      )
+    )
+  );
+}
+
 /* ---------- 全体の描画 ---------- */
 
 export function render() {
@@ -142,6 +173,7 @@ export function render() {
   renderGuts(mon);
   renderApt(s);
   renderInit(s);
+  renderFeedLike(mon);
 }
 
 /* ---------- 操作 ---------- */
@@ -186,6 +218,13 @@ export const changeActions = {
     const s = sim();
     if (!s) return;
     s.moral = normalizeMoral(target.value);
+    save();
+  },
+
+  'mon:feedLike': (target) => {
+    const mon = currentMon();
+    if (!mon) return;
+    mon.feedLike[target.dataset.name] = target.value;
     save();
   },
 

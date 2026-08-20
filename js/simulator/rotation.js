@@ -7,6 +7,7 @@
 
    いまできること
      ・調整ローテを始める時点の内部数値を入れる（mon.rota.start）
+     ・そのモンスターの好き嫌いを当てはめたエサの効果を一覧で見る
 
    これから作るもの
      ・毎週のアイテムと行動、毎月のエサを入れる表
@@ -20,6 +21,7 @@
    =========================================================== */
 
 import { INNER } from '../data/items.js';
+import { FEEDS, LIKING_LABEL, feedEffect } from '../data/feeds.js';
 import { save, currentMon } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import { moralRange } from './inner-calc.js';
@@ -84,6 +86,65 @@ function startSection() {
   );
 }
 
+/** 数字を +3 / -3 / 0 の形にそろえる */
+function signed(n) {
+  return n > 0 ? `+${n}` : String(n);
+}
+
+/**
+ * このモンスターの好き嫌いを当てはめたエサの効果。
+ * 好き嫌いを変えるのはモンスタータブなので、ここは読むだけ。
+ */
+function feedSection() {
+  const mon = currentMon();
+  const rows = FEEDS.map((feed) => {
+    const liking = mon.feedLike[feed.name];
+    const e = feedEffect(feed, liking);
+    return h(
+      'tr',
+      {},
+      h('td', { class: 'feed-table__name', text: feed.name }),
+      h('td', { class: `feed-like--${liking}`, text: LIKING_LABEL[liking] }),
+      h('td', { class: 'col-num', text: signed(e.stress) }),
+      h('td', { class: 'col-num', text: signed(e.fear) }),
+      h('td', { class: 'col-num', text: signed(e.spoil) }),
+      h('td', { class: 'col-num', text: signed(e.form) }),
+      h('td', { class: 'col-num', text: String(feed.price) })
+    );
+  });
+
+  return h(
+    'div',
+    { class: 'sim-section' },
+    h('div', { class: 'sim-section__title', text: 'エサの効き方（このモンスターの好き嫌いを当てはめたもの）' }),
+    h(
+      'div',
+      { class: 'scroll-x' },
+      h(
+        'table',
+        { class: 'table feed-table' },
+        h('thead', {},
+          h('tr', {},
+            h('th', { text: 'エサ' }),
+            h('th', { text: '好み' }),
+            h('th', { text: 'ストレス' }),
+            h('th', { text: '恐れ度' }),
+            h('th', { text: '甘え度' }),
+            h('th', { text: '体型' }),
+            h('th', { text: '買値' })
+          )
+        ),
+        h('tbody', {}, ...rows)
+      )
+    ),
+    h('div', {
+      class: 'note',
+      style: 'margin-top:6px',
+      text: '好き嫌いを変えるのはモンスタータブです。体型と買値は好き嫌いで変わりません。',
+    })
+  );
+}
+
 /** まだ作っていないぶんの案内 */
 function todoSection() {
   return h(
@@ -107,7 +168,7 @@ export function render() {
     replace(area, h('div', { class: 'empty', text: '「モンスター」タブから種族を選んでください' }));
     return;
   }
-  replace(area, startSection(), todoSection());
+  replace(area, startSection(), feedSection(), todoSection());
 }
 
 export const inputActions = {

@@ -7,7 +7,7 @@
    ★ファイルを増やしたら ASSETS に足して、CACHE_VERSION を上げること★
    =========================================================== */
 
-const CACHE_VERSION = 'monfar-v7';
+const CACHE_VERSION = 'monfar-v8';
 
 const ASSETS = [
   './',
@@ -29,6 +29,7 @@ const ASSETS = [
   './js/data/growth.js',
   './js/data/monsters.js',
   './js/data/items.js',
+  './js/data/feeds.js',
   './js/data/icons.js',
   './js/tracker/tracker.js',
   './js/tracker/ideal.js',

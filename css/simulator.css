@@ -49,6 +49,27 @@
   }
 }
 
+/* --- 調整ローテ：エサの効き方（読むだけ） --- */
+.feed-table {
+  font-size: 12px;
+}
+.feed-table td,
+.feed-table th {
+  white-space: nowrap;
+}
+.feed-table__name {
+  font-weight: 500;
+}
+.feed-like--like {
+  color: var(--color-ok);
+}
+.feed-like--dislike {
+  color: var(--color-ng);
+}
+.feed-like--normal {
+  color: var(--color-text-tertiary);
+}
+
 /* --- 成長適正の読み取り専用の帯（計画表の上） --- */
 .plan-apt {
   display: flex;

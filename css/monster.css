@@ -47,8 +47,33 @@
   width: 66px;
 }
 
+/* --- エサの好き嫌い --- */
+.feed-like-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+.feed-like {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.feed-like__name {
+  font-size: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.feed-like__select {
+  flex: 0 0 auto;
+  width: 72px;
+  padding: 0 4px;
+}
+
 @media (max-width: 400px) {
   .apt-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .feed-like-grid {
+    grid-template-columns: 1fr;
   }
 }

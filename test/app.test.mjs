@@ -263,6 +263,29 @@ await page.selectOption('#simMoral','-35');
 await page.click('#tab-simulator');
 await page.click('#subtab-rotation');
 ok((await page.locator('#rotationArea').textContent()).includes('まだ作っていません'),'毎週/毎月ぶんは未実装の案内');
+
+console.log('— エサ —');
+const feedRows = page.locator('.feed-table tbody tr');
+ok((await feedRows.count())===6,'エサは6種類: '+(await feedRows.count()));
+const feedNames = await page.locator('.feed-table__name').allTextContents();
+ok(feedNames.join(',')==='ジャガもどき,ミルクもどき,サカナもどき,ゼリーもどき,ニクもどき,ビタミンもどき',
+   'エサの並び: '+feedNames.join(','));
+// はじめは全部「普通」。ジャガもどき普通 = ストレス+4 / 恐れ度+3 / 甘え度-4 / 体型-1 / 10
+const jaga = () => feedRows.nth(0).locator('td').allTextContents();
+ok((await jaga()).join(',')==='ジャガもどき,普通,+4,+3,-4,-1,10','普通のジャガもどき: '+(await jaga()).join(','));
+// 好き嫌いはモンスタータブで変える
+await page.click('#tab-monster');
+ok((await page.locator('.feed-like').count())===6,'モンスタータブに好き嫌いの欄が6つ');
+await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').selectOption('like');
+await page.locator('[data-change="mon:feedLike"][data-name="ビタミンもどき"]').selectOption('dislike');
+await page.click('#tab-simulator');
+await page.click('#subtab-rotation');
+ok((await jaga()).join(',')==='ジャガもどき,好き,0,0,+1,-1,10','好きにすると効果が変わる: '+(await jaga()).join(','));
+const vita = await feedRows.nth(5).locator('td').allTextContents();
+ok(vita.join(',')==='ビタミンもどき,嫌い,-10,+2,-1,+3,500','嫌いのビタミンもどき: '+vita.join(','));
+// 体型と買値は好き嫌いで変わらない
+ok((await jaga())[5]==='-1' && (await jaga())[6]==='10','体型と買値は好き嫌いで変わらない');
+await page.click('#subtab-rotation');
 await page.click('#subtab-plan');
 ok(await page.locator('#simActions').isVisible(),'育成計画では出る');
 
@@ -314,6 +337,17 @@ await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 ok((await page.locator('#memo').inputValue())==='テストメモ123','ピクシーのメモ');
 await page.locator('.chip__name', {hasText:'ライガー'}).click();
 ok((await page.locator('#memo').inputValue())==='','ライガーのメモは空');
+// エサの好き嫌いも種族ごとに持つ（ピクシーだけ「好き」にしてある）
+await page.click('#tab-monster');
+ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').inputValue())==='normal',
+   'ライガーの好き嫌いは初期値のまま');
+await page.click('#tab-tracker');
+await page.locator('.chip__name', {hasText:'ピクシー'}).click();
+await page.click('#tab-monster');
+ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').inputValue())==='like',
+   'ピクシーの好き嫌いは保存されている');
+await page.click('#tab-tracker');
+await page.locator('.chip__name', {hasText:'ライガー'}).click();
 
 console.log('— 早見タブ —');
 await page.click('#tab-reference');

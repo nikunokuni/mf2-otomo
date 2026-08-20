@@ -8,6 +8,7 @@
    =========================================================== */
 
 import { SK } from './data/growth.js';
+import { FEEDS, DEFAULT_LIKING } from './data/feeds.js';
 
 const STORAGE_KEY = 'monfar_state_v1';
 const LEGACY_KEY = 'mf2_mf2v8_state';
@@ -60,6 +61,18 @@ export function defaultSim() {
 }
 
 /**
+ * エサの好き嫌いの初期値。エサ名をキーにして 'like' / 'normal' / 'dislike' を持つ。
+ * どのエサが好きかはモンスターごとに違うので、ユーザーがモンスタータブで入れる。
+ */
+export function defaultFeedLike() {
+  const out = {};
+  FEEDS.forEach((f) => {
+    out[f.name] = DEFAULT_LIKING;
+  });
+  return out;
+}
+
+/**
  * 調整ローテの初期値。
  * start は「調整ローテを始める時点の内部数値」で、
  * ここに入っている数は仕様で決まっている開始時の値。
@@ -85,6 +98,7 @@ export function defaultMon() {
     progress: {},
     sim: defaultSim(),
     rota: defaultRota(),
+    feedLike: defaultFeedLike(),
   };
 }
 
@@ -236,6 +250,7 @@ function normalize(loaded) {
     m.rota.start = Object.assign(defaultRota().start, m.rota.start || {});
     m.rota.weeks = Array.isArray(m.rota.weeks) ? m.rota.weeks : [];
     m.rota.feeds = Array.isArray(m.rota.feeds) ? m.rota.feeds : [];
+    m.feedLike = Object.assign(defaultFeedLike(), m.feedLike || {});
     m.selected = Array.isArray(m.selected) ? m.selected : [];
     m.progress = m.progress || {};
     m.log = Array.isArray(m.log) ? m.log : [];
