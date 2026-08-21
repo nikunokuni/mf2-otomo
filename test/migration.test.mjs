@@ -127,6 +127,43 @@ await page.waitForSelector('.monster-cell',{timeout:5000});
 ok((await page.locator('.monster-cell img').count())>0,'オフラインでアイコンも表示される');
 await ctx.setOffline(false);
 
+/* ===== 育成計画の保存形式の移行（桃の挟み込み） ===== */
+console.log('— 育成計画の移行 —');
+// 旧形式: plan[グループ][段階]。グループは 0=通常 / 1=黄金桃後 / 2=白銀桃後
+await page.evaluate(() => {
+  const set = (weeks, extra = {}) =>
+    Object.assign({ht:0,hc:4,lt:-1,tc:0,mc:0,ac:0,weeks,items:{}}, extra);
+  localStorage.setItem('monfar_state_v1', JSON.stringify({
+    v:1, ui:{top:'simulator',sim:'plan',gridOpen:false}, current:'ゴーレム', order:['ゴーレム'],
+    notes:[], links:[], items:[], rotas:[],
+    mon:{'ゴーレム':{guts:15,inSession:false,memo:'',log:[],selected:[],progress:{},
+      sim:{month:1,week:1,gtype:'futsuu',moral:0,life:300,
+        apt:{life:'C',pow:'C',int:'C',hit:'C',avo:'C',tou:'C'},
+        init:{life:100,pow:100,int:100,hit:100,avo:100,tou:100},
+        // 5段階(30週)に重り引き、桃1（黄金桃）後のピークに変動床
+        plan:{0:{6:[set(30,{lt:2})]},1:{4:[set(30,{ht:1})]},2:{}},
+        peach:[{use:true,si:4,setN:1},{use:false,si:4,setN:1}], result:null}}}
+  }));
+});
+await page.goto(BASE,{waitUntil:'networkidle'});
+await page.click('#tab-simulator');
+await page.waitForSelector('.plan-row--peach');
+const migRows = await page.locator('.plan-table tbody tr').evaluateAll(rows=>rows.map(r=>({
+  name:(r.querySelector('.stage-name')||{}).textContent||'',
+  weeks:(r.querySelector('.stage-weeks')||{}).textContent||'',
+  peach:r.className.includes('plan-row--peach')&&!r.className.includes('head'),
+  heavy:(r.querySelector('select')||{}).value,
+  light:(r.querySelectorAll('select')[1]||{}).value,
+})));
+const fifth = migRows.filter(r=>r.name==='5段階');
+ok(fifth.length===3,'5段階は 白(前)/桃/白(後) の3行になる: '+fifth.map(r=>r.weeks).join(','));
+ok(fifth.filter(r=>!r.peach).map(r=>r.weeks).join(',')==='5/5週,25/25週','白の5段階が前後に割れる');
+ok(fifth.every(r=>r.light==='2'),'旧データの軽トレが割れた行にも引き継がれる');
+ok(migRows.filter(r=>r.peach&&r.name==='ピーク').every(r=>r.heavy==='1'),
+   '桃後の計画（変動床）も桃の行に引き継がれる');
+ok((await page.locator('#planWarnings').textContent()).trim()==='','移行しただけでは警告は出ない');
+
+
 console.log(`\n合格 ${pass} / 失敗 ${fail}`);
 console.log('コンソールエラー:', errors.length?errors:'なし');
 await browser.close();

@@ -10,16 +10,15 @@ import { state, save, currentMon } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import {
   newSet,
-  lifeCost,
   trainWeeks,
   AGE_ITEMS,
-  stageWeeksByGroup,
+  planLayout,
+  segLabel,
+  peachName,
   normalizePlan,
   computeResult,
   validatePlan,
   peachExtra,
-  peachTiming,
-  stageStartOffsets,
   weekToDate,
   heavyGain,
   lightGain,
@@ -49,12 +48,12 @@ function gainItems(list) {
 }
 
 /** 上昇値の表示欄。select の下に置き、選び直したら中身だけ差し替える */
-function gainBox(g, si, idx, field, list) {
-  return h('div', { class: 'train-gain', id: `gain-${g}-${si}-${idx}-${field}` }, gainItems(list));
+function gainBox(key, idx, field, list) {
+  return h('div', { class: 'train-gain', id: `gain-${key}-${idx}-${field}` }, gainItems(list));
 }
 
-function updateTrainGain(g, si, idx, field, ti) {
-  const node = el(`gain-${g}-${si}-${idx}-${field}`);
+function updateTrainGain(key, si, idx, field, ti) {
+  const node = el(`gain-${key}-${idx}-${field}`);
   if (!node) return;
   const apt = sim().apt;
   const list = field === 'ht' ? heavyGain(ti, SKEYS[si], apt) : lightGain(ti, SKEYS[si], apt);
@@ -70,7 +69,7 @@ function trainOptions(list, selected, noneLabel) {
 
 function trainWeeksLabel(set) {
   const n = trainWeeks(set);
-  // 割当週を超えたぶんは次の段階から引かれるので、そのことを書いておく
+  // 割当週を超えたぶんは次の行から引かれるので、そのことを書いておく
   return n < 0 ? `トレ0週\n次へ${-n}週` : `トレ${n}週`;
 }
 
@@ -78,19 +77,26 @@ function trainWeeksClass(set) {
   return 'train-weeks' + (trainWeeks(set) < 0 ? ' train-weeks--over' : '');
 }
 
-function planRow(g, si, idx, set, rowspanCells) {
+/** 計画表の列の数（桃の見出し行を1行ぶんで横に伸ばすのに使う） */
+function planColCount() {
+  return 10 + AGE_ITEMS.length;
+}
+
+function planRow(seg, idx, set, rowspanCells) {
   const heavy = clampInt(set.hc, 0, 4, 0);
   const light = Math.max(0, 4 - heavy);
   const apt = sim().apt;
-  const stageKey = SKEYS[si];
+  const stageKey = SKEYS[seg.si];
+  const key = seg.key;
+  const ref = { seg: key, si: String(seg.si), idx: String(idx) };
   const numField = (field, value, label, extra = null) =>
     h('td', { class: 'col-num' + (field === 'weeks' ? ' col-week' : '') },
       h('input', {
         type: 'number',
-        id: `set-${field}-${g}-${si}-${idx}`,
+        id: `set-${field}-${key}-${idx}`,
         value,
         min: 0,
-        dataset: { input: 'sim:setField', g: String(g), si: String(si), idx: String(idx), field },
+        dataset: { input: 'sim:setField', ...ref, field },
         attrs: { 'aria-label': label },
       }),
       extra
@@ -98,27 +104,27 @@ function planRow(g, si, idx, set, rowspanCells) {
 
   return h(
     'tr',
-    {},
+    { class: seg.ph < 0 ? null : 'plan-row--peach' },
     ...rowspanCells,
     h('td', { class: 'col-train' },
       h('select',
-        { dataset: { change: 'sim:setField', g: String(g), si: String(si), idx: String(idx), field: 'ht' },
+        { dataset: { change: 'sim:setField', ...ref, field: 'ht' },
           attrs: { 'aria-label': '重トレの種類' } },
         trainOptions(HEAVY4, set.ht, 'なし')
       ),
-      gainBox(g, si, idx, 'ht', heavyGain(parseInt(set.ht, 10), stageKey, apt))
+      gainBox(key, idx, 'ht', heavyGain(parseInt(set.ht, 10), stageKey, apt))
     ),
     numField('hc', heavy, '重トレの回数/月'),
     h('td', { class: 'col-train' },
       h('select',
-        { dataset: { change: 'sim:setField', g: String(g), si: String(si), idx: String(idx), field: 'lt' },
+        { dataset: { change: 'sim:setField', ...ref, field: 'lt' },
           attrs: { 'aria-label': '軽トレの種類' } },
         trainOptions(LIGHT6, set.lt, 'なし')
       ),
-      gainBox(g, si, idx, 'lt', lightGain(parseInt(set.lt, 10), stageKey, apt))
+      gainBox(key, idx, 'lt', lightGain(parseInt(set.lt, 10), stageKey, apt))
     ),
     h('td', { class: 'col-num' },
-      h('span', { class: 'light-count', id: `lc-${g}-${si}-${idx}`, text: String(light) })
+      h('span', { class: 'light-count', id: `lc-${key}-${idx}`, text: String(light) })
     ),
     numField(
       'weeks',
@@ -126,7 +132,7 @@ function planRow(g, si, idx, set, rowspanCells) {
       '割り当て週数',
       h('span', {
         class: trainWeeksClass(set),
-        id: `trainWeeks-${g}-${si}-${idx}`,
+        id: `trainWeeks-${key}-${idx}`,
         text: trainWeeksLabel(set),
       })
     ),
@@ -139,13 +145,7 @@ function planRow(g, si, idx, set, rowspanCells) {
           type: 'number',
           value: (set.items && set.items[item.name]) || 0,
           min: 0,
-          dataset: {
-            input: 'sim:setItem',
-            g: String(g),
-            si: String(si),
-            idx: String(idx),
-            name: item.name,
-          },
+          dataset: { input: 'sim:setItem', ...ref, name: item.name },
           attrs: { 'aria-label': `${item.name}の回数` },
         })
       )
@@ -154,7 +154,7 @@ function planRow(g, si, idx, set, rowspanCells) {
 }
 
 /** セット番号と、追加/削除ボタンをまとめた欄 */
-function setCell(g, si, idx) {
+function setCell(seg, idx) {
   return h('td', { class: 'col-set' },
     h('span', { class: 'set-no', text: String(idx + 1) }),
     idx === 0
@@ -162,14 +162,14 @@ function setCell(g, si, idx) {
           type: 'button',
           class: 'icon-btn icon-btn--add',
           text: '＋',
-          dataset: { action: 'sim:addSet', g: String(g), si: String(si) },
-          attrs: { 'aria-label': `${STAGES[si]}にセットを追加` },
+          dataset: { action: 'sim:addSet', seg: seg.key },
+          attrs: { 'aria-label': `${segLabel(seg)}にセットを追加` },
         })
       : h('button', {
           type: 'button',
           class: 'icon-btn icon-btn--del',
           text: '✕',
-          dataset: { action: 'sim:delSet', g: String(g), si: String(si), idx: String(idx) },
+          dataset: { action: 'sim:delSet', seg: seg.key, idx: String(idx) },
           attrs: { 'aria-label': 'このセットを削除' },
         })
   );
@@ -182,7 +182,29 @@ function stageDateLabel(s, offset) {
   return `${d.month}月${d.week}週`;
 }
 
-function planTable(g, stageWeeks, starts) {
+/** 桃を与える行の見出し。挟み込む位置がそのままタイミングになる */
+function peachHeadText(s, p, seg) {
+  return `🍑 ${peachName(p.pi)}（+${peachExtra(p.pi)}週）を与える ／ ${stageDateLabel(
+    s,
+    seg.calStart
+  )}（通算${p.age + 1}週目）`;
+}
+
+function peachHeadRow(s, p, seg) {
+  return h('tr', { class: 'plan-row--peach-head' },
+    h('td', {
+      id: `peachHead-${p.pi}`,
+      attrs: { colspan: String(planColCount()) },
+      text: peachHeadText(s, p, seg),
+    })
+  );
+}
+
+/**
+ * 育成計画の表。
+ * 行は時系列に並んでいて、桃で若返るぶんはその位置に黄色い行として挟まる。
+ */
+function planTable(layout) {
   const s = sim();
   const head = h('thead', {},
     h('tr', {},
@@ -203,77 +225,73 @@ function planTable(g, stageWeeks, starts) {
   );
 
   const rows = [];
-  for (let si = 0; si < 10; si++) {
-    const total = stageWeeks[si];
-    if (total === 0) continue;
-    const sets = (s.plan[g] && s.plan[g][si]) || [newSet(total)];
-    const used = sets.reduce((a, x) => a + (x.weeks || 0), 0);
+  layout.segments.forEach((seg) => {
+    // 桃を与える位置に見出しを出してから、若返ったぶんの行を続ける
+    seg.peaches.forEach((p) => rows.push(peachHeadRow(s, p, seg)));
+    if (seg.weeks === 0) return;
+    const used = seg.sets.reduce((a, x) => a + (x.weeks || 0), 0);
 
-    sets.forEach((set, idx) => {
+    seg.sets.forEach((set, idx) => {
       const rowspanCells =
         idx === 0
           ? [
-              h('td', { class: 'stage-cell', attrs: { rowspan: sets.length } },
-                h('span', { class: 'stage-name', text: STAGES[si] }),
+              h('td', { class: 'stage-cell', attrs: { rowspan: seg.sets.length } },
+                seg.ph < 0
+                  ? null
+                  : h('span', { class: 'stage-peach', text: `🍑${peachName(seg.ph)}` }),
+                h('span', { class: 'stage-name', text: STAGES[seg.si] }),
                 h('span', {
-                  class: 'stage-weeks ' + (used > total ? 'stage-weeks--over' : 'stage-weeks--ok'),
-                  id: `stageWeeks-${g}-${si}`,
-                  text: `${used}/${total}週`,
+                  class:
+                    'stage-weeks ' + (used > seg.weeks ? 'stage-weeks--over' : 'stage-weeks--ok'),
+                  id: `segWeeks-${seg.key}`,
+                  text: `${used}/${seg.weeks}週`,
                 }),
                 h('span', {
                   class: 'stage-date',
-                  id: `stageDate-${g}-${si}`,
-                  text: stageDateLabel(s, starts && starts[si]),
+                  id: `segDate-${seg.key}`,
+                  text: stageDateLabel(s, seg.calStart),
                 })
               ),
             ]
           : [];
-      rows.push(planRow(g, si, idx, set, [...rowspanCells, setCell(g, si, idx)]));
+      rows.push(planRow(seg, idx, set, [...rowspanCells, setCell(seg, idx)]));
     });
-  }
+  });
 
   return h('div', { class: 'scroll-x' },
     h('table', { class: 'plan-table' }, head, h('tbody', {}, rows))
   );
 }
 
-function renderPeach(groups, starts) {
+/**
+ * 桃システムの操作欄。
+ * 若返るぶんの計画は上の表に挟み込むので、ここには「使うか」と「使用段階」だけ置く。
+ */
+function renderPeach() {
   const s = sim();
   const blocks = [0, 1].map((pi) => {
     const p = s.peach[pi];
-    const extra = peachExtra(pi);
-    const label = pi === 0 ? `黄金桃（+${extra}週）` : `白銀桃（+${extra}週）`;
-
-    const controls = h('div', { class: 'sim-row', style: 'margin-bottom:6px' },
-      h('span', { class: 'sim-label', style: 'width:112px', text: label }),
-      h('select',
-        { dataset: { change: 'sim:peach', pi: String(pi), field: 'use' }, attrs: { 'aria-label': `${label}を使うか` } },
-        h('option', { value: 'no', text: '使わない', selected: !p.use }),
-        h('option', { value: 'yes', text: '使う', selected: p.use })
-      ),
-      p.use ? h('span', { class: 'sim-label', text: '使用段階' }) : null,
-      p.use
-        ? h('select',
-            { dataset: { change: 'sim:peach', pi: String(pi), field: 'si' }, attrs: { 'aria-label': '使用する成長段階' } },
-            STAGES.map((name, i) => h('option', { value: String(i), text: name, selected: p.si === i }))
-          )
-        : null
-    );
-
-    if (!p.use) return h('div', { class: 'peach__block' }, controls);
-
-    const weeks = groups[pi + 1];
-    const total = weeks.reduce((a, b) => a + b, 0);
-    const timing = peachTiming(s.life, s.gtype, p.si, extra);
-    const timingText = timing.over
-      ? `桃を与えるタイミング：「${STAGES[p.si]}」開始から${extra}週後は寿命（${s.life}週）を超えます`
-      : `桃を与えるタイミング：「${STAGES[p.si]}」開始から${extra}週後＝${STAGES[timing.si]} ${timing.weekInStage}週目（通算${timing.week + 1}週目）`;
+    const label = `${peachName(pi)}（+${peachExtra(pi)}週）`;
 
     return h('div', { class: 'peach__block' },
-      controls,
-      h('div', { class: 'peach__sub', text: `「${STAGES[p.si]}」開始から${extra}週ぶん：計${total}週` }),
-      h('div', { class: 'peach__timing' + (timing.over ? ' peach__timing--over' : ''), text: timingText }),
-      planTable(pi + 1, weeks, starts[pi + 1])
+      h('div', { class: 'sim-row' },
+        h('span', { class: 'sim-label', style: 'width:112px', text: label }),
+        h('select',
+          { dataset: { change: 'sim:peach', pi: String(pi), field: 'use' },
+            attrs: { 'aria-label': `${label}を使うか` } },
+          h('option', { value: 'no', text: '使わない', selected: !p.use }),
+          h('option', { value: 'yes', text: '使う', selected: p.use })
+        ),
+        p.use ? h('span', { class: 'sim-label', text: '使用段階' }) : null,
+        p.use
+          ? h('select',
+              { dataset: { change: 'sim:peach', pi: String(pi), field: 'si' },
+                attrs: { 'aria-label': '使用する成長段階' } },
+              STAGES.map((name, i) => h('option', { value: String(i), text: name, selected: p.si === i }))
+            )
+          : null,
+        p.use ? h('span', { class: 'note', text: 'の開始まで若返る' }) : null
+      )
     );
   });
 
@@ -318,16 +336,14 @@ export function renderPlan() {
   el('simWeek').value = s.week;
   renderPlanApt();
   normalizePlan(s); // B5: 寿命や成長タイプを変えたら週数を計算し直す
-  const groups = stageWeeksByGroup(s);
-  const starts = stageStartOffsets(s);
-  replace(el('planArea'), planTable(0, groups[0], starts[0]));
-  renderPeach(groups, starts);
+  renderPeach();
+  replace(el('planArea'), planTable(planLayout(s)));
   renderWarnings();
   save();
 }
 
 /**
- * イベントやアイテムを変えると、はみ出しで次の段階の週数まで動く。
+ * イベントやアイテムを変えると、はみ出しで次の行の週数まで動く。
  * 表そのものは作り直さずに、数字と日付だけ書き換える
  * （入力中の欄はさわらない。作り直すとカーソルが飛ぶため）。
  */
@@ -335,44 +351,34 @@ function refreshPlanNumbers() {
   const s = sim();
   if (!s) return;
   normalizePlan(s);
-  const groups = stageWeeksByGroup(s);
+  const { segments } = planLayout(s);
 
-  groups.forEach((stageWeeks, g) => {
-    for (let si = 0; si < 10; si++) {
-      const sets = (s.plan[g] && s.plan[g][si]) || [];
-      sets.forEach((set, idx) => {
-        const input = el(`set-weeks-${g}-${si}-${idx}`);
-        if (input && document.activeElement !== input) input.value = String(set.weeks || 0);
-        updateTrainWeeks(g, si, idx, set);
-      });
-      const used = sets.reduce((a, x) => a + (x.weeks || 0), 0);
-      const badge = el(`stageWeeks-${g}-${si}`);
-      if (badge) {
-        badge.textContent = `${used}/${stageWeeks[si]}週`;
-        badge.className =
-          'stage-weeks ' + (used > stageWeeks[si] ? 'stage-weeks--over' : 'stage-weeks--ok');
-      }
+  segments.forEach((seg) => {
+    seg.sets.forEach((set, idx) => {
+      const input = el(`set-weeks-${seg.key}-${idx}`);
+      if (input && document.activeElement !== input) input.value = String(set.weeks || 0);
+      updateTrainWeeks(seg.key, idx, set);
+    });
+    const used = seg.sets.reduce((a, x) => a + (x.weeks || 0), 0);
+    const badge = el(`segWeeks-${seg.key}`);
+    if (badge) {
+      badge.textContent = `${used}/${seg.weeks}週`;
+      badge.className =
+        'stage-weeks ' + (used > seg.weeks ? 'stage-weeks--over' : 'stage-weeks--ok');
     }
+    const date = el(`segDate-${seg.key}`);
+    if (date) date.textContent = stageDateLabel(s, seg.calStart);
+    // 桃を与える位置（暦）も動くので、見出しも書き換える
+    seg.peaches.forEach((p) => {
+      const head = el(`peachHead-${p.pi}`);
+      if (head) head.textContent = peachHeadText(s, p, seg);
+    });
   });
-  updateStageDates();
   renderWarnings();
 }
 
-/** イベントやアイテムを変えると暦がずれるので、日付だけ書き換える */
-function updateStageDates() {
-  const s = sim();
-  if (!s) return;
-  const starts = stageStartOffsets(s);
-  starts.forEach((list, g) => {
-    for (let si = 0; si < 10; si++) {
-      const node = el(`stageDate-${g}-${si}`);
-      if (node) node.textContent = stageDateLabel(s, list[si]);
-    }
-  });
-}
-
-function updateTrainWeeks(g, si, idx, set) {
-  const node = el(`trainWeeks-${g}-${si}-${idx}`);
+function updateTrainWeeks(key, idx, set) {
+  const node = el(`trainWeeks-${key}-${idx}`);
   if (!node) return;
   node.textContent = trainWeeksLabel(set);
   node.className = trainWeeksClass(set);
@@ -428,33 +434,34 @@ export function renderResult() {
     })
   );
 
-  const phases = [...new Set(rows.map((r) => r.phase))];
-  const tables = phases.flatMap((phase) => {
-    const list = rows.filter((r) => r.phase === phase && r.weeks > 0);
-    if (!list.length) return [];
-    return [
-      h('div', { class: 'stage-result__phase', text: `${phase} 段階別の上昇値` }),
-      h('div', { class: 'scroll-x' },
-        h('table', { class: 'stage-result' },
-          h('thead', {}, h('tr', {},
-            h('th', { text: '段階' }), h('th', { text: '週数' }),
-            ...STATS.map((name, i) => h('th', { style: `color:${SC[i]}`, text: name }))
-          )),
-          h('tbody', {}, list.map((r) =>
-            h('tr', {},
-              h('td', { text: r.label }),
-              h('td', { style: 'color:var(--color-text-tertiary)', text: String(r.weeks) }),
-              ...SK.map((key, j) => {
-                const v = Math.round(r.gain[key]);
-                const cls = v === 0 ? 'val-zero' : v < 0 ? 'val-down' : '';
-                return h('td', { class: cls, style: v > 0 ? `color:${SC[j]}` : '', text: v !== 0 ? (v > 0 ? '+' : '') + v : '−' });
-              })
-            )
-          ))
-        )
-      ),
-    ];
-  });
+  // 計画表と同じ時系列の並び。桃で若返るぶんは黄色い行で挟まる
+  const list = rows.filter((r) => r.weeks > 0);
+  const tables = list.length
+    ? [
+        h('div', { class: 'stage-result__phase', text: '段階別の上昇値' }),
+        h('div', { class: 'scroll-x' },
+          h('table', { class: 'stage-result' },
+            h('thead', {}, h('tr', {},
+              h('th', { text: '段階' }), h('th', { text: '週数' }),
+              ...STATS.map((name, i) => h('th', { style: `color:${SC[i]}`, text: name }))
+            )),
+            h('tbody', {}, list.map((r) => {
+              // 前のしくみで保存した結果には peach が無いので、そのときは白い行として出す
+              const pi = r.peach === null || r.peach === undefined ? null : r.peach;
+              return h('tr', { class: pi === null ? null : 'stage-result__row--peach' },
+                h('td', { text: pi === null ? r.label : `🍑${peachName(pi)} ${r.label}` }),
+                h('td', { style: 'color:var(--color-text-tertiary)', text: String(r.weeks) }),
+                ...SK.map((key, j) => {
+                  const v = Math.round(r.gain[key]);
+                  const cls = v === 0 ? 'val-zero' : v < 0 ? 'val-down' : '';
+                  return h('td', { class: cls, style: v > 0 ? `color:${SC[j]}` : '', text: v !== 0 ? (v > 0 ? '+' : '') + v : '−' });
+                })
+              );
+            }))
+          )
+        ),
+      ]
+    : [];
 
   replace(area, panel, ...tables);
 }
@@ -481,29 +488,25 @@ export function onSubTabShown(name) {
 
 /* ---------- 操作 ---------- */
 
-function setsAt(s, g, si) {
-  if (!s.plan[g]) s.plan[g] = {};
-  if (!s.plan[g][si]) s.plan[g][si] = [newSet(0)];
-  return s.plan[g][si];
+/** そのセグメント（計画表の1行）に組んであるセット */
+function setsAt(s, seg) {
+  if (!s.plan[seg]) s.plan[seg] = [newSet(0)];
+  return s.plan[seg];
 }
 
 export const actions = {
   'sim:addSet': (target) => {
     const s = sim();
-    const g = Number(target.dataset.g);
-    const si = Number(target.dataset.si);
-    setsAt(s, g, si).push(newSet(0));
+    setsAt(s, target.dataset.seg).push(newSet(0));
     renderPlan();
   },
 
   'sim:delSet': (target) => {
     const s = sim();
-    const g = Number(target.dataset.g);
-    const si = Number(target.dataset.si);
-    const idx = Number(target.dataset.idx);
-    const sets = setsAt(s, g, si);
-    sets.splice(idx, 1);
-    if (!sets.length) s.plan[g][si] = [newSet(0)];
+    const seg = target.dataset.seg;
+    const sets = setsAt(s, seg);
+    sets.splice(Number(target.dataset.idx), 1);
+    if (!sets.length) s.plan[seg] = [newSet(0)];
     renderPlan();
   },
 
@@ -543,12 +546,12 @@ export const changeActions = {
   'sim:setField': (target) => {
     // select（重トレ/軽トレ）の変更
     const s = sim();
-    const { g, si, idx, field } = target.dataset;
-    const set = setsAt(s, Number(g), Number(si))[Number(idx)];
+    const { seg, si, idx, field } = target.dataset;
+    const set = setsAt(s, seg)[Number(idx)];
     if (!set) return;
     set[field] = parseInt(target.value, 10);
     // 選んだトレーニングの上昇値をその場で出す（表全体は作り直さない）
-    updateTrainGain(Number(g), Number(si), Number(idx), field, set[field]);
+    updateTrainGain(seg, Number(si), Number(idx), field, set[field]);
     save();
   },
 };
@@ -556,8 +559,8 @@ export const changeActions = {
 export const inputActions = {
   'sim:setItem': (target) => {
     const s = sim();
-    const { g, si, idx, name } = target.dataset;
-    const set = setsAt(s, Number(g), Number(si))[Number(idx)];
+    const { seg, idx, name } = target.dataset;
+    const set = setsAt(s, seg)[Number(idx)];
     if (!set) return;
     if (!set.items) set.items = {};
     const count = Math.max(0, parseInt(target.value, 10) || 0);
@@ -575,13 +578,13 @@ export const inputActions = {
 
   'sim:setField': (target) => {
     const s = sim();
-    const { g, si, idx, field } = target.dataset;
-    const set = setsAt(s, Number(g), Number(si))[Number(idx)];
+    const { seg, idx, field } = target.dataset;
+    const set = setsAt(s, seg)[Number(idx)];
     if (!set) return;
 
     if (field === 'hc') {
       set.hc = clampInt(target.value, 0, 4, 0);
-      const lc = el(`lc-${g}-${si}-${idx}`);
+      const lc = el(`lc-${seg}-${idx}`);
       if (lc) lc.textContent = String(Math.max(0, 4 - set.hc));
     } else {
       set[field] = Math.max(0, parseInt(target.value, 10) || 0);

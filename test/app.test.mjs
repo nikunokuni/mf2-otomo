@@ -166,14 +166,45 @@ await page.locator('.plan-table tbody tr').first().locator('select').first().sel
 ok((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).trim()==='','「なし」なら上昇値は出ない');
 await page.locator('.plan-table tbody tr').first().locator('select').first().selectOption('0');
 
-console.log('— 桃 —');
+console.log('— 桃（計画表に挟み込む） —');
+// 寿命300・普通・黄金桃をピークで使う＝通算200週目で与え、ピークまで若返る
+await page.click('#tab-monster');
+await page.selectOption('#simLife','300');
+await page.selectOption('#simGtype','futsuu');
+await page.click('#tab-simulator');
+const planRows = () => page.locator('.plan-table tbody tr').evaluateAll(rows=>rows.map(r=>({
+  head: r.className.includes('plan-row--peach-head'),
+  peach: r.className.includes('plan-row--peach'),
+  name: (r.querySelector('.stage-name')||{}).textContent||'',
+  weeks: (r.querySelector('.stage-weeks')||{}).textContent||'',
+  text: r.textContent,
+})));
+ok((await planRows()).length===10,'桃を使う前は10段階だけ');
 await page.locator('[data-change="sim:peach"][data-pi="0"][data-field="use"]').selectOption('yes');
-await page.waitForSelector('.peach__sub');
-ok((await page.locator('.peach__sub').textContent()).includes('計'),'桃の追加計画が出る');
-ok((await page.locator('.plan-table').count())===2,'桃用テーブルが増える');
-const peachTiming = await page.locator('.peach__timing').first().textContent();
-ok(peachTiming.includes('桃を与えるタイミング'),'桃を与えるタイミングが出る');
-ok(/週目|寿命/.test(peachTiming),'タイミングに段階と週目（または寿命超過）が出る');
+await page.waitForSelector('.plan-row--peach');
+ok((await page.locator('.plan-table').count())===1,'桃用の別テーブルは作らない');
+ok((await page.locator('.peach__timing, .peach__sub').count())===0,'タイミングの文は表に置き換わる');
+const rows = await planRows();
+ok(rows.map(r=>(r.head?'🍑':'')+r.name+(r.peach&&!r.head?'(黄)':'')).join(',')
+   ==='1段階,2段階,3段階,4段階,ピーク,準ピーク,5段階,🍑,ピーク(黄),準ピーク(黄),5段階(黄),5段階,6段階,7段階,8段階',
+   '白の5段階の途中に、桃のピーク〜5段階が挟まる: '+rows.map(r=>(r.head?'🍑':'')+r.name).join(','));
+ok(rows.filter(r=>r.weeks).map(r=>r.weeks).join(',')
+   ==='30/30週,30/30週,45/45週,45/45週,30/30週,15/15週,5/5週,30/30週,15/15週,5/5週,25/25週,15/15週,15/15週,45/45週',
+   '5段階は 5週(前) と 25週(後) に割れる: '+rows.filter(r=>r.weeks).map(r=>r.weeks).join(','));
+const peachHead = rows.find(r=>r.head).text;
+ok(peachHead.includes('黄金桃（+50週）を与える'),'与える桃の見出しが挟まる: '+peachHead);
+ok(peachHead.includes('通算201週目'),'通算の週目が出る: '+peachHead);
+ok(/\d+月[1-4]週/.test(peachHead),'与える時期（○月◎週）も出る: '+peachHead);
+// 白銀桃も足すと、年齢の早いほう（通算176週目）が先に挟まる
+await page.locator('[data-change="sim:peach"][data-pi="1"][data-field="use"]').selectOption('yes');
+await page.waitForFunction(()=>document.querySelectorAll('.plan-row--peach-head').length===2);
+const both = await planRows();
+ok(both.filter(r=>r.head).map(r=>r.text.includes('白銀桃')?'白銀':'黄金').join(',')==='白銀,黄金',
+   '与える順は年齢の早い白銀が先: '+both.filter(r=>r.head).map(r=>r.text.slice(0,12)).join(' / '));
+ok(both.filter(r=>r.weeks).reduce((a,r)=>a+Number(r.weeks.split('/')[1].replace('週','')),0)===375,
+   '合計は寿命300＋黄金50＋白銀25の375週');
+await page.locator('[data-change="sim:peach"][data-pi="1"][data-field="use"]').selectOption('no');
+await page.waitForFunction(()=>document.querySelectorAll('.plan-row--peach-head').length===1);
 
 console.log('— トレーニングに使える週数 —');
 const weekCell = page.locator('.plan-table').first().locator('tbody tr').first();
@@ -543,6 +574,10 @@ ok(Number(vals[1])>100,'ちからが初期値より増えている: '+vals[1]);
 const totalText = (await page.locator('.result-total__value').textContent()).trim();
 ok(Number(totalText)===vals.reduce((a,v)=>a+Number(v),0),'合計値が6パラメータの和と一致: '+totalText);
 ok((await page.locator('.result-total__delta').textContent()).trim().startsWith('+'),'合計の伸びが出る');
+ok((await page.locator('.stage-result').count())===1,'段階別の上昇値は時系列の1つの表');
+ok((await page.locator('.stage-result__row--peach').count())>0,'桃で若返るぶんの行も同じ表に並ぶ');
+ok((await page.locator('.stage-result__row--peach td').first().textContent()).includes('🍑'),
+   '桃の行には桃の名前が付く');
 
 console.log('— 保存と復元（D7/D8） —');
 await page.reload({waitUntil:'networkidle'});

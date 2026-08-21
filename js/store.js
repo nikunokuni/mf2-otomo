@@ -10,6 +10,7 @@
 import { SK } from './data/growth.js';
 import { SKEYS } from './data/growth.js';
 import { FEEDS, DEFAULT_LIKING } from './data/feeds.js';
+import { segKey } from './simulator/growth-calc.js';
 
 const STORAGE_KEY = 'monfar_state_v1';
 const LEGACY_KEY = 'mf2_mf2v8_state';
@@ -68,11 +69,14 @@ export function defaultSim() {
     life: 300,
     apt,
     init,
-    // plan[g][si] = セットの配列。g=0 が通常、g=1/2 が桃1/桃2の追加分
-    plan: { 0: {}, 1: {}, 2: {} },
+    // plan[セグメントのキー] = セットの配列。
+    // キーは育成計画の行（時系列）に対応する。桃で若返る行も同じ入れ物に入る
+    // （キーの作り方は js/simulator/growth-calc.js の segKey）
+    plan: {},
+    // 桃システム。si は「そこまで若返る」成長段階
     peach: [
-      { use: false, si: 4, setN: 1 },
-      { use: false, si: 4, setN: 1 },
+      { use: false, si: 4 },
+      { use: false, si: 4 },
     ],
     result: null,
   };
@@ -273,6 +277,46 @@ function migrateLegacy(old) {
   return next;
 }
 
+/**
+ * 育成計画の保存形式を、時系列の行（セグメント）ごとの形に直す。
+ *
+ * 旧: plan[グループ][段階] = セットの配列（グループは 0=通常 / 1=黄金桃後 / 2=白銀桃後）
+ * 新: plan[セグメントのキー] = セットの配列
+ *
+ * 桃で段階が前後に割れたぶんは normalizePlan() がトレーニングの内容を引き継ぐので、
+ * ここでは各段階の1つ目の行に移すだけでよい。
+ */
+function migratePlan(plan) {
+  if (!plan || typeof plan !== 'object') return {};
+  const next = {};
+  Object.entries(plan).forEach(([key, value]) => {
+    // すでに新しい形（キーごとにセットの配列）
+    if (Array.isArray(value)) {
+      next[key] = value;
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+    const g = Number(key);
+    if (!Number.isInteger(g) || g < 0 || g > 2) return;
+    Object.entries(value).forEach(([si, sets]) => {
+      if (!Array.isArray(sets) || !sets.length) return;
+      // g=0 が白（ph=-1）、g=1/2 が黄金桃/白銀桃（ph=0/1）
+      next[segKey(g - 1, Number(si), 0)] = sets;
+    });
+  });
+  return next;
+}
+
+/** 桃システムの設定を、必ず2つぶんの { use, si } にそろえる */
+function normalizePeach(peach) {
+  const list = Array.isArray(peach) ? peach : [];
+  return [0, 1].map((pi) => {
+    const p = list[pi] || {};
+    const si = Number(p.si);
+    return { use: !!p.use, si: Number.isInteger(si) && si >= 0 && si <= 9 ? si : 4 };
+  });
+}
+
 /** 欠けているフィールドを埋めて、古い保存データでも壊れないようにする */
 function normalize(loaded) {
   const base = defaultState();
@@ -318,7 +362,8 @@ function normalize(loaded) {
     m.sim.life = normalizeLife(m.sim.life);
     m.sim.apt = Object.assign(defaultSim().apt, m.sim.apt || {});
     m.sim.init = Object.assign(defaultSim().init, m.sim.init || {});
-    m.sim.plan = Object.assign({ 0: {}, 1: {}, 2: {} }, m.sim.plan || {});
+    m.sim.plan = migratePlan(m.sim.plan);
+    m.sim.peach = normalizePeach(m.sim.peach);
     m.rota = Object.assign(defaultRota(), m.rota || {});
     m.rota.start = Object.assign(defaultRota().start, m.rota.start || {});
     m.rota.jugs = Math.max(0, Math.min(99, parseInt(m.rota.jugs, 10) || 0));

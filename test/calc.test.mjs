@@ -46,30 +46,48 @@ let checks=0,fail=0;
 const eq=(a,b,label)=>{checks++;if(JSON.stringify(a)!==JSON.stringify(b)){fail++;console.log('NG',label,JSON.stringify(a),JSON.stringify(b));}};
 
 const GT=Object.keys(GTH), APTS=['E','D','C','B','A'];
+// 桃1つぶんの時間軸を作って、黄色い区間を段階ごとに数える
+const peachRun=(life,gtype,pi,si)=>{
+  const peach=[{use:pi===0,si},{use:pi===1,si}];
+  const segs=N.buildTimeline({life,gtype,plan:{},peach});
+  const weeks=new Array(10).fill(0);
+  segs.filter(s=>s.ph===pi).forEach(s=>{weeks[s.si]+=s.base;});
+  const eaten=segs.find(s=>s.peaches.length);
+  return {segs,weeks,at:eaten?eaten.peaches[0].age:null};
+};
+
 for(const g of GT) for(let life=100;life<=600;life+=7){
   eq(N.calcStageWeeks(life,g),O.calcStageWeeks(life,g),`stageWeeks ${g} ${life}`);
-  for(const si of [0,3,4,6,9]) for(const ex of [50,25]){
-    eq(N.calcPeachWeeks(life,g,si,ex),O.calcPeachWeeks(life,g,si,ex),`peach ${g} ${life} ${si} ${ex}`);
-    eq(N.peachTiming(life,g,si,ex),O.peachTiming(life,g,si,ex),`peachTiming ${g} ${life} ${si} ${ex}`);
+  // 挟み込む形にしても、若返る区間と与えるタイミングは旧実装と同じ
+  for(const si of [0,3,4,6,9]) for(const [pi,ex] of [[0,50],[1,25]]){
+    const t=O.peachTiming(life,g,si,ex);
+    const run=peachRun(life,g,pi,si);
+    // 寿命を超えて与えられない桃は、そもそも挟まらない
+    eq(run.weeks,t.over?new Array(10).fill(0):O.calcPeachWeeks(life,g,si,ex),`peach ${g} ${life} ${si} ${ex}`);
+    eq(run.at,t.over?null:t.week,`peachTiming ${g} ${life} ${si} ${ex}`);
   }
 }
 
 // 桃の区間は「選んだ段階の開始から前へ」ではなく「開始からうしろへ extra 週」
-for(const g of GT) for(let life=100;life<=600;life+=17) for(const si of [0,2,4,5,9]) for(const ex of [50,25]){
+for(const g of GT) for(let life=100;life<=600;life+=17) for(const si of [0,2,4,5,9]) for(const [pi,ex] of [[0,50],[1,25]]){
   const base=N.calcStageWeeks(life,g);
   const start=N.stageStartWeek(base,si);
-  const w=N.calcPeachWeeks(life,g,si,ex);
+  const run=peachRun(life,g,pi,si);
+  const over=start+ex>=life;
   // 選んだ段階より前の段階には1週も割り当てられない
-  eq(w.slice(0,si).reduce((a,b)=>a+b,0),0,`peach forward-only ${g} ${life} ${si} ${ex}`);
-  // 合計は extra 週（寿命を超える分は切り捨て）
-  eq(w.reduce((a,b)=>a+b,0),Math.min(life,start+ex)-start,`peach total ${g} ${life} ${si} ${ex}`);
+  eq(run.weeks.slice(0,si).reduce((a,b)=>a+b,0),0,`peach forward-only ${g} ${life} ${si} ${ex}`);
+  // 合計は extra 週（寿命を超えるなら挟まらないので0）
+  eq(run.weeks.reduce((a,b)=>a+b,0),over?0:ex,`peach total ${g} ${life} ${si} ${ex}`);
   // 選んだ段階に週数があれば、その先頭から始まっている
-  if(base[si]>0) eq(w[si]>0,true,`peach starts at stage ${g} ${life} ${si} ${ex}`);
-  // タイミングは「開始から extra 週後」
-  const t=N.peachTiming(life,g,si,ex);
-  eq(t.week,start+ex,`timing week ${g} ${life} ${si} ${ex}`);
-  if(!t.over) eq(N.stageStartWeek(base,t.si)+t.weekInStage-1,t.week,`timing stage/week ${g} ${life} ${si} ${ex}`);
-  else eq(t.week>=life,true,`timing over ${g} ${life} ${si} ${ex}`);
+  if(base[si]>0&&!over) eq(run.weeks[si]>0,true,`peach starts at stage ${g} ${life} ${si} ${ex}`);
+  // 与えるのは「開始から extra 週後」で、そこから若返って挟まる
+  eq(run.at,over?null:start+ex,`timing week ${g} ${life} ${si} ${ex}`);
+  if(!over){
+    const eaten=run.segs.find(s=>s.peaches.length);
+    eq([eaten.ph,eaten.si],[pi,base[si]>0?si:eaten.si],`若返り先は使用段階 ${g} ${life} ${si} ${ex}`);
+    // 白い行と黄色い行を合わせると、寿命＋桃のぶん
+    eq(run.segs.reduce((a,s)=>a+s.base,0),life+ex,`timeline total ${g} ${life} ${si} ${ex}`);
+  }
 }
 // 段階週数の合計 = 寿命 であること
 for(const g of GT) for(let life=100;life<=600;life+=13)
@@ -88,30 +106,80 @@ for(let gr=6;gr<=19;gr++) for(const gc of [10,12,17,19,24,29,35,42,50])
   for(const mt of [1.1,2.0,2.8,3.8,4.5,5.5,6.5,8.3])
     eq(newIdeal(gc,mt,gr),oldIdeal(gc,mt,gr),`ideal ${gr} ${gc} ${mt}`);
 
-/* ---- 割当週のはみ出しが次の段階を削る ---- */
+/* ---- 割当週のはみ出しが次の行を削る ---- */
 {
   // 1段階10週 / 2段階20週 の作り物
   const mk=(w,items={})=>({ht:-1,hc:2,lt:-1,tc:0,mc:0,ac:0,weeks:w,items});
   const sim={life:100,gtype:'futsuu',month:1,week:1,
     peach:[{use:false,si:4},{use:false,si:4}],
-    plan:{0:{0:[mk(10,{'パラドクシン':1})],1:[mk(20)]},1:{},2:{}}};
-  // 素の段階週数を 10/20 に見立てるため、cascade だけを直接みる
+    plan:{'w-0-0':[mk(10,{'パラドクシン':1})],'w-1-0':[mk(20)]}};
   const base=N.calcStageWeeks(100,'futsuu');
   eq(base[0],10,'1段階は10週');
   // パラドクシン(-18) は 10週の割当を8週こえる
-  eq(N.lifeCost(sim.plan[0][0][0]),18,'パラドクシン1個で寿命-18');
-  eq(N.trainWeeks(sim.plan[0][0][0]),-8,'1段階は8週たりない');
-  const weeks=N.stageWeeksByGroup(sim);
-  eq(weeks[0][0],10,'1段階の週数はそのまま（トレーニングが0になる）');
-  eq(weeks[0][1],base[1]-8,'次の段階から8週引かれる');
+  eq(N.lifeCost(sim.plan['w-0-0'][0]),18,'パラドクシン1個で寿命-18');
+  eq(N.trainWeeks(sim.plan['w-0-0'][0]),-8,'1段階は8週たりない');
+  const segs=N.planLayout(sim).segments;
+  eq(segs[0].weeks,10,'1段階の週数はそのまま（トレーニングが0になる）');
+  eq(segs[1].weeks,base[1]-8,'次の段階から8週引かれる');
   // 割当を割り当て直しても同じ結果になる
   N.normalizePlan(sim);
-  eq(N.stageWeeksByGroup(sim)[0][1],base[1]-8,'割り当て直しても変わらない');
-  eq(sim.plan[0][1][0].weeks,base[1]-8,'2段階の割当週も減る');
-  eq(N.planOverflow(sim)[0],0,'最後まではみ出さなければ0');
+  eq(N.planLayout(sim).segments[1].weeks,base[1]-8,'割り当て直しても変わらない');
+  eq(sim.plan['w-1-0'][0].weeks,base[1]-8,'2段階の割当週も減る');
+  eq(N.planLayout(sim).overflow,0,'最後まではみ出さなければ0');
   // 寿命が足りないほど使うと、最後まではみ出す
-  const heavy={...sim,plan:{0:{0:[mk(10,{'パラドクシン':20})]},1:{},2:{}}};
-  eq(N.planOverflow(heavy)[0]>0,true,'使いすぎたぶんは最後まで残る');
+  const heavy={...sim,plan:{'w-0-0':[mk(10,{'パラドクシン':20})]}};
+  eq(N.planLayout(heavy).overflow>0,true,'使いすぎたぶんは最後まで残る');
+}
+
+/* ---- 桃を挟み込んだ計画表の並び ---- */
+{
+  const mkSim=(peach)=>({life:300,gtype:'futsuu',month:1,week:1,apt:{},init:{},plan:{},peach});
+  const off=[{use:false,si:4},{use:false,si:4}];
+
+  // 桃なし: 素の段階がそのまま並ぶ
+  const plain=N.buildTimeline(mkSim(off));
+  eq(plain.map(s=>s.si),[0,1,2,3,4,5,6,7,8,9],'桃なしなら10段階が1回ずつ');
+  eq(plain.reduce((a,s)=>a+s.base,0),300,'合計は寿命ぶん');
+
+  // 黄金桃をピークで使う: ピーク開始(150週)+50週＝通算200週で与える
+  const gold=N.buildTimeline(mkSim([{use:true,si:4},{use:false,si:4}]));
+  eq(gold.map(s=>[s.ph,s.si,s.base]),
+     [[-1,0,30],[-1,1,30],[-1,2,45],[-1,3,45],[-1,4,30],[-1,5,15],[-1,6,5],
+      [0,4,30],[0,5,15],[0,6,5],[-1,6,25],[-1,7,15],[-1,8,15],[-1,9,45]],
+     '5段階の途中に、桃のピーク/準ピーク/5段階が挟まる');
+  eq(gold.reduce((a,s)=>a+s.base,0),350,'合計は寿命+50週');
+  const eaten=gold.find(s=>s.peaches.length);
+  eq([eaten.peaches[0].pi,eaten.peaches[0].age],[0,200],'桃を与えるのは通算200週目（0はじまり）');
+  eq([eaten.ph,eaten.si],[0,4],'与えた直後はピークまで若返る');
+
+  // 白銀桃も一緒に使う: 若返り区間の中でもう片方を与える並びになる
+  const both=N.buildTimeline(mkSim([{use:true,si:4},{use:true,si:4}]));
+  eq(both.map(s=>[s.ph,s.si,s.base]),
+     [[-1,0,30],[-1,1,30],[-1,2,45],[-1,3,45],[-1,4,25],
+      [1,4,25],[-1,4,5],[-1,5,15],[-1,6,5],
+      [0,4,30],[0,5,15],[0,6,5],[-1,6,25],[-1,7,15],[-1,8,15],[-1,9,45]],
+     '白銀(175週)→黄金(200週)の順に挟まる');
+  eq(both.reduce((a,s)=>a+s.base,0),375,'合計は寿命+50+25週');
+  eq(both.filter(s=>s.peaches.length).map(s=>s.peaches[0].pi),[1,0],'与える順は年齢の早い白銀が先');
+  eq(new Set(both.map(s=>s.key)).size,both.length,'行のキーは重ならない');
+
+  // 寿命を超える桃は発動しない（8段階まで進んでから+50週は寿命の外）
+  const over=N.buildTimeline(mkSim([{use:true,si:9},{use:false,si:4}]));
+  eq(over.every(s=>s.ph===-1),true,'寿命を超える桃は挟まらない');
+  eq(N.validatePlan({...mkSim([{use:true,si:9},{use:false,si:4}]),init:{},apt:{}})
+      .some(w=>w.includes('超える')),true,'使えない桃は警告に出る');
+
+  // 分かれた行には、同じ段階のトレーニングだけが引き継がれる
+  const s2=mkSim(off);
+  N.normalizePlan(s2);
+  s2.plan['w-6-0'][0].ht=0; s2.plan['w-6-0'][0].hc=3; s2.plan['w-6-0'][0].tc=2;
+  s2.peach=[{use:true,si:4},{use:false,si:4}];
+  N.normalizePlan(s2);
+  eq([s2.plan['w-6-1'][0].ht,s2.plan['w-6-1'][0].hc],[0,3],'割れた後半にトレーニングが引き継がれる');
+  eq(s2.plan['w-6-1'][0].tc,0,'イベントの回数は引き継がない（二重に数えないため）');
+  eq([s2.plan['p0-6-0'][0].ht,s2.plan['p0-6-0'][0].hc],[0,3],'桃の行にも引き継がれる');
+  // 大会2回(-8週)は5週しかない行からはみ出すので、3週ぶんが次の行から引かれる
+  eq(N.planLayout(s2).segments.map(s=>s.weeks).reduce((a,b)=>a+b,0),350-3,'はみ出したぶんだけ全体が短くなる');
 }
 
 // 育成計画のアイテム列は寿命の減りが大きい順（パラドクシンが先頭）

@@ -248,6 +248,26 @@
   color: var(--color-ng);
   font-weight: 600;
 }
+/* --- 桃で若返るぶんの行（計画表に挟み込む） --- */
+.plan-table tr.plan-row--peach > td {
+  background: var(--color-warn-bg);
+}
+/* 桃を与える位置の見出し。ここが「桃を与えるタイミング」になる */
+.plan-table tr.plan-row--peach-head > td {
+  background: var(--color-warn-bg);
+  color: var(--color-warn);
+  text-align: left;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+/* 段階セルの上に出す「🍑黄金桃」 */
+.stage-peach {
+  display: block;
+  font-size: 10px;
+  text-align: center;
+  color: var(--color-warn);
+}
 /* その段階が始まる時期（○月◎週） */
 .stage-date {
   display: block;
@@ -367,25 +387,7 @@
   margin-bottom: 8px;
 }
 .peach__block {
-  margin-bottom: 12px;
-}
-.peach__block:last-child {
-  margin-bottom: 0;
-}
-.peach__sub {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  margin: 10px 0 6px;
-  padding-top: 8px;
-  border-top: var(--hairline) solid var(--color-warn-border);
-}
-.peach__timing {
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  margin: 0 0 6px;
-}
-.peach__timing--over {
-  color: var(--color-ng);
+  margin-bottom: 6px;
 }
 
 /* --- 結果 --- */
@@ -480,6 +482,10 @@
   padding: 4px 3px;
   border: var(--hairline) solid var(--color-border-tertiary);
   text-align: center;
+}
+/* 桃で若返るぶんの行（計画表と同じ黄色） */
+.stage-result tr.stage-result__row--peach > td {
+  background: var(--color-warn-bg);
 }
 .stage-result__phase {
   font-size: 12px;

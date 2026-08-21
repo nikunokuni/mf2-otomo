@@ -46,45 +46,6 @@ export function stageStartWeek(baseWeeks, si) {
 }
 
 /**
- * 桃（若返り）で戻る分の段階別週数。
- * 桃を使うと useSi 段階の開始時点まで若返るので、
- * そこから extra 週ぶん（寿命の範囲内）をもう一度たどる区間を段階ごとに切り出す。
- */
-export function calcPeachWeeks(totalLife, gtype, useSi, extra) {
-  const baseWeeks = calcStageWeeks(totalLife, gtype);
-  const peachStart = stageStartWeek(baseWeeks, useSi);
-  const peachEnd = Math.min(totalLife, peachStart + extra);
-
-  const result = new Array(10).fill(0);
-  let cursor = 0;
-  for (let si = 0; si < 10; si++) {
-    const stageEnd = cursor + baseWeeks[si];
-    result[si] = Math.max(0, Math.min(stageEnd, peachEnd) - Math.max(cursor, peachStart));
-    cursor = stageEnd;
-  }
-  return result;
-}
-
-/**
- * 桃を与えるタイミング。
- * useSi 段階の開始から extra 週後が、第何段階の何週目にあたるかを返す。
- * 寿命を超えてしまう場合は over: true（si / weekInStage は null）。
- */
-export function peachTiming(totalLife, gtype, useSi, extra) {
-  const baseWeeks = calcStageWeeks(totalLife, gtype);
-  const week = stageStartWeek(baseWeeks, useSi) + extra;
-  if (week >= totalLife) return { week, si: null, weekInStage: null, over: true };
-
-  let cursor = 0;
-  for (let si = 0; si < 10; si++) {
-    const stageEnd = cursor + baseWeeks[si];
-    if (week < stageEnd) return { week, si, weekInStage: week - cursor + 1, over: false };
-    cursor = stageEnd;
-  }
-  return { week, si: null, weekInStage: null, over: true };
-}
-
-/**
  * 育成開始（startMonth月 startWeek週）から offset 週あとが、何月何週か。
  * 4週で1か月、12か月で1年。year は0から数えた経過年数。
  */
@@ -97,99 +58,123 @@ export function weekToDate(startMonth, startWeek, offset) {
   };
 }
 
-/** その段階に組んであるセット（無ければ段階まるごと1セットとみなす） */
-function setsOfStage(sim, g, si, fallbackWeeks) {
-  const sets = (sim.plan[g] && sim.plan[g][si]) || [];
-  return sets.length ? sets : [newSet(fallbackWeeks)];
+/* ---------- 年齢の時間軸（桃で若返るぶんを含む） ---------- */
+
+/** 桃の名前 */
+export function peachName(pi) {
+  return pi === 0 ? '黄金桃' : '白銀桃';
 }
 
 /**
- * 各段階が始まるのが、育成開始から数えて暦の何週目かを返す。
- * groups[g][si] = 週数（0始まり）。その段階が無いときは null。
- *
- * 段階の長さは「年齢」で決まるが、実際に進む暦はイベントとアイテムでずれる
- * （大会は寿命-4なのに1週しか進まない／アイテムは寿命だけ進めて暦は進めない）。
- * ここでは計画に入っている中身から、段階ごとの「実際に進む暦」を積み上げる。
- *
- * 桃を使うと年齢だけ戻って暦は進み続けるので、
- * 桃を与えたあとの段階は、桃の表ぶんだけ暦がうしろにずれる。
+ * 計画表の1行ぶん（セグメント）のキー。
+ * ph は -1 が白（初めて通る年齢）、0/1 が黄金桃/白銀桃で戻ってたどり直す区間。
+ * 同じ段階が何度も出てくるので、通し番号 n を付けて見分ける。
  */
-export function stageStartOffsets(sim) {
+export function segKey(ph, si, n) {
+  return `${ph < 0 ? 'w' : 'p' + ph}-${si}-${n}`;
+}
+
+/** 行の見出しに出す名前（桃で戻った行には桃の名前を付ける） */
+export function segLabel(seg) {
+  return seg.ph < 0 ? STAGES[seg.si] : `${peachName(seg.ph)} ${STAGES[seg.si]}`;
+}
+
+/**
+ * 年齢の時間軸をなぞって、計画表の行を時系列で並べる。
+ *
+ * 桃は「使用段階の開始＋桃の週数」の年齢で与えると、
+ * ちょうどその段階の開始まで若返る。与えたあとは年齢だけ戻って暦は進み続けるので、
+ * 一度通った年齢をもう一度たどることになる（＝黄色の行）。
+ * 与えた年齢より先はまだ通っていないので、そこからは白い行に戻る。
+ *
+ * 桃を2つ使うと、片方の若返り区間の中でもう片方を与えることもある。
+ * ここは年齢をそのまま1週ずつ進めているので、その並びもそのまま出る。
+ *
+ * 戻り値の1行ぶん:
+ *   key     セグメントのキー（計画の保存先）
+ *   si      成長段階     ph  白なら -1、桃で戻った区間なら桃の番号
+ *   from    その行が始まる年齢の週   base 素の週数（年齢）
+ *   peaches この行の直前に与える桃 [{ pi, age }]
+ */
+export function buildTimeline(sim) {
   const base = calcStageWeeks(sim.life, sim.gtype);
-  const eff = stageWeeksByGroup(sim); // はみ出しを織り込んだ週数
-
-  // 通常育成を段階→セットの順にたどり、年齢と暦を並べて持っておく
-  const segments = [];
-  const stageCal = new Array(10).fill(null);
-  let age = 0;
-  let cal = 0;
-  for (let si = 0; si < 10; si++) {
-    if (eff[0][si] === 0) continue;
-    stageCal[si] = cal;
-    setsOfStage(sim, 0, si, eff[0][si]).forEach((set) => {
-      const ageWeeks = Math.max(0, set.weeks || 0);
-      const calWeeks = calendarWeeks(set);
-      segments.push({ ageStart: age, ageWeeks, calStart: cal, calWeeks });
-      age += ageWeeks;
-      cal += calWeeks;
-    });
-  }
-
-  /** 年齢の週 → 暦の週。セットの途中なら、そのセットの中で割って出す */
-  const ageToCal = (target) => {
-    for (const seg of segments) {
-      if (target < seg.ageStart + seg.ageWeeks) {
-        const into = Math.max(0, target - seg.ageStart);
-        return seg.calStart + (seg.ageWeeks ? Math.floor((seg.calWeeks * into) / seg.ageWeeks) : 0);
-      }
-    }
-    return cal;
+  const starts = base.map((_, i) => stageStartWeek(base, i));
+  // 桃を与える年齢。使わない桃と、寿命を超えてしまう桃は発動しない
+  const eat = [0, 1].map((pi) => {
+    const p = sim.peach && sim.peach[pi];
+    return p && p.use ? starts[p.si] + peachExtra(pi) : Infinity;
+  });
+  const stageOf = (age) => {
+    let si = 0;
+    while (si < 9 && age >= starts[si + 1]) si++;
+    return si;
   };
 
-  // 桃を与える時点と、桃の表ぶんの暦の長さ
-  const peaches = [];
-  for (let pi = 0; pi < 2; pi++) {
-    const p = sim.peach[pi];
-    if (!p || !p.use) continue;
-    const extra = peachExtra(pi);
-    const at = stageStartWeek(base, p.si) + extra;
-    if (at >= sim.life) continue; // 寿命を超えるなら使えない
-    const weeks = eff[pi + 1];
-    const stages = [];
-    let len = 0;
-    for (let si = 0; si < 10; si++) {
-      if (weeks[si] === 0) continue;
-      const calWeeks = setsOfStage(sim, pi + 1, si, weeks[si]).reduce(
-        (a, set) => a + calendarWeeks(set),
-        0
-      );
-      stages.push({ si, calWeeks });
-      len += calWeeks;
+  const segments = [];
+  const seq = {};
+  const used = [false, false];
+  let age = 0;
+  let maxAge = 0; // ここまでの年齢は一度通っている
+  let ph = -1; // いまどの桃で戻ってたどり直しているか
+  let cur = null;
+  let pending = []; // 直前に与えた桃（行の前に見出しを出す）
+
+  while (age < sim.life) {
+    const pi = [0, 1].find((i) => !used[i] && age === eat[i]);
+    if (pi !== undefined) {
+      used[pi] = true;
+      ph = pi;
+      pending.push({ pi, age });
+      age = starts[sim.peach[pi].si];
+      cur = null;
+      continue;
     }
-    peaches.push({ pi, calAt: ageToCal(at), len, stages });
-  }
-  peaches.sort((a, b) => a.calAt - b.calAt);
-
-  /** その暦の位置より前に使った桃のぶん、うしろにずれる */
-  const shift = (calPos) =>
-    peaches.reduce((sum, p) => sum + (p.calAt < calPos ? p.len : 0), 0);
-
-  const normal = stageCal.map((c) => (c === null ? null : c + shift(c)));
-
-  const groups = [normal];
-  for (let pi = 0; pi < 2; pi++) {
-    const list = new Array(10).fill(null);
-    const p = peaches.find((x) => x.pi === pi);
-    if (p) {
-      let at = p.calAt + shift(p.calAt);
-      p.stages.forEach(({ si, calWeeks }) => {
-        list[si] = at;
-        at += calWeeks;
-      });
+    const si = stageOf(age);
+    const phase = age < maxAge ? ph : -1; // 初めて通る年齢は白
+    if (!cur || cur.si !== si || cur.ph !== phase) {
+      const k = `${phase}-${si}`;
+      seq[k] = seq[k] === undefined ? 0 : seq[k] + 1;
+      cur = { key: segKey(phase, si, seq[k]), si, ph: phase, from: age, base: 0, peaches: pending };
+      pending = [];
+      segments.push(cur);
     }
-    groups.push(list);
+    cur.base++;
+    if (age + 1 > maxAge) maxAge = age + 1;
+    age++;
   }
-  return groups;
+  return segments;
+}
+
+/** そのセグメントに組んであるセット */
+function setsOfSeg(sim, key) {
+  return (sim.plan && sim.plan[key]) || [];
+}
+
+/**
+ * 計画表の行に、週数と暦の位置を足して返す。
+ *
+ * weeks    その行に使える週数（年齢）。寿命の消費が割当を超えたぶんは、
+ *          時系列で次の行から引く
+ * calStart その行が始まるのが、育成開始から数えて暦の何週目か。
+ *          行は時系列に並んでいるので、実際に進む暦を積み上げるだけでよい
+ * overflow 最後の行からもはみ出した週数（寿命が足りていない量）
+ */
+export function planLayout(sim) {
+  const segments = buildTimeline(sim);
+  let carry = 0;
+  let cal = 0;
+  segments.forEach((seg) => {
+    const avail = seg.base - carry;
+    seg.weeks = Math.max(0, avail);
+    carry = Math.max(0, -avail);
+
+    const sets = setsOfSeg(sim, seg.key);
+    seg.sets = sets.length ? sets : [newSet(seg.weeks)];
+    seg.calStart = cal;
+    cal += seg.sets.reduce((a, set) => a + calendarWeeks(set), 0);
+    carry += seg.sets.reduce((a, set) => a + setOverflow(set), 0);
+  });
+  return { segments, overflow: carry };
 }
 
 /** 桃で追加される週数（黄金桃 +50 / 白銀桃 +25） */
@@ -235,92 +220,54 @@ export function calendarWeeks(set) {
   );
 }
 
-/**
- * 寿命と成長タイプだけで決まる、素の段階週数。
- * g=0 は通常育成、g=1/2 は桃1/桃2 の追加分。
- */
-function baseWeeksByGroup(sim) {
-  const base = calcStageWeeks(sim.life, sim.gtype);
-  const groups = [base];
-  for (let pi = 0; pi < 2; pi++) {
-    const p = sim.peach[pi];
-    groups.push(
-      p && p.use ? calcPeachWeeks(sim.life, sim.gtype, p.si, peachExtra(pi)) : new Array(10).fill(0)
-    );
-  }
-  return groups;
-}
-
 /** そのセットで、割当週からはみ出た寿命の消費 */
 function setOverflow(set) {
   return Math.max(0, lifeCost(set) - (set.weeks || 0));
 }
 
 /**
- * 段階を順にたどって、はみ出たぶんを次の段階から引いていく。
- * 例: 1段階10週にパラドクシン(-18)を使うと 1段階は0週になり、
- *     はみ出た8週が次の段階から引かれる（2段階20週 → 12週）。
+ * 分かれた行や、桃で戻った行に引き継ぐ中身。
+ * トレーニングの種類と回数だけを写し、イベントとアイテムの回数は写さない
+ * （そのまま写すと、同じ寿命の消費を二重に数えてしまうため）。
  */
-function cascade(sim, g, base) {
-  const weeks = new Array(10).fill(0);
-  let carry = 0;
-  for (let si = 0; si < 10; si++) {
-    const avail = base[si] - carry;
-    weeks[si] = Math.max(0, avail);
-    carry = Math.max(0, -avail);
-    if (base[si] === 0) continue;
-    const sets = (sim.plan[g] && sim.plan[g][si]) || [];
-    carry += sets.reduce((a, set) => a + setOverflow(set), 0);
-  }
-  return { weeks, carry };
+function inheritSet(src) {
+  return Object.assign(newSet(0), { ht: src.ht, hc: src.hc, lt: src.lt });
 }
 
 /**
- * 計画の全グループについて、段階ごとの総週数を返す。
- * 寿命の消費が割当を超えたぶんは、次の段階から引いてある。
- */
-export function stageWeeksByGroup(sim) {
-  return baseWeeksByGroup(sim).map((base, g) => cascade(sim, g, base).weeks);
-}
-
-/** 最後の段階からもはみ出た週数（グループごと）。寿命が足りていない量 */
-export function planOverflow(sim) {
-  return baseWeeksByGroup(sim).map((base, g) => cascade(sim, g, base).carry);
-}
-
-/**
- * 寿命や成長タイプを変えたあと、計画の週数を総週数に合わせ直す。
- * 2セット目以降に入力した週数はそのまま残し、余りを1セット目に寄せる。
+ * 寿命・成長タイプ・桃の設定を変えたあと、計画を行の並びに合わせ直す。
+ *
+ * - 行が増えたとき（段階が桃で前後に割れたときなど）は、同じ段階の直前の行から
+ *   トレーニングの内容だけ引き継ぐ
+ * - 2セット目以降に入力した週数はそのまま残し、余りを1セット目に寄せる
+ * - 並びから消えた行の計画は落とす
  */
 export function normalizePlan(sim) {
-  baseWeeksByGroup(sim).forEach((base, g) => {
-    if (!sim.plan[g]) sim.plan[g] = {};
-    let carry = 0;
-    for (let si = 0; si < 10; si++) {
-      const avail = base[si] - carry;
-      const total = Math.max(0, avail);
-      carry = Math.max(0, -avail);
-      const sets = sim.plan[g][si];
+  const segments = buildTimeline(sim);
+  const plan = {};
+  const last = {}; // 段階ごとの直前の中身（引き継ぎ元）
+  let carry = 0;
 
-      if (base[si] === 0) {
-        // その段階が消えたら計画も消す（桃を使わなくした場合など）
-        if (g > 0) delete sim.plan[g][si];
-        else if (sets) sets.forEach((s) => (s.weeks = 0));
-        continue;
-      }
-      if (total === 0) {
-        // 前の段階のはみ出しで丸ごと消えた段階
-        if (sets) sets.forEach((s) => (s.weeks = 0));
-      } else if (!sets || !sets.length) {
-        sim.plan[g][si] = [newSet(total)];
-      } else {
-        const others = sets.slice(1).reduce((a, s) => a + (s.weeks || 0), 0);
-        sets[0].weeks = Math.max(0, total - others);
-      }
-      // 割り当て直したあとの中身で、次へ回るぶんを数える
-      carry += (sim.plan[g][si] || []).reduce((a, s) => a + setOverflow(s), 0);
+  segments.forEach((seg) => {
+    const avail = seg.base - carry;
+    const total = Math.max(0, avail);
+    carry = Math.max(0, -avail);
+
+    let sets = sim.plan && sim.plan[seg.key];
+    if (!Array.isArray(sets) || !sets.length) {
+      // 同じ桃の区間 → 白い行 の順で、同じ段階の中身を探す
+      const src = last[`${seg.ph}-${seg.si}`] || last[`-1-${seg.si}`];
+      sets = [src ? inheritSet(src) : newSet(0)];
     }
+    const others = sets.slice(1).reduce((a, s) => a + (s.weeks || 0), 0);
+    sets[0].weeks = Math.max(0, total - others);
+
+    plan[seg.key] = sets;
+    last[`${seg.ph}-${seg.si}`] = sets[0];
+    carry += sets.reduce((a, s) => a + setOverflow(s), 0);
   });
+
+  sim.plan = plan;
   return sim;
 }
 
@@ -380,32 +327,32 @@ export function calcSetGain(set, stageKey, apt) {
 }
 
 /**
- * 計画全体を計算して、最終パラメータと段階別の内訳を返す。
+ * 計画全体を計算して、最終パラメータと行ごとの内訳を返す。
+ * 行は計画表と同じ時系列の並びで、桃で戻った行には peach（桃の番号）が入る。
  */
 export function computeResult(sim) {
-  const groups = stageWeeksByGroup(sim);
+  const { segments } = planLayout(sim);
   const total = {};
   SK.forEach((k) => (total[k] = 0));
-  const rows = [];
 
-  groups.forEach((stageWeeks, g) => {
-    const phase = g === 0 ? '通常' : `桃${g}後`;
-    for (let si = 0; si < 10; si++) {
-      if (stageWeeks[si] === 0) continue;
-      const stageKey = SKEYS[si];
-      const stageGain = {};
-      SK.forEach((k) => (stageGain[k] = 0));
-
-      const sets = (sim.plan[g] && sim.plan[g][si]) || [];
-      sets.forEach((set) => {
-        const gain = calcSetGain(set, stageKey, sim.apt);
-        SK.forEach((k) => {
-          stageGain[k] += gain[k];
-          total[k] += gain[k];
-        });
+  const rows = segments.map((seg) => {
+    const stageKey = SKEYS[seg.si];
+    const gain = {};
+    SK.forEach((k) => (gain[k] = 0));
+    seg.sets.forEach((set) => {
+      const setGain = calcSetGain(set, stageKey, sim.apt);
+      SK.forEach((k) => {
+        gain[k] += setGain[k];
+        total[k] += setGain[k];
       });
-      rows.push({ label: STAGES[si], gain: stageGain, weeks: stageWeeks[si], phase });
-    }
+    });
+    return {
+      label: STAGES[seg.si],
+      gain,
+      weeks: seg.weeks,
+      peach: seg.ph < 0 ? null : seg.ph,
+      calStart: seg.calStart,
+    };
   });
 
   const final = {};
@@ -421,22 +368,29 @@ export function computeResult(sim) {
  */
 export function validatePlan(sim) {
   const warnings = [];
-  const groups = stageWeeksByGroup(sim);
-  const overflow = planOverflow(sim);
+  const base = calcStageWeeks(sim.life, sim.gtype);
 
-  groups.forEach((stageWeeks, g) => {
-    const prefix = g === 0 ? '' : `桃${g}後 `;
-    for (let si = 0; si < 10; si++) {
-      const sets = (sim.plan[g] && sim.plan[g][si]) || [];
-      if (!sets.length) continue;
-      const used = sets.reduce((a, s) => a + (s.weeks || 0), 0);
-      if (used > stageWeeks[si]) {
-        warnings.push(`${prefix}${STAGES[si]}：${used}週 > 総${stageWeeks[si]}週`);
-      }
-    }
-    if (overflow[g] > 0) {
-      warnings.push(`${prefix}寿命の消費が${overflow[g]}週ぶん、最後の段階からもはみ出しています`);
+  // 使えない桃（与える年齢が寿命を超える）は、行が挟まらないのでここで知らせる
+  [0, 1].forEach((pi) => {
+    const p = sim.peach && sim.peach[pi];
+    if (!p || !p.use) return;
+    const extra = peachExtra(pi);
+    if (stageStartWeek(base, p.si) + extra >= sim.life) {
+      warnings.push(
+        `${peachName(pi)}：「${STAGES[p.si]}」開始から${extra}週後は寿命（${sim.life}週）を超えるので使えません`
+      );
     }
   });
+
+  const { segments, overflow } = planLayout(sim);
+  segments.forEach((seg) => {
+    const used = seg.sets.reduce((a, s) => a + (s.weeks || 0), 0);
+    if (used > seg.weeks) {
+      warnings.push(`${segLabel(seg)}：${used}週 > 総${seg.weeks}週`);
+    }
+  });
+  if (overflow > 0) {
+    warnings.push(`寿命の消費が${overflow}週ぶん、最後の段階からもはみ出しています`);
+  }
   return warnings;
 }
