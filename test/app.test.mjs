@@ -283,6 +283,12 @@ console.log('— 調整ローテ —');
 await page.click('#subtab-rotation');
 ok(await page.locator('#subpane-rotation').isVisible(),'調整ローテのペインが出る');
 ok(await page.locator('#simActions').isHidden(),'調整ローテでは計算実行/リセットを出さない');
+// 開始時点の内部数値とエサの効き方は、まとめて畳んである
+ok(await page.locator('#rotaSetup').isHidden(),'はじめは畳んである');
+ok((await page.locator('#rotaSetupToggle').getAttribute('aria-expanded'))==='false','畳んでいることが読み取れる');
+await page.click('#rotaSetupToggle');
+ok(await page.locator('#rotaSetup').isVisible(),'押すと開く');
+ok((await page.locator('#rotaSetupToggle').getAttribute('aria-expanded'))==='true','開いたことが読み取れる');
 // 開始時点の内部数値（体型 / ヨイワル / ストレス / 疲労 / 恐れ度 / 甘え度）
 const startInputs = page.locator('.rota-start-grid input');
 ok((await startInputs.count())===6,'開始時点の内部数値は6つ: '+(await startInputs.count()));
@@ -295,11 +301,13 @@ ok((await page.locator('#rotaStart-moral').getAttribute('max'))==='65','初期�
 ok((await page.locator('#rotaStart-form').getAttribute('min'))==='-100'
    && (await page.locator('#rotaStart-form').getAttribute('max'))==='100','体型は-100〜100');
 ok((await page.locator('#rotaStart-stress').getAttribute('min'))==='0','ストレスは0から');
+ok((await page.locator('.rota-range').count())===0,'範囲の小さな数字は出さない');
 // 範囲の外を入れても収まる
 await page.fill('#rotaStart-stress','250');
 await page.click('#subtab-plan');
 await page.click('#subtab-rotation');
 ok((await page.locator('#rotaStart-stress').inputValue())==='100','範囲の外は上限で止まる');
+ok(await page.locator('#rotaSetup').isVisible(),'いちど開けば開いたまま');
 await page.fill('#rotaStart-stress','40');
 // ヨイワルは初期ヨイワルから±100までしか動かない
 await page.click('#tab-monster');
@@ -320,9 +328,11 @@ ok((await feedRows.count())===6,'エサは6種類: '+(await feedRows.count()));
 const feedNames = await page.locator('.feed-table__name').allTextContents();
 ok(feedNames.join(',')==='ジャガもどき,ミルクもどき,サカナもどき,ゼリーもどき,ニクもどき,ビタミンもどき',
    'エサの並び: '+feedNames.join(','));
-// はじめは全部「普通」。ジャガもどき普通 = ストレス+4 / 恐れ度+3 / 甘え度-4 / 体型-1 / 10
+// はじめは全部「普通」。ジャガもどき普通 = ストレス+4 / 恐れ度+3 / 甘え度-4 / 体型-1
 const jaga = () => feedRows.nth(0).locator('td').allTextContents();
-ok((await jaga()).join(',')==='ジャガもどき,普通,+4,+3,-4,-1,10','普通のジャガもどき: '+(await jaga()).join(','));
+ok((await jaga()).join(',')==='ジャガもどき,普通,+4,+3,-4,-1','普通のジャガもどき: '+(await jaga()).join(','));
+ok((await page.locator('.feed-table thead th').allTextContents()).join(',')==='エサ,好み,ストレス,恐れ度,甘え度,体型',
+   'エサの表に買値は出さない');
 // 好き嫌いはモンスタータブで変える
 await page.click('#tab-monster');
 ok((await page.locator('.feed-like').count())===6,'モンスタータブに好き嫌いの欄が6つ');
@@ -330,11 +340,11 @@ await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]
 await page.locator('[data-change="mon:feedLike"][data-name="ビタミンもどき"]').selectOption('dislike');
 await page.click('#tab-simulator');
 await page.click('#subtab-rotation');
-ok((await jaga()).join(',')==='ジャガもどき,好き,0,0,+1,-1,10','好きにすると効果が変わる: '+(await jaga()).join(','));
+ok((await jaga()).join(',')==='ジャガもどき,好き,0,0,+1,-1','好きにすると効果が変わる: '+(await jaga()).join(','));
 const vita = await feedRows.nth(5).locator('td').allTextContents();
-ok(vita.join(',')==='ビタミンもどき,嫌い,-10,+2,-1,+3,500','嫌いのビタミンもどき: '+vita.join(','));
-// 体型と買値は好き嫌いで変わらない
-ok((await jaga())[5]==='-1' && (await jaga())[6]==='10','体型と買値は好き嫌いで変わらない');
+ok(vita.join(',')==='ビタミンもどき,嫌い,-10,+2,-1,+3','嫌いのビタミンもどき: '+vita.join(','));
+// 体型は好き嫌いで変わらない
+ok((await jaga())[5]==='-1','体型は好き嫌いで変わらない');
 
 console.log('— 週ごとの表 —');
 const weekRows = page.locator('.rota-table__inputs');

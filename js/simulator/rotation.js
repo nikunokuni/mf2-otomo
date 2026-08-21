@@ -152,8 +152,7 @@ function startField(key) {
       max,
       dataset: { input: 'rota:start', key },
       attrs: { 'aria-label': `開始時点の${INNER[key].label}` },
-    }),
-    h('span', { class: 'rota-range', text: `${min}〜${max}` })
+    })
   );
 }
 
@@ -212,8 +211,7 @@ function feedSection() {
       h('td', { class: 'col-num', text: signed(e.stress) }),
       h('td', { class: 'col-num', text: signed(e.fear) }),
       h('td', { class: 'col-num', text: signed(e.spoil) }),
-      h('td', { class: 'col-num', text: signed(e.form) }),
-      h('td', { class: 'col-num', text: String(feed.price) })
+      h('td', { class: 'col-num', text: signed(e.form) })
     );
   });
 
@@ -234,12 +232,40 @@ function feedSection() {
             h('th', { text: 'ストレス' }),
             h('th', { text: '恐れ度' }),
             h('th', { text: '甘え度' }),
-            h('th', { text: '体型' }),
-            h('th', { text: '買値' })
+            h('th', { text: '体型' })
           )
         ),
         h('tbody', {}, ...rows)
       )
+    )
+  );
+}
+
+/* ---------- 下ごしらえ（開始時点とエサ）のアコーディオン ---------- */
+
+/**
+ * 開始時点の内部数値とエサの効き方は、いちど入れたらあまりさわらないので、
+ * まとめて畳んでおく。開いたかどうかは state.ui.rotaOpen に覚える
+ * （種族グリッドの gridOpen と同じ持ち方）。
+ */
+function setupSection() {
+  const open = !!state.ui.rotaOpen;
+  return h(
+    'div',
+    { class: 'sim-section rota-setup' },
+    h('button', {
+      type: 'button',
+      class: 'rota-setup__toggle',
+      id: 'rotaSetupToggle',
+      text: `${open ? '▼' : '▶'} 開始時点の内部数値 / エサの効き方`,
+      dataset: { action: 'rota:toggleSetup' },
+      attrs: { 'aria-expanded': String(open), 'aria-controls': 'rotaSetup' },
+    }),
+    h(
+      'div',
+      { id: 'rotaSetup', class: 'rota-setup__body', hidden: !open },
+      startSection(),
+      feedSection()
     )
   );
 }
@@ -472,7 +498,6 @@ function planSection() {
   return h(
     'div',
     { class: 'sim-section' },
-    h('div', { class: 'sim-section__title', text: '毎週のアイテムと行動 / 毎月のエサ' }),
     weekTable(),
     h('div', { class: 'rota-total' },
       h('span', { text: `組んだ週数 ${planned}週` }),
@@ -567,12 +592,19 @@ export function render() {
     return;
   }
   normalizeWeeks(r);
-  replace(area, startSection(), feedSection(), planSection(), actionSection());
+  replace(area, setupSection(), planSection(), actionSection());
 }
 
 /* ---------- 操作 ---------- */
 
 export const actions = {
+  // 開始時点の内部数値とエサの効き方の開け閉め
+  'rota:toggleSetup': () => {
+    state.ui.rotaOpen = !state.ui.rotaOpen;
+    save();
+    render();
+  },
+
   // 組んだ内容を写して、早見タブの「ローテ」に並べる
   'rota:save': () => {
     const r = rota();

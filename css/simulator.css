@@ -33,10 +33,25 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
-.rota-range {
-  font-size: 10px;
-  color: var(--color-text-tertiary);
-  font-variant-numeric: tabular-nums;
+/* --- 開始時点とエサをまとめて畳む --- */
+.rota-setup__toggle {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--color-background-secondary);
+  border: var(--hairline) solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.rota-setup__toggle:hover {
+  color: var(--color-text-primary);
+}
+.rota-setup__body {
+  margin-top: 12px;
 }
 @media (max-width: 400px) {
   .rota-start-grid {
