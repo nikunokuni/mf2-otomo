@@ -453,6 +453,7 @@ await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOpt
 // 保存する前の「最初の状態」と「最後の状態」を控えておく
 const startBefore = await page.locator('.rota-start-grid input').evaluateAll(ns=>ns.map(n=>n.value));
 const endBefore = (await page.locator('.rota-table__values').nth(3).locator('.rota-vals__num').allTextContents()).slice(0,6);
+const lifeBefore = (await page.locator('#rotaLifeTotal').textContent()).trim();
 await page.click('[data-action="rota:save"]');
 ok((await page.locator('#rotaSaveMsg').textContent()).includes('保存しました'),
    '保存すると知らせが出る: '+(await page.locator('#rotaSaveMsg').textContent()));
@@ -467,6 +468,9 @@ ok(rotaBody.includes('アイテム:カララギマンゴー'),'アイテムが�
 ok(rotaBody.includes('大会（優勝）')&&rotaBody.includes('休養'),'行動が入る');
 ok(rotaBody.includes('1か月目 第1週')&&rotaBody.includes('1か月目 第4週'),'組んだ4週ぶんが並ぶ');
 ok(!rotaBody.includes('2か月目'),'まだ組んでいない「次の週」は入らない');
+ok((await page.locator('.ref-rota__life').textContent())===lifeBefore,
+   '減る寿命の合計が調整ローテと同じ形で入る: '+(await page.locator('.ref-rota__life').textContent()));
+ok(/^寿命 週経過-\d+ ＋ 追加-\d+ ＝ 合計-\d+週$/.test(lifeBefore),'寿命の合計の形: '+lifeBefore);
 // 状態は内部数値6つ。並びは 体型/ヨイワル/ストレス/疲労/恐れ度/甘え度
 const savedStates = await page.locator('.ref-rota__state-vals').allTextContents();
 ok(savedStates.length===2,'最初の状態と最後の状態が入る: '+savedStates.length);

@@ -132,6 +132,7 @@ export function defaultItem() {
  *   weeks   [{ label, feed, item, act }]（act は画面に出ていた文言のまま）
  *   start   最初の状態（内部数値全部）
  *   end     最後の状態（内部数値全部）
+ *   life    減る寿命の合計 { age 週経過ぶん, extra 追加ぶん, total 合計 }
  */
 export function defaultSavedRota() {
   return {
@@ -141,6 +142,7 @@ export function defaultSavedRota() {
     weeks: [],
     start: {},
     end: {},
+    life: { age: 0, extra: 0, total: 0 },
   };
 }
 
@@ -277,6 +279,12 @@ function normalize(loaded) {
     }));
     saved.start = Object.assign({}, saved.start || {});
     saved.end = Object.assign({}, saved.end || {});
+    const life = Object.assign({ age: 0, extra: 0, total: 0 }, saved.life || {});
+    saved.life = {
+      age: Number(life.age) || 0,
+      extra: Number(life.extra) || 0,
+      total: Number(life.total) || 0,
+    };
     return saved;
   });
   // 開けない URL（javascript: など）は読み込み時点で落とす

@@ -134,6 +134,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+.ref-rota__life {
+  padding: 5px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ng);
+  font-variant-numeric: tabular-nums;
+}
+
 .ref-rota__del {
   margin-top: 8px;
 }

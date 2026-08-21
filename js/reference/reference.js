@@ -6,8 +6,8 @@
    だから種族チップの帯も、このタブでは隠している（js/tabs.js）。
 
    ・ローテ … 調整ローテ（育成計算タブ）で「早見のローテに保存」を押したぶんが並ぶ。
-     エサ・アイテム・行動と、最初と最後の内部数値を写したもの（state.rotas）で、
-     写したあとは動かない。アプリ側であらかじめ入れておくぶんは
+     エサ・アイテム・行動と、最初と最後の内部数値、減る寿命の合計を
+     写したもの（state.rotas）で、写したあとは動かない。アプリ側であらかじめ入れておくぶんは
      js/data/reference-data.js の ROTATION に書く。
    ・合体素材 … アプリ側のデータを表示する。
      中身は js/data/reference-data.js に書く。
@@ -103,6 +103,16 @@ function stateRow(label, values) {
   );
 }
 
+/**
+ * 減る寿命の合計。文言は調整ローテの合計欄（rotation.js の lifeTotalText）と同じ形。
+ */
+function lifeRow(life) {
+  return h('div', {
+    class: 'ref-rota__life',
+    text: `寿命 週経過-${life.age} ＋ 追加-${life.extra} ＝ 合計-${life.total}週`,
+  });
+}
+
 /** 1週ぶん。エサ・アイテム・行動を、入っているものだけ並べる */
 function savedWeekRow(week) {
   const parts = [];
@@ -141,6 +151,7 @@ function savedRotaCard(saved) {
       stateRow('最初の状態', saved.start),
       ...saved.weeks.map(savedWeekRow),
       stateRow('最後の状態', saved.end),
+      lifeRow(saved.life),
       h('button', {
         type: 'button',
         class: 'btn btn--sm btn--ng ref-rota__del',
