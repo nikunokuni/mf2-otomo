@@ -35,6 +35,7 @@ ok((await page.locator('.stat-row').count())===6,'初期パラと適正は6行')
 ok((await page.locator('.stat-row__apt').count())===6,'各行に成長適正の欄がある');
 ok((await page.locator('.stat-bar').count())===0,'右の帯は出さない');
 ok((await page.locator('#gutsRecovery option').count())===14,'ガッツ回復は6〜19の14通り');
+ok((await page.locator('label[for="gutsRecovery"]').textContent())==='ガッツ回復','ガッツ回復の見出しは1つだけ');
 ok((await page.locator('#speciesChips .chip').count())===1,'種族チップが帯に出る');
 
 console.log('— 技選択（使い込みタブを開いたときに案内が出る） —');
@@ -80,8 +81,24 @@ await page.fill('#memo','テストメモ123');
 
 console.log('— 個体データ（モンスタータブ） —');
 await page.click('#tab-monster');
+// 成長タイプ / 寿命 / ヨイワル は3つとも1行に並ぶ
+const specTop = await page.locator('.spec-grid select').evaluateAll(
+  ns => ns.map(n=>Math.round(n.getBoundingClientRect().top)));
+ok(specTop.length===3 && new Set(specTop).size===1,'成長設定の3つが1行に並ぶ: '+specTop.join(','));
+const specOrder = await page.locator('.spec-grid label').allTextContents();
+ok(specOrder.join(',')==='成長タイプ,寿命（週）,ヨイワル','並びは 成長タイプ / 寿命 / ヨイワル: '+specOrder.join(','));
+ok(!(await page.evaluate(()=>{
+  const c=document.querySelector('#monsterSpec');
+  return c.scrollWidth > c.clientWidth + 1;
+})),'成長設定が横にはみ出さない');
+// 寿命は 250〜500 の10きざみのプルダウン
+const lifeValues = await page.locator('#simLife option').evaluateAll(o=>o.map(x=>Number(x.value)));
+ok(lifeValues.length===26,'寿命の選択肢は26個: '+lifeValues.length);
+ok(lifeValues[0]===250 && lifeValues[lifeValues.length-1]===500,'両端が250と500');
+ok(lifeValues.every((v,i)=>i===0||v-lifeValues[i-1]===10),'10きざみで並ぶ');
+ok((await page.locator('.stepper[data-action="sim:lifeStep"]').count())===0,'寿命の＋−ボタンは出さない');
 await page.selectOption('#simGtype','bansei');
-await page.fill('#simLife','400');
+await page.selectOption('#simLife','400');
 // ヨイワルは -100〜100 の5きざみ
 const moralValues = await page.locator('#simMoral option').evaluateAll(o=>o.map(x=>Number(x.value)));
 ok(moralValues.length===41,'ヨイワルの選択肢は41個: '+moralValues.length);
@@ -196,7 +213,7 @@ ok(await page.locator('#subpane-plan #simMonth').isVisible(),'開始時期は育
 await page.fill('#simMonth','4');
 await page.selectOption('#simWeek','1');
 await page.click('#tab-monster');
-await page.fill('#simLife','300');
+await page.selectOption('#simLife','300');
 await page.selectOption('#simGtype','futsuu');
 await page.click('#tab-simulator');
 await page.waitForSelector('.plan-table .stage-date');
@@ -225,7 +242,7 @@ await firstRow.locator('[aria-label="トロロンの回数"]').fill('0');
 ok((await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent())==='11月3週','戻せば元に戻る');
 // このあとの保存テストのために設定を戻す
 await page.click('#tab-monster');
-await page.fill('#simLife','400');
+await page.selectOption('#simLife','400');
 await page.selectOption('#simGtype','bansei');
 await page.click('#tab-simulator');
 

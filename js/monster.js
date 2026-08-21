@@ -15,7 +15,17 @@
 
 import { STATS, SK, SC } from './data/growth.js';
 import { FEEDS, LIKING } from './data/feeds.js';
-import { state, save, currentMon, MORAL_STEP, normalizeMoral } from './store.js';
+import {
+  state,
+  save,
+  currentMon,
+  MORAL_STEP,
+  normalizeMoral,
+  LIFE_MIN,
+  LIFE_MAX,
+  LIFE_STEP,
+  normalizeLife,
+} from './store.js';
 import { el, h, replace, clampInt } from './dom.js';
 
 const APTITUDES = ['E', 'D', 'C', 'B', 'A'];
@@ -28,6 +38,15 @@ function moralOptions(selected) {
     const sign = v > 0 ? '+' : '';
     const note = MORAL_LABELS[v] ? `（${MORAL_LABELS[v]}）` : '';
     list.push(h('option', { value: String(v), text: `${sign}${v}${note}`, selected: v === selected }));
+  }
+  return list;
+}
+
+/** 寿命の選択肢。250〜500 を10きざみ */
+function lifeOptions(selected) {
+  const list = [];
+  for (let v = LIFE_MIN; v <= LIFE_MAX; v += LIFE_STEP) {
+    list.push(h('option', { value: String(v), text: String(v), selected: v === selected }));
   }
   return list;
 }
@@ -137,8 +156,8 @@ export function render() {
   const s = mon.sim;
   el('specSpeciesLabel').textContent = state.current;
   el('simGtype').value = s.gtype;
+  replace(el('simLife'), lifeOptions(s.life));
   replace(el('simMoral'), moralOptions(s.moral));
-  el('simLife').value = s.life;
   renderGuts(mon);
   renderInit(s);
   renderFeedLike(mon);
@@ -156,17 +175,16 @@ export const actions = {
     if (input) input.value = s.init[key];
     save();
   },
-
-  'sim:lifeStep': (target) => {
-    const s = sim();
-    if (!s) return;
-    s.life = clampInt(s.life + Number(target.dataset.delta), 100, 600, 300);
-    el('simLife').value = s.life;
-    save();
-  },
 };
 
 export const changeActions = {
+  'sim:life': (target) => {
+    const s = sim();
+    if (!s) return;
+    s.life = normalizeLife(target.value);
+    save();
+  },
+
   'sim:apt': (target) => {
     const s = sim();
     if (!s) return;
@@ -208,13 +226,6 @@ export const inputActions = {
     const s = sim();
     if (!s) return;
     s.init[target.dataset.key] = clampInt(target.value, 0, 999, 0);
-    save();
-  },
-
-  'sim:life': (target) => {
-    const s = sim();
-    if (!s) return;
-    s.life = clampInt(target.value, 100, 600, 300);
     save();
   },
 };

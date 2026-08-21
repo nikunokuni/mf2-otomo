@@ -17,6 +17,23 @@ const LEGACY_KEY = 'mf2_mf2v8_state';
 /** ヨイワルの5きざみの刻み幅 */
 export const MORAL_STEP = 5;
 
+/** 寿命は 250〜500 週を10きざみで選ぶ */
+export const LIFE_MIN = 250;
+export const LIFE_MAX = 500;
+export const LIFE_STEP = 10;
+
+/**
+ * 寿命を 250〜500 の10きざみの数値に直す。
+ * 前は 100〜600 を1週きざみで入れられたので、その範囲の外や
+ * 半端な数の保存データは、いちばん近い選べる数に寄せる。
+ */
+export function normalizeLife(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 300;
+  const stepped = Math.round(n / LIFE_STEP) * LIFE_STEP;
+  return Math.max(LIFE_MIN, Math.min(LIFE_MAX, stepped));
+}
+
 /**
  * ヨイワルを -100〜100 の5きざみの数値に直す。
  * 昔の保存データは 'good' / 'neutral' / 'bad' の3択だったので、そのぶんも読み替える。
@@ -298,6 +315,7 @@ function normalize(loaded) {
     const m = Object.assign(d, s.mon[name]);
     m.sim = Object.assign(defaultSim(), m.sim || {});
     m.sim.moral = normalizeMoral(m.sim.moral);
+    m.sim.life = normalizeLife(m.sim.life);
     m.sim.apt = Object.assign(defaultSim().apt, m.sim.apt || {});
     m.sim.init = Object.assign(defaultSim().init, m.sim.init || {});
     m.sim.plan = Object.assign({ 0: {}, 1: {}, 2: {} }, m.sim.plan || {});

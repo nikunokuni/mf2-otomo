@@ -75,7 +75,8 @@
 
       <div class="sim-section">
         <div class="sim-section__title">成長設定</div>
-        <div class="sim-grid3">
+        <!-- 成長タイプ / 寿命 / ヨイワル の3つを1行に収める -->
+        <div class="spec-grid">
           <div class="field">
             <label for="simGtype">成長タイプ</label>
             <select id="simGtype" data-change="sim:gtype">
@@ -86,30 +87,22 @@
             </select>
           </div>
           <div class="field">
+            <label for="simLife">寿命（週）</label>
+            <!-- 250〜500 を10きざみ。中身は js/monster.js で作る -->
+            <select id="simLife" data-change="sim:life"></select>
+          </div>
+          <div class="field">
             <label for="simMoral">ヨイワル</label>
             <!-- -100〜100 を5きざみ。中身は js/monster.js で作る -->
             <select id="simMoral" data-change="sim:moral"></select>
-          </div>
-          <div class="field">
-            <label for="simLife">寿命（週）</label>
-            <div class="sim-row" style="gap:4px;flex-wrap:nowrap">
-              <button type="button" class="stepper" data-action="sim:lifeStep" data-delta="-10"
-                      aria-label="寿命を10週減らす">−</button>
-              <input type="number" id="simLife" min="100" max="600" data-input="sim:life"
-                     style="width:100%;min-width:0">
-              <button type="button" class="stepper" data-action="sim:lifeStep" data-delta="10"
-                      aria-label="寿命を10週増やす">＋</button>
-            </div>
           </div>
         </div>
       </div>
 
       <div class="sim-section">
-        <div class="sim-section__title">ガッツ回復速度</div>
         <div class="sim-row">
-          <label for="gutsRecovery" class="note" style="white-space:nowrap">30ガッツ回復に</label>
+          <label for="gutsRecovery" style="white-space:nowrap">ガッツ回復</label>
           <select id="gutsRecovery" data-change="tracker:guts" style="width:70px;height:30px"></select>
-          <span class="note">秒</span>
         </div>
       </div>
 

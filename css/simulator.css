@@ -14,12 +14,7 @@
   margin-bottom: 10px;
 }
 
-/* --- 入力欄の並び（モンスタータブと共用） --- */
-.sim-grid3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
+/* --- 入力欄の並び --- */
 .sim-row {
   display: flex;
   align-items: center;
@@ -509,10 +504,4 @@
   flex: 1;
   padding: 10px;
   font-size: 14px;
-}
-
-@media (max-width: 400px) {
-  .sim-grid3 {
-    grid-template-columns: 1fr 1fr;
-  }
 }

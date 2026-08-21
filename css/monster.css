@@ -2,10 +2,24 @@
    モンスタータブ固有のスタイル
    -----------------------------------------------------------
    初期パラと適正、エサの好き嫌いの入力欄。
-   枠組み（.sim-section / .sim-grid3 / .sim-row / .field）は
+   枠組み（.sim-section / .sim-row / .field）は
    育成計算タブと共用なので css/simulator.css と css/components.css にある。
    .stat-bar は結果画面でも使うので css/components.css。
    =========================================================== */
+
+/* --- 成長設定 --- */
+/* 成長タイプ / 寿命 / ヨイワル を、狭い画面でも1行に収める。
+   幅は中身に合わせて振り分ける（ヨイワルは「+100（ヨイ）」まで出るので広め） */
+.spec-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 1.35fr);
+  gap: 6px;
+}
+.spec-grid select {
+  width: 100%;
+  min-width: 0;
+  padding: 0 2px;
+}
 
 /* --- 初期パラと適正 --- */
 .stat-row {
