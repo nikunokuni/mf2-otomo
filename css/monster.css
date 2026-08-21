@@ -1,36 +1,13 @@
 /* ===========================================================
    モンスタータブ固有のスタイル
    -----------------------------------------------------------
-   成長適正と初期パラメーターの入力欄。
+   初期パラと適正、エサの好き嫌いの入力欄。
    枠組み（.sim-section / .sim-grid3 / .sim-row / .field）は
    育成計算タブと共用なので css/simulator.css と css/components.css にある。
    .stat-bar は結果画面でも使うので css/components.css。
    =========================================================== */
 
-/* --- 成長適正 --- */
-.apt-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
-}
-.apt-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-}
-.apt-cell__label {
-  font-size: 11px;
-  text-align: center;
-  font-weight: 500;
-}
-.apt-cell select {
-  width: 100%;
-  padding: 0 4px;
-  text-align: center;
-}
-
-/* --- 初期パラメーター --- */
+/* --- 初期パラと適正 --- */
 .stat-row {
   display: flex;
   align-items: center;
@@ -45,6 +22,13 @@
 }
 .stat-row__input {
   width: 66px;
+}
+/* 成長適正。E〜Aの1文字だけなので、うんと細くてよい */
+.stat-row__apt {
+  flex: 0 0 auto;
+  width: 38px;
+  padding: 0 2px;
+  text-align: center;
 }
 
 /* --- エサの好き嫌い --- */
@@ -70,9 +54,6 @@
 }
 
 @media (max-width: 400px) {
-  .apt-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
   .feed-like-grid {
     grid-template-columns: 1fr;
   }

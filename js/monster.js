@@ -4,8 +4,8 @@
    そのモンスター1体について「ゲーム側で決まっている値」をまとめて置く場所。
    使い込みタブと育成計算タブは、ここに入れた値を読んで動く。
 
-     成長タイプ / ヨイワル / 寿命 / 成長適正 / 初期パラメーター … mon.sim
-     ガッツ回復速度                                              … mon.guts
+     成長タイプ / ヨイワル / 寿命 / 初期パラと適正 … mon.sim
+     ガッツ回復速度                              … mon.guts
 
    docs/roadmap.md ① の「派生種を選ぶと自動で埋まる」7項目は、
    ちょうどこの画面の中身と同じ。派生種の選択を足すならここになる。
@@ -47,27 +47,7 @@ function renderGuts(mon) {
   replace(el('gutsRecovery'), options);
 }
 
-/* ---------- 成長適正 ---------- */
-
-function renderApt(s) {
-  replace(
-    el('aptGrid'),
-    STATS.map((label, i) =>
-      h(
-        'div',
-        { class: 'apt-cell' },
-        h('span', { class: 'apt-cell__label', style: `color:${SC[i]}`, text: label }),
-        h(
-          'select',
-          { dataset: { change: 'sim:apt', key: SK[i] }, attrs: { 'aria-label': `${label}の成長適正` } },
-          APTITUDES.map((a) => h('option', { value: a, text: a, selected: s.apt[SK[i]] === a }))
-        )
-      )
-    )
-  );
-}
-
-/* ---------- 初期パラメーター ---------- */
+/* ---------- 初期パラと適正 ---------- */
 
 function renderInit(s) {
   replace(
@@ -103,28 +83,17 @@ function renderInit(s) {
           attrs: { 'aria-label': `${label}を10増やす` },
         }),
         h(
-          'div',
-          { class: 'stat-bar' },
-          h('div', {
-            class: 'stat-bar__fill',
-            id: `statBar-${key}`,
-            style: `background:${SC[i]};width:${statBarWidth(value)}%`,
-          })
+          'select',
+          {
+            class: 'stat-row__apt',
+            dataset: { change: 'sim:apt', key },
+            attrs: { 'aria-label': `${label}の成長適正` },
+          },
+          APTITUDES.map((a) => h('option', { value: a, text: a, selected: s.apt[key] === a }))
         )
       );
     })
   );
-}
-
-/** 999 を上限としたときの帯の長さ（%） */
-function statBarWidth(value) {
-  return Math.min(100, value / 9.99).toFixed(1);
-}
-
-function updateStatBar(key) {
-  const s = sim();
-  const bar = el(`statBar-${key}`);
-  if (bar && s) bar.style.width = statBarWidth(s.init[key] || 0) + '%';
 }
 
 /* ---------- エサの好き嫌い ---------- */
@@ -171,7 +140,6 @@ export function render() {
   replace(el('simMoral'), moralOptions(s.moral));
   el('simLife').value = s.life;
   renderGuts(mon);
-  renderApt(s);
   renderInit(s);
   renderFeedLike(mon);
 }
@@ -186,7 +154,6 @@ export const actions = {
     s.init[key] = clampInt((s.init[key] || 0) + Number(target.dataset.delta), 0, 999, 0);
     const input = document.querySelector(`input[data-input="sim:init"][data-key="${key}"]`);
     if (input) input.value = s.init[key];
-    updateStatBar(key);
     save();
   },
 
@@ -241,7 +208,6 @@ export const inputActions = {
     const s = sim();
     if (!s) return;
     s.init[target.dataset.key] = clampInt(target.value, 0, 999, 0);
-    updateStatBar(target.dataset.key);
     save();
   },
 

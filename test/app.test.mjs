@@ -31,7 +31,9 @@ ok(await page.locator('.monster-cell img').count()>0,'アイコンが遅延読�
 await page.click('.monster-cell[data-name="ピクシー"]');
 ok(await page.locator('#monsterSpec').isVisible(),'追加すると個体データが出る');
 ok((await page.locator('#specSpeciesLabel').textContent())==='ピクシー','個体データの見出しが種族名');
-ok((await page.locator('.apt-cell').count())===6,'成長適正は6つ');
+ok((await page.locator('.stat-row').count())===6,'初期パラと適正は6行');
+ok((await page.locator('.stat-row__apt').count())===6,'各行に成長適正の欄がある');
+ok((await page.locator('.stat-bar').count())===0,'右の帯は出さない');
 ok((await page.locator('#gutsRecovery option').count())===14,'ガッツ回復は6〜19の14通り');
 ok((await page.locator('#speciesChips .chip').count())===1,'種族チップが帯に出る');
 
@@ -132,13 +134,13 @@ ok(/^ラ\+\d+$/.test(lightGain),'軽トレの上昇値が出る: '+lightGain);
 // 適正を上げると上昇値も増える（モンスタータブで変えて戻ってくる）
 const before = Number(heavyGain.match(/力\+(\d+)/)[1]);
 await page.click('#tab-monster');
-await page.locator('.apt-cell select').nth(1).selectOption('A');  // ちから適正A
+await page.locator('.stat-row__apt').nth(1).selectOption('A');  // ちから適正A
 await page.click('#tab-simulator');
 const after = Number((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).match(/力\+(\d+)/)[1]);
 ok(after>before,`適正を上げると上昇値が増える: ${before}→${after}`);
 ok((await page.locator('#planApt .plan-apt__rank').allTextContents())[1]==='A','計画の上の小表示も追いかける');
 await page.click('#tab-monster');
-await page.locator('.apt-cell select').nth(1).selectOption('C');
+await page.locator('.stat-row__apt').nth(1).selectOption('C');
 await page.click('#tab-simulator');
 ok((await page.locator('.train-gain-legend').count())===0,'1文字表記の凡例は出さない');
 await page.locator('.plan-table tbody tr').first().locator('select').first().selectOption('-1');
