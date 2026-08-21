@@ -30,14 +30,12 @@ import { el, h, replace, clampInt } from './dom.js';
 
 const APTITUDES = ['E', 'D', 'C', 'B', 'A'];
 
-/** ヨイワルの選択肢。-100〜100 を5きざみ。両端と0だけ言葉を添える */
-const MORAL_LABELS = { '-100': 'ワル', 0: '普通', 100: 'ヨイ' };
+/** ヨイワルの選択肢。-100〜100 を5きざみ */
 function moralOptions(selected) {
   const list = [];
   for (let v = -100; v <= 100; v += MORAL_STEP) {
     const sign = v > 0 ? '+' : '';
-    const note = MORAL_LABELS[v] ? `（${MORAL_LABELS[v]}）` : '';
-    list.push(h('option', { value: String(v), text: `${sign}${v}${note}`, selected: v === selected }));
+    list.push(h('option', { value: String(v), text: `${sign}${v}`, selected: v === selected }));
   }
   return list;
 }

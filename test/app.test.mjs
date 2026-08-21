@@ -104,8 +104,10 @@ const moralValues = await page.locator('#simMoral option').evaluateAll(o=>o.map(
 ok(moralValues.length===41,'ヨイワルの選択肢は41個: '+moralValues.length);
 ok(moralValues[0]===-100 && moralValues[moralValues.length-1]===100,'両端が-100と100');
 ok(moralValues.every((v,i)=>i===0||v-moralValues[i-1]===5),'5きざみで並ぶ');
-ok((await page.locator('#simMoral').inputValue())==='0','はじめは0（普通）');
-ok((await page.locator('#simMoral option[value="0"]').textContent()).includes('普通'),'0には普通と書いてある');
+ok((await page.locator('#simMoral').inputValue())==='0','はじめは0');
+const moralTexts = await page.locator('#simMoral option').allTextContents();
+ok(moralTexts.every(t=>/^[+-]?\d+$/.test(t)),'ヨイワルは数字だけ: '+moralTexts.slice(0,3).join(',')+'…');
+ok(moralTexts[moralTexts.length-1]==='+100','プラス側には+が付く: '+moralTexts[moralTexts.length-1]);
 await page.selectOption('#simMoral','-35');
 
 console.log('— 育成計算タブ（D4: 2階層） —');

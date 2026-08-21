@@ -9,10 +9,10 @@
 
 /* --- 成長設定 --- */
 /* 成長タイプ / 寿命 / ヨイワル を、狭い画面でも1行に収める。
-   幅は中身に合わせて振り分ける（ヨイワルは「+100（ヨイ）」まで出るので広め） */
+   幅は中身に合わせて振り分ける（成長タイプだけ「早熟」などの2文字が入る） */
 .spec-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 1.35fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 6px;
 }
 .spec-grid select {
