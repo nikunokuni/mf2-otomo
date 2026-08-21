@@ -268,28 +268,6 @@ textarea {
   background: var(--color-accent);
 }
 
-/* --- 保存インジケータ --- */
-.save-indicator {
-  /* どのタブでも同じ位置に出したいので、流れから外して浮かせる。
-     タブバーと重ならないよう下端に置く */
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  z-index: 10;
-  padding: 3px 8px;
-  border-radius: 99px;
-  background: var(--color-background-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
-  font-size: 11px;
-  color: var(--color-ok);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-.save-indicator.is-shown {
-  opacity: 1;
-}
-
 /* --- 注意書き --- */
 .callout {
   border-radius: var(--border-radius-md);
@@ -297,10 +275,6 @@ textarea {
   font-size: 12px;
   line-height: 1.7;
   margin: 4px 0;
-}
-.callout--info {
-  background: var(--color-accent-bg);
-  color: var(--color-accent-strong);
 }
 .callout--warn {
   background: var(--color-ng-bg);

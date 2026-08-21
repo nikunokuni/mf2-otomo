@@ -179,10 +179,7 @@ function rotaBox() {
   if (!fixed.length && !state.rotas.length) {
     return box(
       'ローテ',
-      h('div', {
-        class: 'empty',
-        text: '育成計算タブの「調整ローテ」で「早見のローテに保存」を押すと、ここに入ります。',
-      })
+      h('div', { class: 'empty', text: '調整ローテの「早見のローテに保存」で、ここに入ります。' })
     );
   }
 
@@ -384,13 +381,6 @@ function backupBox() {
   return box(
     'データのバックアップ',
     [
-      h('p', {
-        class: 'note',
-        style: 'margin-bottom:10px',
-        text:
-          '記録はこの端末のブラウザに保存されています。機種変更のときや、' +
-          'しばらく使わずに消えてしまうのが心配なときは、書き出しておいてください。',
-      }),
       h(
         'div',
         { style: 'display:flex;gap:8px;flex-wrap:wrap' },

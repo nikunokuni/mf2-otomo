@@ -61,18 +61,6 @@ function updateTrainGain(g, si, idx, field, ti) {
   replace(node, gainItems(list));
 }
 
-/** 1文字表記の対応表。表の下に一度だけ出す */
-function gainLegend() {
-  return h(
-    'div',
-    { class: 'train-gain-legend' },
-    ...STATS.map((name, i) =>
-      h('span', { style: `color:${SC[i]}`, text: `${STAT_SHORT[i]}=${name}` })
-    ),
-    h('span', { class: 'note', text: '※ トレーニング1回ぶんの上昇値（軽トレは最大値）' })
-  );
-}
-
 function trainOptions(list, selected, noneLabel) {
   return [
     h('option', { value: '-1', text: noneLabel, selected: String(selected) === '-1' }),
@@ -290,9 +278,7 @@ function renderPeach(groups, starts) {
   });
 
   replace(el('peachArea'),
-    h('div', { class: 'peach__title', text: '🍑 桃システム（若返り）' }),
-    h('div', { class: 'callout callout--info',
-      text: '黄金桃+50週、白銀桃+25週。選んだ段階の開始時点まで若返り、そこから週数ぶんの段階をもう一度計算します。' }),
+    h('div', { class: 'peach__title', text: '🍑 桃システム' }),
     ...blocks
   );
 }
@@ -300,11 +286,8 @@ function renderPeach(groups, starts) {
 function renderWarnings() {
   const s = sim();
   const warnings = validatePlan(s);
-  replace(el('planWarnings'),
-    warnings.length
-      ? warnings.map((w) => h('div', { class: 'callout callout--warn', text: '⚠ ' + w }))
-      : h('div', { class: 'callout callout--ok', text: '✔ 全段階のスケジュールに問題なし' })
-  );
+  // 問題があるときだけ出す
+  replace(el('planWarnings'), warnings.map((w) => h('div', { class: 'callout callout--warn', text: '⚠ ' + w })));
 }
 
 /**
@@ -324,8 +307,7 @@ function renderPlanApt() {
         h('span', { class: 'plan-apt__label', style: `color:${SC[i]}`, text: STAT_SHORT[i] }),
         h('span', { class: 'plan-apt__rank', text: s.apt[SK[i]] })
       )
-    ),
-    h('span', { class: 'plan-apt__note', text: '（変えるのはモンスタータブ）' })
+    )
   );
 }
 
@@ -338,7 +320,7 @@ export function renderPlan() {
   normalizePlan(s); // B5: 寿命や成長タイプを変えたら週数を計算し直す
   const groups = stageWeeksByGroup(s);
   const starts = stageStartOffsets(s);
-  replace(el('planArea'), planTable(0, groups[0], starts[0]), gainLegend());
+  replace(el('planArea'), planTable(0, groups[0], starts[0]));
   renderPeach(groups, starts);
   renderWarnings();
   save();

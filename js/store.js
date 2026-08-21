@@ -345,17 +345,9 @@ export function load() {
 
 /* ---------- 保存 ---------- */
 
-let saveListener = null;
-
-/** 保存されたときに呼ばれるコールバックを登録する（保存インジケータ用） */
-export function onSave(fn) {
-  saveListener = fn;
-}
-
 export function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    if (saveListener) saveListener();
   } catch (e) {
     console.warn('保存に失敗しました:', e);
   }

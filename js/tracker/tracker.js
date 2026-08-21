@@ -99,7 +99,7 @@ function renderTechTable() {
         {},
         h('td', {
           class: 'empty',
-          text: 'この種族に使い込みで進化する技はありません（育成計算タブは使えます）',
+          text: 'この種族に使い込みで進化する技はありません',
           attrs: { colspan: 6 },
         })
       )
@@ -194,13 +194,6 @@ function renderTechTable() {
   replace(body, rows);
 }
 
-/** 理想回数の前提になっているガッツ回復速度を、表の下に一言そえる */
-function renderGutsHint() {
-  const mon = currentMon();
-  el('gutsHint').textContent =
-    `理想回数はガッツ回復 ${mon.guts || 15}秒/30ガッツ で計算しています（変えるのはモンスタータブ）`;
-}
-
 function renderSessionControls() {
   const mon = currentMon();
   const box = el('sessionControls');
@@ -291,7 +284,6 @@ export function render() {
 
   el('memo').value = mon.memo || '';
 
-  renderGutsHint();
   renderTechTable();
   renderSessionControls();
   renderLog();

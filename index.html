@@ -24,9 +24,6 @@
 </head>
 <body>
 
-<!-- 保存の合図。どのタブでも同じ位置に浮かせる -->
-<span id="saveIndicator" class="save-indicator">✓ 保存済み</span>
-
 <div class="app">
 
   <!-- ===== 上位タブ ===== -->
@@ -105,7 +102,6 @@
             </div>
           </div>
         </div>
-        <div class="note" style="margin-top:6px">※ ヨイワルは記録用です。現在の計算結果には反映されません。</div>
       </div>
 
       <div class="sim-section">
@@ -113,7 +109,7 @@
         <div class="sim-row">
           <label for="gutsRecovery" class="note" style="white-space:nowrap">30ガッツ回復に</label>
           <select id="gutsRecovery" data-change="tracker:guts" style="width:70px;height:30px"></select>
-          <span class="note">秒（使い込みタブの理想回数に使う）</span>
+          <span class="note">秒</span>
         </div>
       </div>
 
@@ -129,9 +125,6 @@
 
       <div class="sim-section">
         <div class="sim-section__title">エサの好き嫌い</div>
-        <div class="note" style="margin-bottom:8px">
-          エサの効き方が変わります。調整ローテの「毎月のエサ」で使います。
-        </div>
         <div class="feed-like-grid" id="feedLikeGrid"></div>
       </div>
     </div>
@@ -179,7 +172,6 @@
             <tbody id="techBody"></tbody>
           </table>
         </div>
-        <div id="gutsHint" class="note" style="margin-top:6px"></div>
 
         <div id="sessionControls" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"></div>
       </div>
@@ -192,7 +184,7 @@
       <div class="card">
         <div class="section-head">メモ</div>
         <textarea id="memo" data-input="tracker:memo" style="min-height:100px"
-          placeholder="自由にメモできます。&#10;※「理想外れ」とは、技を全部外して、GDを受けず制限時間ギリギリまで使えた時の最大の使い込み回数です"></textarea>
+          placeholder="自由にメモできます"></textarea>
       </div>
     </div>
   </div>
@@ -245,14 +237,6 @@
                （書き換えるのはモンスタータブ） -->
           <div id="planApt" class="plan-apt"></div>
 
-          <div class="callout callout--info">
-            重トレの回数を入れると、軽トレは自動で「4 − 重トレ」になります。<br>
-            イベントとアイテムで減る寿命は割当週から差し引いて計算します。
-            割当週を超えたぶんは、次の段階の週数から引きます。<br>
-            割当週の下の「トレ○週」が、実際にトレーニングに使える週数です。<br>
-            段階の週数の下は、その段階が始まる時期です。大会は寿命-4なのに1週しか進まないなど、
-            寿命の減りと進む週数の違いも織り込んでいます（アイテムは寿命だけ進めて週は進みません）。
-          </div>
           <div id="planWarnings" style="margin:6px 0"></div>
           <div id="planArea"></div>
           <div class="peach" id="peachArea"></div>

@@ -4,7 +4,7 @@
    各モジュールの操作を1か所に集めて登録し、最初の描画を行う。
    =========================================================== */
 
-import { load, onSave, state, exportJSON, importJSON } from './store.js';
+import { load, state, exportJSON, importJSON } from './store.js';
 import { el, registerActions, startActionDelegation } from './dom.js';
 import * as tabs from './tabs.js';
 import * as species from './species.js';
@@ -13,17 +13,6 @@ import * as tracker from './tracker/tracker.js';
 import * as simulator from './simulator/simulator.js';
 import * as rotation from './simulator/rotation.js';
 import * as reference from './reference/reference.js';
-
-/* ---------- 保存インジケータ ---------- */
-
-let indicatorTimer = null;
-onSave(() => {
-  const node = el('saveIndicator');
-  if (!node) return;
-  node.classList.add('is-shown');
-  clearTimeout(indicatorTimer);
-  indicatorTimer = setTimeout(() => node.classList.remove('is-shown'), 1500);
-});
 
 /* ---------- バックアップ（画面は早見タブの箱） ---------- */
 

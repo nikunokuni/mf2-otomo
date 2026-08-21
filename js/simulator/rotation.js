@@ -35,7 +35,7 @@
 import { INNER, ITEMS } from '../data/items.js';
 import { FEEDS, LIKING_LABEL, feedEffect } from '../data/feeds.js';
 import { HEAVY4, LIGHT6, STAGES, SKEYS } from '../data/growth.js';
-import { TOURNAMENT, ADVENTURE_WEEKS, TRAINING_CAMP_WEEKS } from '../data/acts.js';
+import { TOURNAMENT } from '../data/acts.js';
 import { save, currentMon, state, defaultRota, addSavedRota } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import { moralRange } from './inner-calc.js';
@@ -178,7 +178,7 @@ function startSection() {
         dataset: { input: 'rota:jugs' },
         attrs: { 'aria-label': `${JUG_NAME}の所持数` },
       }),
-      h('span', { class: 'note', text: '個（月初めに、持っている数だけ重なって効く）' })
+      h('span', { class: 'note', text: '個' })
     ),
     h(
       'div',
@@ -192,16 +192,8 @@ function startSection() {
           attrs: { 'aria-label': '成長段階' },
         },
         options(STAGES.map((label, i) => [SKEYS[i], label]), mon.rota.stage)
-      ),
-      h('span', { class: 'note', text: '（休養の効き方が変わります）' })
-    ),
-    h('div', {
-      class: 'note',
-      style: 'margin-top:6px',
-      text:
-        `ヨイワルは、モンスタータブの初期ヨイワル（${mon.sim.moral}）から` +
-        '±100までしか動かないので、範囲がせまくなることがあります。',
-    })
+      )
+    )
   );
 }
 
@@ -228,7 +220,7 @@ function feedSection() {
   return h(
     'div',
     { class: 'sim-section' },
-    h('div', { class: 'sim-section__title', text: 'エサの効き方（このモンスターの好き嫌いを当てはめたもの）' }),
+    h('div', { class: 'sim-section__title', text: 'エサの効き方' }),
     h(
       'div',
       { class: 'scroll-x' },
@@ -248,12 +240,7 @@ function feedSection() {
         ),
         h('tbody', {}, ...rows)
       )
-    ),
-    h('div', {
-      class: 'note',
-      style: 'margin-top:6px',
-      text: '好き嫌いを変えるのはモンスタータブです。体型と買値は好き嫌いで変わりません。',
-    })
+    )
   );
 }
 
@@ -486,19 +473,7 @@ function planSection() {
     'div',
     { class: 'sim-section' },
     h('div', { class: 'sim-section__title', text: '毎週のアイテムと行動 / 毎月のエサ' }),
-    h('div', { class: 'callout callout--info' },
-      h('div', { text: '月初め（第1週）は、エサ → 双子の水差し の順に効いてから、その週のアイテムと行動です。' }),
-      h('div', { text: '1週ぶん入れると、その下に次の週の欄が出てきます。' }),
-      h('div', { text: '体調値＝疲労＋ストレス×2。体調値が69以下なら、寿命は週経過ぶん（-1）だけ減ります。' }),
-      h('div', { text: '寿命は「週経過ぶん ＋ 追加ぶん」で減ります。追加ぶんは体調値ぶんとイベントぶんの両方です。大会は出場で-3、大会後の疲労が70を越えるとその倍の-6。冒険は-2。修行そのものの追加はありません。' }),
-      h('div', { text: `修行と冒険は${TRAINING_CAMP_WEEKS}週まとめて出かけます。出かける週にはエサが間に合いますが（冒険はアイテムだけ使えません）、2〜4週目はエサもアイテムもありません。` }),
-      h('div', { text: `修行は疲労とストレスが毎週たまり、寿命は4週まとめて1回、終わった時点の体調値で数えます。冒険は出ているあいだ何も起きず、体調値も出さず、この4週ぶんの週経過は寿命に数えません。疲労+70 は帰ってきた週にまとめて乗ります。` })
-    ),
     weekTable(),
-    h('div', { class: 'rota-legend' },
-      h('span', { text: '各週の下の帯は、その週が終わった時点の値' }),
-      ...TRACK_KEYS.map(([key, short]) => h('span', { text: `${short}=${INNER[key].label}` }))
-    ),
     h('div', { class: 'rota-total' },
       h('span', { text: `組んだ週数 ${planned}週` }),
       h('span', { text: `月の数 ${monthCount(Math.max(1, planned))}か月` }),
@@ -510,7 +485,7 @@ function planSection() {
       h('span', { text: `アイテムで進む寿命 ${totalAgePlus(r.weeks)}週` }),
       h('span', { text: `エサ代 ${totalFeedPrice(r.feeds, planned)}G` }),
       adventureWeeks(rows.slice(0, planned))
-        ? h('span', { text: `うち冒険 ${adventureWeeks(rows.slice(0, planned))}週（週経過を数えない）` })
+        ? h('span', { text: `うち冒険 ${adventureWeeks(rows.slice(0, planned))}週` })
         : null
     )
   );
@@ -558,12 +533,6 @@ function snapshot(rows) {
   };
 }
 
-/** ボタンの下に出す一言。次に描き直すまで残る */
-function message(text) {
-  const node = el('rotaSaveMsg');
-  if (node) node.textContent = text;
-}
-
 function actionSection() {
   return h(
     'div',
@@ -583,16 +552,7 @@ function actionSection() {
         text: 'リセット',
         dataset: { action: 'rota:reset' },
       })
-    ),
-    h('div', { class: 'note', id: 'rotaSaveMsg' }),
-    h('div', {
-      class: 'note',
-      style: 'margin-top:4px',
-      text:
-        '保存すると、エサ・アイテム・行動と、最初と最後の内部数値、減る寿命の合計を' +
-        '早見タブの「ローテ」に残します。' +
-        'リセットは、この画面に入れたものを全部はじめの状態に戻します。',
-    })
+    )
   );
 }
 
@@ -617,14 +577,10 @@ export const actions = {
   'rota:save': () => {
     const r = rota();
     if (!r) return;
+    // 1週も入っていないなら、写すものが無いので何もしない
     const planned = plannedCount();
-    if (!planned) {
-      message('まだ何も入っていません。アイテムか行動を入れてから保存してください。');
-      return;
-    }
-    const rows = currentRows().slice(0, planned);
-    addSavedRota(snapshot(rows));
-    message(`早見タブの「ローテ」に保存しました（${planned}週ぶん）`);
+    if (!planned) return;
+    addSavedRota(snapshot(currentRows().slice(0, planned)));
   },
 
   // この画面に入れたものを全部はじめの状態に戻す

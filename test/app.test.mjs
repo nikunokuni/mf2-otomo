@@ -50,13 +50,11 @@ ok((await page.locator('#techBody tr').count())===2,'表に2行');
 console.log('— 理想回数（ガッツ回復はモンスタータブ） —');
 const ideal = await page.locator('#techBody tr').nth(0).locator('.ideal-hit').textContent();
 ok(Number(ideal)>0, '理想命中が数値で出る');
-ok((await page.locator('#gutsHint').textContent()).includes('15秒'),'いまのガッツ回復を表の下に出す');
 await page.click('#tab-monster');
 await page.selectOption('#gutsRecovery','6');
 await page.click('#tab-tracker');
 const ideal6 = await page.locator('#techBody tr').nth(0).locator('.ideal-hit').textContent();
 ok(Number(ideal6)>=Number(ideal),'ガッツ回復を速くすると回数が増える(または同等)');
-ok((await page.locator('#gutsHint').textContent()).includes('6秒'),'表の下の表示も追いかける');
 await page.click('#tab-monster');
 await page.selectOption('#gutsRecovery','15');
 await page.click('#tab-tracker');
@@ -105,7 +103,7 @@ const badge = await page.locator('.plan-table .stage-weeks').first().textContent
 ok(/^\d+\/\d+週$/.test(badge),'使用週/総週バッジ: '+badge);
 const [used,total] = badge.match(/(\d+)\/(\d+)/).slice(1).map(Number);
 ok(used===total,'B5: 寿命変更後も週数が総週数に一致 ('+badge+')');
-ok((await page.locator('#planWarnings').textContent()).includes('問題なし'),'警告なし');
+ok((await page.locator('#planWarnings').textContent()).trim()==='','問題が無ければ何も出さない');
 
 console.log('— 成長適正の小表示（計画を組みながら見える） —');
 ok((await page.locator('#planApt .plan-apt__cell').count())===6,'計画の上に適正6つが出る');
@@ -142,7 +140,7 @@ ok((await page.locator('#planApt .plan-apt__rank').allTextContents())[1]==='A','
 await page.click('#tab-monster');
 await page.locator('.apt-cell select').nth(1).selectOption('C');
 await page.click('#tab-simulator');
-ok((await page.locator('.train-gain-legend').count())===1,'凡例は表の下に1つだけ');
+ok((await page.locator('.train-gain-legend').count())===0,'1文字表記の凡例は出さない');
 await page.locator('.plan-table tbody tr').first().locator('select').first().selectOption('-1');
 ok((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).trim()==='','「なし」なら上昇値は出ない');
 await page.locator('.plan-table tbody tr').first().locator('select').first().selectOption('0');
@@ -262,7 +260,7 @@ await page.click('#tab-monster');
 await page.selectOption('#simMoral','-35');
 await page.click('#tab-simulator');
 await page.click('#subtab-rotation');
-ok((await page.locator('#rotationArea').textContent()).includes('体調値'),'体調値の説明が出る');
+ok((await page.locator('#rotationArea .callout').count())===0,'調整ローテに案内枠は出さない');
 
 console.log('— エサ —');
 const feedRows = page.locator('.feed-table tbody tr');
@@ -455,8 +453,6 @@ const startBefore = await page.locator('.rota-start-grid input').evaluateAll(ns=
 const endBefore = (await page.locator('.rota-table__values').nth(3).locator('.rota-vals__num').allTextContents()).slice(0,6);
 const lifeBefore = (await page.locator('#rotaLifeTotal').textContent()).trim();
 await page.click('[data-action="rota:save"]');
-ok((await page.locator('#rotaSaveMsg').textContent()).includes('保存しました'),
-   '保存すると知らせが出る: '+(await page.locator('#rotaSaveMsg').textContent()));
 await page.click('#tab-reference');
 ok((await page.locator('.ref-rota').count())===1,'早見のローテに1件入る');
 ok((await page.locator('.ref-rota__name').textContent())==='ピクシー（4週）',
