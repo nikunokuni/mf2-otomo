@@ -7,7 +7,7 @@
    ★ファイルを増やしたら ASSETS に足して、CACHE_VERSION を上げること★
    =========================================================== */
 
-const CACHE_VERSION = 'monfar-v10';
+const CACHE_VERSION = 'monfar-v11';
 
 const ASSETS = [
   './',

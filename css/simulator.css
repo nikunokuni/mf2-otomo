@@ -159,6 +159,14 @@
   color: var(--color-ng);
 }
 
+/* --- 調整ローテ：保存とリセット --- */
+.rota-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
 /* --- 調整ローテ：エサの効き方（読むだけ） --- */
 .feed-table {
   font-size: 12px;

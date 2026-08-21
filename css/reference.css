@@ -71,6 +71,78 @@
   color: var(--color-text-secondary);
 }
 
+/* --- ローテ（調整ローテから保存したぶん） --- */
+.ref-rota {
+  border: var(--hairline) solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  margin-bottom: 8px;
+}
+.ref-rota:last-child {
+  margin-bottom: 0;
+}
+
+/* たたんだときの見出し。押すと中身が開く */
+.ref-rota__head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+/* display:flex にすると既定の三角が消えるので、自前で出す */
+.ref-rota__head::-webkit-details-marker {
+  display: none;
+}
+.ref-rota__head::before {
+  content: '▶';
+  font-size: 9px;
+  color: var(--color-text-tertiary);
+}
+.ref-rota[open] > .ref-rota__head::before {
+  content: '▼';
+}
+.ref-rota__name {
+  font-weight: 600;
+}
+.ref-rota__date {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.ref-rota__body {
+  padding: 0 8px 8px;
+  border-top: var(--hairline) solid var(--color-border-tertiary);
+}
+
+/* 最初の状態 / 最後の状態。内部数値を全部並べるので折り返す */
+.ref-rota__state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+.ref-rota__state-label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ref-rota__state-vals {
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ref-rota__del {
+  margin-top: 8px;
+}
+
+/* 週の行は、右に入りきらないぶんが次の行へ回るので左寄せにする */
+.ref-rota__body .ref-row__detail {
+  text-align: left;
+}
+
 /* --- 再生メモ --- */
 .ref-note {
   border: var(--hairline) solid var(--color-border-tertiary);

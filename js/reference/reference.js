@@ -5,7 +5,11 @@
    ここの箱はどれも state.current を見ない（＝種族を切り替えても変わらない）。
    だから種族チップの帯も、このタブでは隠している（js/tabs.js）。
 
-   ・ローテ / 合体素材 … アプリ側のデータを表示する。
+   ・ローテ … 調整ローテ（育成計算タブ）で「早見のローテに保存」を押したぶんが並ぶ。
+     エサ・アイテム・行動と、最初と最後の内部数値を写したもの（state.rotas）で、
+     写したあとは動かない。アプリ側であらかじめ入れておくぶんは
+     js/data/reference-data.js の ROTATION に書く。
+   ・合体素材 … アプリ側のデータを表示する。
      中身は js/data/reference-data.js に書く。
    ・アイテム … アプリに収録したぶん（js/data/items.js。読むだけ）のうしろに、
      自分で足したぶん（state.items）を並べる。足す・直す・消すのもここでやる。
@@ -21,7 +25,7 @@
    =========================================================== */
 
 import { ROTATION, COMBI, LINKS } from '../data/reference-data.js';
-import { ITEMS } from '../data/items.js';
+import { ITEMS, INNER } from '../data/items.js';
 import {
   state,
   addNote,
@@ -32,6 +36,7 @@ import {
   addItem,
   updateItem,
   removeItem,
+  removeSavedRota,
 } from '../store.js';
 import { el, h, replace } from '../dom.js';
 
@@ -47,7 +52,7 @@ function box(title, body, headExtra = null, extraClass = '') {
   );
 }
 
-/* ---------- アプリ側で表示する2つ（ローテ / 合体素材） ---------- */
+/* ---------- アプリ側で表示するぶん（合体素材） ---------- */
 
 function dataBox(title, rows) {
   if (!rows.length) {
@@ -64,6 +69,113 @@ function dataBox(title, rows) {
       )
     )
   );
+}
+
+/* ---------- ローテ ---------- */
+
+/**
+ * 状態（内部数値）に出す順。ここに無いキーも写っていれば後ろに続けて出す。
+ * 「状態」は内部数値全部なので、キーを増やしても落とさない。
+ */
+const STATE_ORDER = ['form', 'moral', 'stress', 'fatigue', 'fear', 'spoil', 'fame'];
+
+/** 保存した日時を「2026/08/21 14:30」の形にする。読めない値なら空文字 */
+function savedAtText(iso) {
+  const d = new Date(iso);
+  if (!iso || Number.isNaN(d.getTime())) return '';
+  const p2 = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${p2(d.getMonth() + 1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+}
+
+/** 最初の状態 / 最後の状態の1行。内部数値をラベルつきで並べる */
+function stateRow(label, values) {
+  const keys = STATE_ORDER.filter((k) => values[k] !== undefined).concat(
+    Object.keys(values).filter((k) => !STATE_ORDER.includes(k))
+  );
+  const text = keys
+    .map((k) => `${INNER[k] ? INNER[k].label : k} ${values[k]}`)
+    .join(' / ');
+  return h(
+    'div',
+    { class: 'ref-rota__state' },
+    h('span', { class: 'ref-rota__state-label', text: label }),
+    h('span', { class: 'ref-rota__state-vals', text: text || '—' })
+  );
+}
+
+/** 1週ぶん。エサ・アイテム・行動を、入っているものだけ並べる */
+function savedWeekRow(week) {
+  const parts = [];
+  if (week.feed) parts.push(`エサ:${week.feed}`);
+  if (week.item) parts.push(`アイテム:${week.item}`);
+  if (week.act) parts.push(week.act);
+  return h(
+    'div',
+    { class: 'ref-row' },
+    h('span', { class: 'ref-row__name', text: week.label }),
+    h('span', { class: 'ref-row__detail', text: parts.length ? parts.join(' / ') : 'なし' })
+  );
+}
+
+/**
+ * 保存した調整ローテ1件ぶん。
+ * 週数がまちまちなので、たたんでおいて押したときだけ中身を出す。
+ */
+function savedRotaCard(saved) {
+  const stamp = savedAtText(saved.savedAt);
+  return h(
+    'details',
+    { class: 'ref-rota' },
+    h(
+      'summary',
+      { class: 'ref-rota__head' },
+      h('span', {
+        class: 'ref-rota__name',
+        text: `${saved.species || '調整ローテ'}（${saved.weeks.length}週）`,
+      }),
+      stamp ? h('span', { class: 'ref-rota__date', text: stamp }) : null
+    ),
+    h(
+      'div',
+      { class: 'ref-rota__body' },
+      stateRow('最初の状態', saved.start),
+      ...saved.weeks.map(savedWeekRow),
+      stateRow('最後の状態', saved.end),
+      h('button', {
+        type: 'button',
+        class: 'btn btn--sm btn--ng ref-rota__del',
+        text: 'このローテを削除',
+        dataset: { action: 'ref:delRota', id: saved.id },
+      })
+    )
+  );
+}
+
+/**
+ * ローテの箱。アプリ側で入れてあるぶん（ROTATION）のうしろに、
+ * 調整ローテから保存したぶんを新しい順に並べる。
+ */
+function rotaBox() {
+  const fixed = ROTATION.map((row) =>
+    h(
+      'div',
+      { class: 'ref-row' },
+      h('span', { class: 'ref-row__name', text: row.name }),
+      row.detail ? h('span', { class: 'ref-row__detail', text: row.detail }) : null
+    )
+  );
+
+  if (!fixed.length && !state.rotas.length) {
+    return box(
+      'ローテ',
+      h('div', {
+        class: 'empty',
+        text: '育成計算タブの「調整ローテ」で「早見のローテに保存」を押すと、ここに入ります。',
+      })
+    );
+  }
+
+  return box('ローテ', [...fixed, ...state.rotas.map(savedRotaCard)]);
 }
 
 /* ---------- アイテム ---------- */
@@ -307,7 +419,7 @@ export function render() {
     h(
       'div',
       { class: 'ref-grid' },
-      dataBox('ローテ', ROTATION),
+      rotaBox(),
       itemsBox(),
       dataBox('合体素材', COMBI),
       notesBox(),
@@ -329,6 +441,12 @@ export const actions = {
   'ref:delNote': (target) => {
     if (!confirm('このメモを削除します。よろしいですか？')) return;
     removeNote(target.dataset.id);
+    render();
+  },
+
+  'ref:delRota': (target) => {
+    if (!confirm('保存したこのローテを削除します。よろしいですか？')) return;
+    removeSavedRota(target.dataset.id);
     render();
   },
 

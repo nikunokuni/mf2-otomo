@@ -84,6 +84,7 @@ function start() {
     ...monster.actions,
     ...tracker.actions,
     ...simulator.actions,
+    ...rotation.actions,
     ...reference.actions,
     ...backupActions,
   });

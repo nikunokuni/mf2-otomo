@@ -20,6 +20,11 @@
    出かける週にはエサが間に合う（冒険はアイテムだけ使えない）。
    2〜4週目はエサもアイテムも無し。帰ってきた週からはふつうに戻る。
 
+   いちばん下に「早見のローテに保存」と「リセット」を置いてある。
+   保存すると、組んだ内容（エサ・アイテム・行動と、最初と最後の内部数値）を
+   写して早見タブの「ローテ」に並べる（state.rotas）。写したあとは動かない。
+   リセットは、この画面に入れたものを全部 defaultRota() に戻す。
+
    アイテムの効果そのものを思い出したいときは早見タブを見る
    （ユーザーは効果を覚えている前提なので、この画面には出さない）。
 
@@ -30,7 +35,7 @@ import { INNER, ITEMS } from '../data/items.js';
 import { FEEDS, LIKING_LABEL, feedEffect } from '../data/feeds.js';
 import { HEAVY4, LIGHT6, STAGES, SKEYS } from '../data/growth.js';
 import { TOURNAMENT, ADVENTURE_WEEKS, TRAINING_CAMP_WEEKS } from '../data/acts.js';
-import { save, currentMon, state } from '../store.js';
+import { save, currentMon, state, defaultRota, addSavedRota } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import { moralRange } from './inner-calc.js';
 import {
@@ -510,6 +515,83 @@ function planSection() {
   );
 }
 
+/* ---------- 保存とリセット ---------- */
+
+/** 行動のキー → 画面に出している文言（保存したぶんは文言のまま残す） */
+const ACT_LABEL = Object.fromEntries(ACTS);
+
+/**
+ * いま入っている開始時点の内部数値。
+ * 画面と同じように範囲へ収めてから返す（範囲の外の値を写さないため）。
+ */
+function startValues() {
+  const r = rota();
+  const out = {};
+  START_KEYS.forEach((key) => {
+    const [min, max] = rangeOf(key);
+    out[key] = clampInt(r.start[key], min, max, min);
+  });
+  return out;
+}
+
+/**
+ * いまの調整ローテを、早見タブに残す形へ写す。
+ * 残すのは「エサ・アイテム・行動」と「最初の状態・最後の状態」（内部数値全部）。
+ * 写したあとは計算し直さないので、あとで調整ローテを組み替えても動かない。
+ */
+function snapshot(rows) {
+  const last = rows[rows.length - 1];
+  return {
+    species: state.current,
+    savedAt: new Date().toISOString(),
+    start: startValues(),
+    end: { ...last.values },
+    weeks: rows.map((row) => ({
+      label: weekLabel(row.weekIdx),
+      feed: row.feed,
+      item: row.item,
+      act: ACT_LABEL[row.act] || '',
+    })),
+  };
+}
+
+/** ボタンの下に出す一言。次に描き直すまで残る */
+function message(text) {
+  const node = el('rotaSaveMsg');
+  if (node) node.textContent = text;
+}
+
+function actionSection() {
+  return h(
+    'div',
+    { class: 'sim-section' },
+    h(
+      'div',
+      { class: 'rota-actions' },
+      h('button', {
+        type: 'button',
+        class: 'btn btn--primary',
+        text: '早見のローテに保存',
+        dataset: { action: 'rota:save' },
+      }),
+      h('button', {
+        type: 'button',
+        class: 'btn btn--ng',
+        text: 'リセット',
+        dataset: { action: 'rota:reset' },
+      })
+    ),
+    h('div', { class: 'note', id: 'rotaSaveMsg' }),
+    h('div', {
+      class: 'note',
+      style: 'margin-top:4px',
+      text:
+        '保存すると、エサ・アイテム・行動と、最初と最後の内部数値を早見タブの「ローテ」に残します。' +
+        'リセットは、この画面に入れたものを全部はじめの状態に戻します。',
+    })
+  );
+}
+
 /* ---------- 描画 ---------- */
 
 export function render() {
@@ -521,10 +603,39 @@ export function render() {
     return;
   }
   normalizeWeeks(r);
-  replace(area, startSection(), feedSection(), planSection());
+  replace(area, startSection(), feedSection(), planSection(), actionSection());
 }
 
 /* ---------- 操作 ---------- */
+
+export const actions = {
+  // 組んだ内容を写して、早見タブの「ローテ」に並べる
+  'rota:save': () => {
+    const r = rota();
+    if (!r) return;
+    const planned = plannedCount();
+    if (!planned) {
+      message('まだ何も入っていません。アイテムか行動を入れてから保存してください。');
+      return;
+    }
+    const rows = currentRows().slice(0, planned);
+    addSavedRota(snapshot(rows));
+    message(`早見タブの「ローテ」に保存しました（${planned}週ぶん）`);
+  },
+
+  // この画面に入れたものを全部はじめの状態に戻す
+  'rota:reset': () => {
+    const mon = currentMon();
+    if (!mon) return;
+    if (!confirm(`${state.current} の調整ローテに入れたものを、すべて消してはじめの状態に戻しますか？`)) {
+      return;
+    }
+    // defaultRota() を作り直して丸ごと差し替える（戻し忘れが起きない）
+    mon.rota = defaultRota();
+    save();
+    render();
+  },
+};
 
 export const changeActions = {
   'rota:week': (target) => {

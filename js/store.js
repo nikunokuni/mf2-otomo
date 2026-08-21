@@ -123,6 +123,27 @@ export function defaultItem() {
   return { id: newItemId(), name: '', effect: '' };
 }
 
+/**
+ * 保存した調整ローテ1件ぶんの初期値（早見タブの「ローテ」に出る）。
+ * 調整ローテそのもの（mon.rota）は種族ごとだが、保存したぶんは
+ * 早見タブに並ぶので種族に関係なく全体で1つ持つ。中身は写した時点のまま動かない。
+ *   species 写したときの種族名
+ *   savedAt 写した日時（ISO文字列）
+ *   weeks   [{ label, feed, item, act }]（act は画面に出ていた文言のまま）
+ *   start   最初の状態（内部数値全部）
+ *   end     最後の状態（内部数値全部）
+ */
+export function defaultSavedRota() {
+  return {
+    id: newRotaId(),
+    species: '',
+    savedAt: '',
+    weeks: [],
+    start: {},
+    end: {},
+  };
+}
+
 function defaultState() {
   return {
     v: 1,
@@ -133,6 +154,8 @@ function defaultState() {
     notes: [],
     links: [],
     items: [],
+    // 調整ローテから保存したぶん（早見タブの「ローテ」に出る）
+    rotas: [],
   };
 }
 
@@ -152,6 +175,12 @@ let itemSeq = 0;
 function newItemId() {
   itemSeq += 1;
   return `i${Date.now().toString(36)}${itemSeq}`;
+}
+
+let rotaSeq = 0;
+function newRotaId() {
+  rotaSeq += 1;
+  return `r${Date.now().toString(36)}${rotaSeq}`;
 }
 
 /**
@@ -238,6 +267,18 @@ function normalize(loaded) {
   s.items = (Array.isArray(s.items) ? s.items : []).map((i) =>
     Object.assign(defaultItem(), i && typeof i === 'object' ? i : {})
   );
+  s.rotas = (Array.isArray(s.rotas) ? s.rotas : []).map((r) => {
+    const saved = Object.assign(defaultSavedRota(), r && typeof r === 'object' ? r : {});
+    saved.weeks = (Array.isArray(saved.weeks) ? saved.weeks : []).map((w) => ({
+      label: String((w && w.label) || ''),
+      feed: String((w && w.feed) || ''),
+      item: String((w && w.item) || ''),
+      act: String((w && w.act) || ''),
+    }));
+    saved.start = Object.assign({}, saved.start || {});
+    saved.end = Object.assign({}, saved.end || {});
+    return saved;
+  });
   // 開けない URL（javascript: など）は読み込み時点で落とす
   s.links = (Array.isArray(s.links) ? s.links : [])
     .map((l) => Object.assign(defaultLink(), l && typeof l === 'object' ? l : {}))
@@ -395,6 +436,24 @@ export function updateItem(id, field, value) {
 
 export function removeItem(id) {
   state.items = state.items.filter((i) => i.id !== id);
+  save();
+}
+
+/* ---------- 保存した調整ローテ（早見タブの「ローテ」） ---------- */
+
+/**
+ * 調整ローテを写して残す。新しいものが上に来るように先頭へ足す。
+ * 渡された中身はそのまま覚えるだけで、あとから計算し直したりはしない。
+ */
+export function addSavedRota(entry) {
+  const saved = Object.assign(defaultSavedRota(), entry || {});
+  state.rotas.unshift(saved);
+  save();
+  return saved;
+}
+
+export function removeSavedRota(id) {
+  state.rotas = state.rotas.filter((r) => r.id !== id);
   save();
 }
 

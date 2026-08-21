@@ -446,6 +446,69 @@ ok((await page.locator('.rota-table__inputs').count())===5,'週の入力が保�
 ok((await page.locator('#rotaJugs').inputValue())==='3','双子の水差しの数が保存されている');
 ok((await page.locator('#rotaStage').inputValue())==='s1','成長段階が保存されている');
 ok((await page.locator('[aria-label="1か月目 第3週の行動"]').inputValue())==='tc:win','行動が保存されている');
+console.log('— 早見のローテに保存 —');
+// エサとアイテムも入れた状態で写す
+await page.locator('[aria-label="1か月目のエサ"]').selectOption('ニクもどき');
+await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOption('カララギマンゴー');
+// 保存する前の「最初の状態」と「最後の状態」を控えておく
+const startBefore = await page.locator('.rota-start-grid input').evaluateAll(ns=>ns.map(n=>n.value));
+const endBefore = (await page.locator('.rota-table__values').nth(3).locator('.rota-vals__num').allTextContents()).slice(0,6);
+await page.click('[data-action="rota:save"]');
+ok((await page.locator('#rotaSaveMsg').textContent()).includes('保存しました'),
+   '保存すると知らせが出る: '+(await page.locator('#rotaSaveMsg').textContent()));
+await page.click('#tab-reference');
+ok((await page.locator('.ref-rota').count())===1,'早見のローテに1件入る');
+ok((await page.locator('.ref-rota__name').textContent())==='ピクシー（4週）',
+   '種族と週数が見出しに出る: '+(await page.locator('.ref-rota__name').textContent()));
+await page.locator('.ref-rota__head').click();
+const rotaBody = await page.locator('.ref-rota__body').textContent();
+ok(rotaBody.includes('エサ:ニクもどき'),'エサが入る');
+ok(rotaBody.includes('アイテム:カララギマンゴー'),'アイテムが入る');
+ok(rotaBody.includes('大会（優勝）')&&rotaBody.includes('休養'),'行動が入る');
+ok(rotaBody.includes('1か月目 第1週')&&rotaBody.includes('1か月目 第4週'),'組んだ4週ぶんが並ぶ');
+ok(!rotaBody.includes('2か月目'),'まだ組んでいない「次の週」は入らない');
+// 状態は内部数値6つ。並びは 体型/ヨイワル/ストレス/疲労/恐れ度/甘え度
+const savedStates = await page.locator('.ref-rota__state-vals').allTextContents();
+ok(savedStates.length===2,'最初の状態と最後の状態が入る: '+savedStates.length);
+const [sf,sm,ss,sfa,sfe,ssp] = startBefore;
+ok(savedStates[0]===`体型 ${sf} / ヨイワル ${sm} / ストレス ${ss} / 疲労 ${sfa} / 恐れ度 ${sfe} / 甘え度 ${ssp}`,
+   '最初の状態は開始時点の入力そのまま: '+savedStates[0]);
+// 帯の並びは 疲労/ストレス/恐れ度/甘え度/体型/ヨイワル
+const [ef,es,efe,esp,efo,em] = endBefore;
+ok(savedStates[1]===`体型 ${efo} / ヨイワル ${em} / ストレス ${es} / 疲労 ${ef} / 恐れ度 ${efe} / 甘え度 ${esp}`,
+   '最後の状態は最後の週の内部数値: '+savedStates[1]);
+await page.reload({waitUntil:'networkidle'});
+ok((await page.locator('.ref-rota').count())===1,'保存したローテは残る（再読込しても消えない）');
+
+console.log('— 調整ローテのリセット —');
+await page.click('#tab-simulator');
+await page.click('#subtab-rotation');
+page.once('dialog',d=>d.accept());
+await page.click('[data-action="rota:reset"]');
+ok((await page.locator('.rota-table__inputs').count())===1,
+   'リセットすると空の1行に戻る: '+(await page.locator('.rota-table__inputs').count()));
+ok((await page.locator('[aria-label="1か月目 第1週の行動"]').inputValue())==='','行動が消える');
+ok((await page.locator('[aria-label="1か月目 第1週のアイテム"]').inputValue())==='','アイテムが消える');
+ok((await page.locator('[aria-label="1か月目のエサ"]').inputValue())==='','エサも消える');
+ok((await page.locator('#rotaJugs').inputValue())==='0','双子の水差しの所持数も戻る');
+const startAfter = await page.locator('.rota-start-grid input').evaluateAll(ns=>ns.map(n=>n.value));
+// ヨイワルだけは初期ヨイワル(-35)から±100なので 100→65 に収まる
+ok(startAfter.join(',')==='-100,65,0,0,100,100','開始時点の内部数値もはじめの値に戻る: '+startAfter.join(','));
+await page.reload({waitUntil:'networkidle'});
+await page.click('#subtab-rotation');
+ok((await page.locator('.rota-table__inputs').count())===1,'リセットしたことも保存されている');
+
+console.log('— 保存したローテの削除 —');
+await page.click('#tab-reference');
+ok((await page.locator('.ref-rota').count())===1,'リセットしても保存したローテは消えない');
+await page.locator('.ref-rota__head').click();
+page.once('dialog',d=>d.accept());
+await page.click('[data-action="ref:delRota"]');
+ok((await page.locator('.ref-rota').count())===0,'保存したローテを削除できる');
+ok((await page.locator('.ref-box').first().textContent()).includes('早見のローテに保存'),
+   '1件も無いときは案内を出す');
+await page.click('#tab-simulator');
+
 await page.click('#subtab-plan');
 ok(await page.locator('#simActions').isVisible(),'育成計画では出る');
 
