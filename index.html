@@ -186,11 +186,6 @@
 
     <div id="simBody" hidden>
       <div class="card">
-        <div class="section-head">
-          <span id="simSpeciesLabel"></span>
-          <span class="note">の育成計画</span>
-        </div>
-
         <div class="subtabs" role="tablist" aria-label="育成計算の表示切り替え">
           <button type="button" class="subtabs__btn" id="subtab-plan" role="tab"
                   aria-selected="true" aria-controls="subpane-plan"
@@ -205,20 +200,18 @@
 
         <!-- 育成計画 -->
         <div id="subpane-plan" role="tabpanel" aria-labelledby="subtab-plan">
-          <div class="sim-section">
-            <div class="sim-section__title">育成開始時期</div>
-            <div class="sim-row">
-              <input type="number" id="simMonth" min="1" max="12" data-input="sim:month"
-                     style="width:60px" aria-label="開始月">
-              <span class="sim-label">月</span>
-              <select id="simWeek" data-change="sim:week" style="width:80px" aria-label="開始週">
-                <option value="1">第1週</option>
-                <option value="2">第2週</option>
-                <option value="3">第3週</option>
-                <option value="4">第4週</option>
-              </select>
-              <span class="note">から育て始める</span>
-            </div>
+          <div class="sim-row sim-start">
+            <span class="sim-label">育成開始</span>
+            <input type="number" id="simMonth" min="1" max="12" data-input="sim:month"
+                   style="width:56px" aria-label="開始月">
+            <span class="sim-label">月</span>
+            <select id="simWeek" data-change="sim:week" style="width:60px" aria-label="開始週">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <span class="sim-label">週</span>
           </div>
 
           <!-- 成長適正は上昇値に効くので、計画を組みながら見えるようにしておく

@@ -113,7 +113,8 @@ await page.selectOption('#simMoral','-35');
 console.log('— 育成計算タブ（D4: 2階層） —');
 await page.click('#tab-simulator');
 ok(await page.locator('#simBody').isVisible(),'育成計算が表示');
-ok((await page.locator('#simSpeciesLabel').textContent())==='ピクシー','D10: 種族が引き継がれている');
+ok((await page.locator('#simSpeciesLabel').count())===0,'育成計算タブに「◯◯の育成計画」の見出しは出さない');
+ok((await page.locator('#specSpeciesLabel').textContent())==='ピクシー','D10: 種族はモンスタータブに出る');
 const subOrder = await page.locator('.subtabs__btn').allTextContents();
 ok(subOrder.join(',')==='育成計画,調整ローテ,結果','サブタブの並び: '+subOrder.join(','));
 ok(await page.locator('#subpane-plan').isVisible(),'はじめは育成計画');
@@ -180,7 +181,7 @@ const planRows = () => page.locator('.plan-table tbody tr').evaluateAll(rows=>ro
   text: r.textContent,
 })));
 ok((await planRows()).length===10,'桃を使う前は10段階だけ');
-await page.locator('[data-change="sim:peach"][data-pi="0"][data-field="use"]').selectOption('yes');
+await page.locator('[data-change="sim:peach"][data-pi="0"][data-field="use"]').check();
 await page.waitForSelector('.plan-row--peach');
 ok((await page.locator('.plan-table').count())===1,'桃用の別テーブルは作らない');
 ok((await page.locator('.peach__timing, .peach__sub').count())===0,'タイミングの文は表に置き換わる');
@@ -196,14 +197,14 @@ ok(peachHead.includes('黄金桃（+50週）を与える'),'与える桃の見�
 ok(peachHead.includes('通算201週目'),'通算の週目が出る: '+peachHead);
 ok(/\d+月[1-4]週/.test(peachHead),'与える時期（○月◎週）も出る: '+peachHead);
 // 白銀桃も足すと、年齢の早いほう（通算176週目）が先に挟まる
-await page.locator('[data-change="sim:peach"][data-pi="1"][data-field="use"]').selectOption('yes');
+await page.locator('[data-change="sim:peach"][data-pi="1"][data-field="use"]').check();
 await page.waitForFunction(()=>document.querySelectorAll('.plan-row--peach-head').length===2);
 const both = await planRows();
 ok(both.filter(r=>r.head).map(r=>r.text.includes('白銀桃')?'白銀':'黄金').join(',')==='白銀,黄金',
    '与える順は年齢の早い白銀が先: '+both.filter(r=>r.head).map(r=>r.text.slice(0,12)).join(' / '));
 ok(both.filter(r=>r.weeks).reduce((a,r)=>a+Number(r.weeks.split('/')[1].replace('週','')),0)===375,
    '合計は寿命300＋黄金50＋白銀25の375週');
-await page.locator('[data-change="sim:peach"][data-pi="1"][data-field="use"]').selectOption('no');
+await page.locator('[data-change="sim:peach"][data-pi="1"][data-field="use"]').uncheck();
 await page.waitForFunction(()=>document.querySelectorAll('.plan-row--peach-head').length===1);
 
 console.log('— トレーニングに使える週数 —');
@@ -237,6 +238,14 @@ ok((await trainWeeks.textContent()).trim()===`トレ0週\n次へ${over}週`,'ト
 ok((await trainWeeks.getAttribute('class')).includes('train-weeks--over'),'はみ出しは警告色');
 const nextAfter = Number((await stageBadges.nth(1).textContent()).split('/')[1].replace('週',''));
 ok(nextAfter===nextTotal-over,`次の段階が${over}週減る: ${nextTotal} → ${nextAfter}`);
+// 次の段階がまるごと消えるほど使っても、その行は残す（入れたものを直せなくなるため）
+const rowCount = await page.locator('.plan-table tbody tr').count();
+await weekCell.locator('[aria-label="パラドクシンの回数"]').fill(String(Math.ceil((assigned + nextTotal) / 18) + 1));
+ok((await stageBadges.nth(1).textContent())==='0/0週',
+   'はみ出しで次の段階が0週になる: '+(await stageBadges.nth(1).textContent()));
+ok((await page.locator('.plan-table tbody tr').count())===rowCount,'0週になっても行は消えない');
+ok(await page.locator('.plan-table tbody tr').nth(1).locator('[aria-label="割り当て週数"]').isVisible(),
+   '0週の行でも入力欄はさわれる');
 await weekCell.locator('[aria-label="パラドクシンの回数"]').fill('0');
 ok((await trainWeeks.textContent()).trim()===`トレ${assigned}週`,'戻せば元に戻る');
 ok(Number((await stageBadges.nth(1).textContent()).split('/')[1].replace('週',''))===nextTotal,'次の段階も戻る');
@@ -611,7 +620,7 @@ ok((await page.locator('#sessionControls').textContent()).trim()==='','技がな
 ok(await page.locator('#changeTechBtn').isHidden(),'技なし種族では「技を変更」も出さない');
 ok(await page.locator('#techPickerCard').isHidden(),'技なし種族では技選択も開かない');
 await page.click('#tab-simulator');
-ok((await page.locator('#simSpeciesLabel').textContent())==='ライガー','技なし種族でも育成計算は使える');
+ok(await page.locator('#simBody').isVisible(),'技なし種族でも育成計算は使える');
 const visibleSub = await page.evaluate(()=>['plan','rotation','result'].filter(t=>!document.getElementById('subpane-'+t).hidden));
 ok(visibleSub.length===1,'サブタブは常にちょうど1つだけ表示: '+visibleSub.join(','));
 const subContent = await page.evaluate(()=>{const t=['plan','rotation','result'].find(t=>!document.getElementById('subpane-'+t).hidden);return document.getElementById('subpane-'+t).textContent.trim().length;});

@@ -218,6 +218,11 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+/* 育成開始（○月◎週）は1行にまとめる */
+.sim-start {
+  margin-bottom: 10px;
+}
+
 /* --- 育成計画テーブル --- */
 .plan-table {
   border-collapse: collapse;
@@ -387,22 +392,39 @@
   border-color: var(--color-ng-border);
 }
 
-/* --- 桃システム --- */
+/* --- 桃システム（1行にまとめた操作欄） --- */
 .peach {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
   background: var(--color-warn-bg);
   border: var(--hairline) solid var(--color-warn-border);
   border-radius: var(--border-radius-md);
-  padding: 10px 12px;
+  padding: 8px 10px;
   margin-top: 12px;
 }
 .peach__title {
   font-size: 13px;
   font-weight: 500;
   color: var(--color-warn);
-  margin-bottom: 8px;
 }
-.peach__block {
-  margin-bottom: 6px;
+.peach__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.peach__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.peach__check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-warn);
 }
 
 /* --- 結果 --- */

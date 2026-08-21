@@ -228,7 +228,8 @@ function planTable(layout) {
   layout.segments.forEach((seg) => {
     // 桃を与える位置に見出しを出してから、若返ったぶんの行を続ける
     seg.peaches.forEach((p) => rows.push(peachHeadRow(s, p, seg)));
-    if (seg.weeks === 0) return;
+    // 週数が0になった行も出す。前の行のはみ出しで0になっただけのことがあり、
+    // 隠すと入れたイベントやアイテムを直せなくなる
     const used = seg.sets.reduce((a, x) => a + (x.weeks || 0), 0);
 
     seg.sets.forEach((set, idx) => {
@@ -266,37 +267,34 @@ function planTable(layout) {
 /**
  * 桃システムの操作欄。
  * 若返るぶんの計画は上の表に挟み込むので、ここには「使うか」と「使用段階」だけ置く。
+ * 2つぶんを1行に並べる。
  */
 function renderPeach() {
   const s = sim();
   const blocks = [0, 1].map((pi) => {
     const p = s.peach[pi];
-    const label = `${peachName(pi)}（+${peachExtra(pi)}週）`;
-
-    return h('div', { class: 'peach__block' },
-      h('div', { class: 'sim-row' },
-        h('span', { class: 'sim-label', style: 'width:112px', text: label }),
-        h('select',
-          { dataset: { change: 'sim:peach', pi: String(pi), field: 'use' },
-            attrs: { 'aria-label': `${label}を使うか` } },
-          h('option', { value: 'no', text: '使わない', selected: !p.use }),
-          h('option', { value: 'yes', text: '使う', selected: p.use })
-        ),
-        p.use ? h('span', { class: 'sim-label', text: '使用段階' }) : null,
-        p.use
-          ? h('select',
-              { dataset: { change: 'sim:peach', pi: String(pi), field: 'si' },
-                attrs: { 'aria-label': '使用する成長段階' } },
-              STAGES.map((name, i) => h('option', { value: String(i), text: name, selected: p.si === i }))
-            )
-          : null,
-        p.use ? h('span', { class: 'note', text: 'の開始まで若返る' }) : null
-      )
+    return h('span', { class: 'peach__item' },
+      h('label', { class: 'peach__check' },
+        h('input', {
+          type: 'checkbox',
+          checked: p.use,
+          dataset: { change: 'sim:peach', pi: String(pi), field: 'use' },
+          attrs: { 'aria-label': `${peachName(pi)}を使う` },
+        }),
+        h('span', { text: peachName(pi) })
+      ),
+      p.use
+        ? h('select',
+            { dataset: { change: 'sim:peach', pi: String(pi), field: 'si' },
+              attrs: { 'aria-label': `${peachName(pi)}の使用段階（その段階の開始まで若返る）` } },
+            STAGES.map((name, i) => h('option', { value: String(i), text: name, selected: p.si === i }))
+          )
+        : null
     );
   });
 
   replace(el('peachArea'),
-    h('div', { class: 'peach__title', text: '🍑 桃システム' }),
+    h('span', { class: 'peach__title', text: '🍑 桃' }),
     ...blocks
   );
 }
@@ -474,7 +472,6 @@ export function render() {
   el('simBody').hidden = !mon;
   if (!mon) return;
 
-  el('simSpeciesLabel').textContent = state.current;
   renderPlan();
   renderResult();
 }
@@ -538,7 +535,7 @@ export const changeActions = {
     const s = sim();
     const p = s.peach[Number(target.dataset.pi)];
     const field = target.dataset.field;
-    if (field === 'use') p.use = target.value === 'yes';
+    if (field === 'use') p.use = target.checked;
     else p[field] = Number(target.value);
     renderPlan();
   },
