@@ -162,6 +162,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ホッパー: {
+    life: 300,
+    gtype: 'hayajuku',
+    moral: -25,
+    guts: 8,
+    apt: ['D', 'C', 'C', 'A', 'C', 'E'],
+    init: [60, 100, 110, 160, 150, 70],
+    feed: ['dislike', 'like', 'normal', 'normal', 'like', 'normal'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
