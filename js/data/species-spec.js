@@ -85,6 +85,17 @@ export const SPECIES_SPEC = {
     good: ['heavy:0'], // 重り引き
   },
 
+  ヘンガー: {
+    life: 300,
+    gtype: 'futsuu',
+    moral: 70,
+    guts: 16,
+    apt: ['D', 'B', 'C', 'B', 'B', 'D'],
+    init: [100, 150, 110, 160, 170, 90],
+    feed: ['normal', 'normal', 'normal', 'normal', 'like', 'like'],
+    good: ['light:1'], // しゃてき
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
