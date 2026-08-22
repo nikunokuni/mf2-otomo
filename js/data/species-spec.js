@@ -228,6 +228,17 @@ export const SPECIES_SPEC = {
     good: ['trip:0'], // トーブル海岸
   },
 
+  バジャール: {
+    life: 350,
+    gtype: 'futsuu',
+    moral: 5,
+    guts: 13,
+    apt: ['C', 'B', 'D', 'B', 'C', 'D'],
+    init: [100, 130, 90, 120, 110, 80],
+    feed: ['dislike', 'normal', 'normal', 'normal', 'like', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
