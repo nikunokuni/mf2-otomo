@@ -382,6 +382,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  プラント: {
+    life: 450,
+    gtype: 'hayajuku',
+    moral: 60,
+    guts: 8,
+    apt: ['A', 'E', 'C', 'C', 'D', 'E'],
+    init: [160, 40, 120, 110, 100, 70],
+    feed: ['normal', 'like', 'like', 'normal', 'dislike', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
