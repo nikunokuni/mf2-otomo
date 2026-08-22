@@ -26,7 +26,8 @@
             ニクもどき / ビタミンもどき
             like=好き / normal=ふつう / dislike=嫌い
 
-   まだ入れていない種族は、ここに書かなければよい（これまで通り手入力になる）。
+   純血種38種はすべて入っている。書いていない種族があれば、その種族だけ
+   これまで通り手入力になる（派生種を足すときも同じ書き方でよい）。
    =========================================================== */
 
 export const SPECIES_SPEC = {
@@ -423,6 +424,17 @@ export const SPECIES_SPEC = {
     apt: ['A', 'C', 'C', 'C', 'E', 'D'],
     init: [180, 100, 110, 120, 60, 90],
     feed: ['normal', 'normal', 'dislike', 'like', 'dislike', 'like'],
+    good: [],
+  },
+
+  ナーガ: {
+    life: 250,
+    gtype: 'hayajuku',
+    moral: -80,
+    guts: 11,
+    apt: ['C', 'B', 'E', 'B', 'D', 'C'],
+    init: [120, 160, 100, 150, 110, 130],
+    feed: ['dislike', 'dislike', 'like', 'dislike', 'like', 'like'],
     good: [],
   },
 
