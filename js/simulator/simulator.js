@@ -5,7 +5,7 @@
    計算そのものは growth-calc.js（画面に依存しない）に置いてある。
    =========================================================== */
 
-import { STATS, SK, SC, STAGES, SKEYS, HEAVY4, LIGHT6, EV_COST } from '../data/growth.js';
+import { STATS, SK, SC, SCV, STAGES, SKEYS, HEAVY4, LIGHT6, EV_COST } from '../data/growth.js';
 import { state, save, currentMon } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import {
@@ -426,7 +426,7 @@ export function renderResult() {
           text: (delta >= 0 ? '+' : '') + delta,
         }),
         h('div', { class: 'stat-bar' },
-          h('div', { class: 'stat-bar__fill', style: `background:${SC[i]};width:${Math.min(100, (to / 999) * 100).toFixed(1)}%` })
+          h('div', { class: 'stat-bar__fill', style: `background:${SCV[i]};width:${Math.min(100, (to / 999) * 100).toFixed(1)}%` })
         )
       );
     })

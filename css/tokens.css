@@ -39,13 +39,24 @@
   --color-ideal-hit: #185fa5;
   --color-ideal-miss: #6b3fa0;
 
-  /* --- パラメータ色 --- */
-  --stat-life: #d93b3b;
-  --stat-pow: #c25a00;
-  --stat-int: #9b26b6;
-  --stat-hit: #1673b8;
-  --stat-avo: #16875a;
-  --stat-tou: #8a6d00;
+  /* --- パラメータ色 ---
+     ゲーム画面のパラメータバーに合わせた色相
+     （ライフ=黄 / ちから=赤 / かしこさ=緑 / 命中=むらさき / 回避=みずいろ / 丈夫さ=青）。
+     文字にも使うので、明るさだけ下げて白地でも読めるようにしてある。 */
+  --stat-life: #726e0d;
+  --stat-pow: #d11f1f;
+  --stat-int: #1e7a26;
+  --stat-hit: #bb1cbb;
+  --stat-avo: #177878;
+  --stat-tou: #3b3bd1;
+
+  /* バーのように面で塗るところは、ゲーム画面の色をそのまま使う（文字には使わない） */
+  --stat-life-vivid: #e9e356;
+  --stat-pow-vivid: #f26b6b;
+  --stat-int-vivid: #5cd466;
+  --stat-hit-vivid: #ee6bee;
+  --stat-avo-vivid: #5bdcdc;
+  --stat-tou-vivid: #3b3bd1;
 
   /* --- かたち --- */
   --border-radius-lg: 12px;
@@ -89,11 +100,12 @@
     --color-ideal-hit: #7cbcf5;
     --color-ideal-miss: #b58be0;
 
-    --stat-life: #ff6b6b;
-    --stat-pow: #ff9040;
-    --stat-int: #d77be8;
-    --stat-hit: #5cb8f0;
-    --stat-avo: #4fd0a0;
-    --stat-tou: #e5c24a;
+    /* 暗い地ではゲーム画面のバーの色をほぼそのまま使う（青だけ明るく寄せる） */
+    --stat-life: #e9e356;
+    --stat-pow: #f26b6b;
+    --stat-int: #5cd466;
+    --stat-hit: #ee6bee;
+    --stat-avo: #5bdcdc;
+    --stat-tou: #9090f0;
   }
 }

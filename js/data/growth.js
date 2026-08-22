@@ -9,7 +9,10 @@
 export const STATS=['ライフ','ちから','かしこさ','命中','回避','丈夫さ'];
 export const SK=['life','pow','int','hit','avo','tou'];
 // パラメータ色はCSS変数で定義（ライト/ダーク両対応）
+// SC  : 文字に使う色（背景が白でも読める明るさに落としてある）
+// SCV : バーのように面で塗るときの色（ゲーム画面のバーの色そのまま）
 export const SC=['var(--stat-life)','var(--stat-pow)','var(--stat-int)','var(--stat-hit)','var(--stat-avo)','var(--stat-tou)'];
+export const SCV=SK.map((k)=>`var(--stat-${k}-vivid)`);
 export const STAGES=['1段階','2段階','3段階','4段階','ピーク','準ピーク','5段階','6段階','7段階','8段階'];
 export const SKEYS=['s1','s2','s3','s4','peak','prepeak','s5','s6','s7','s8'];
 export const HEAVY4=[
