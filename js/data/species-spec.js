@@ -371,6 +371,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ダックン: {
+    life: 300,
+    gtype: 'jizoku',
+    moral: 50,
+    guts: 8,
+    apt: ['C', 'C', 'C', 'B', 'A', 'E'],
+    init: [70, 80, 130, 140, 100, 50],
+    feed: ['like', 'like', 'like', 'like', 'like', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
