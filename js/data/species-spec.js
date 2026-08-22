@@ -272,6 +272,17 @@ export const SPECIES_SPEC = {
     good: ['light:3'], // 巨石よけ
   },
 
+  メタルナー: {
+    life: 350,
+    gtype: 'futsuu',
+    moral: -25,
+    guts: 6,
+    apt: ['C', 'D', 'E', 'A', 'E', 'A'],
+    init: [50, 20, 10, 160, 30, 170],
+    feed: ['normal', 'normal', 'normal', 'like', 'normal', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
