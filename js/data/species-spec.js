@@ -96,6 +96,17 @@ export const SPECIES_SPEC = {
     good: ['light:1'], // しゃてき
   },
 
+  チャッキー: {
+    life: 500,
+    gtype: 'bansei',
+    moral: -85,
+    guts: 9,
+    apt: ['C', 'E', 'B', 'E', 'B', 'E'],
+    init: [20, 10, 150, 40, 160, 30],
+    feed: ['dislike', 'like', 'dislike', 'like', 'like', 'normal'],
+    good: ['heavy:1'], // 変動ゆか（アプリの表記は「変動床」）
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
