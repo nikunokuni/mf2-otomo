@@ -18,7 +18,7 @@
               light:0 ドミノ倒し / light:1 しゃてき / light:2 猛勉強 /
               light:3 巨石よけ / light:4 走り込み / light:5 丸太受け
               trip:0 海岸 / trip:1 砂漠 / trip:2 雪山 / trip:3 密林 / trip:4 火山
-            表に修行先（トーレス海岸・マンディー砂漠など）が書いてあるときは、
+            表に修行先（トーブル海岸・マンディー砂漠など）が書いてあるときは、
             地名の部分を落として trip: のキーにする
             得意なトレーニングは、上がるパラメータが1回ごとに +1 される
      feed   エサの好み（js/data/feeds.js の並び）
@@ -215,6 +215,17 @@ export const SPECIES_SPEC = {
     init: [70, 60, 170, 140, 160, 100],
     feed: ['dislike', 'dislike', 'like', 'dislike', 'normal', 'dislike'],
     good: ['heavy:2'], // めいそう
+  },
+
+  グジラ: {
+    life: 350,
+    gtype: 'bansei',
+    moral: 35,
+    guts: 18,
+    apt: ['B', 'A', 'D', 'E', 'D', 'C'],
+    init: [150, 180, 80, 50, 60, 100],
+    feed: ['dislike', 'normal', 'like', 'normal', 'normal', 'normal'],
+    good: ['trip:0'], // トーブル海岸
   },
 
   スエゾー: {
