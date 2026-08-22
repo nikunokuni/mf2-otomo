@@ -211,6 +211,34 @@ for(let gr=6;gr<=19;gr++) for(const gc of [10,12,17,19,24,29,35,42,50])
   eq(N.calcSetGain(set,'peak',apt),g0,'得意を渡さなければこれまで通り');
 }
 
+/* ---- 修行 ---- */
+{
+  const apt={life:'C',pow:'C',int:'C',hit:'C',avo:'C',tou:'C'};
+  const val=(list,key)=>(list.find(x=>x.key===key)||{}).value;
+  // 場所ごとのメイン: 海岸=命中 / 砂漠=ちから / 雪山=回避 / 密林=かしこさ / 火山=丈夫さ
+  eq([0,1,2,3,4].map(i=>N.tripGain(i,'peak',apt,[]).map(x=>x.key).join('+')),
+     ['hit+life','pow+life','avo+life','int+life','tou+life'],'場所ごとのメインとサブ');
+  // サブは場所に関係なく同じ（ライフ）
+  eq(new Set([0,1,2,3,4].map(i=>val(N.tripGain(i,'peak',apt,[]),'life'))).size,1,'サブは場所で変わらない');
+  // 得意ならメインとサブが毎週+1
+  const plain=N.tripGain(0,'peak',apt,[]), good=N.tripGain(0,'peak',apt,['trip:0']);
+  eq(val(good,'hit'),val(plain,'hit')+1,'得意な修行はメインが毎週+1');
+  eq(val(good,'life'),val(plain,'life')+1,'得意な修行はサブも毎週+1');
+  // 修行1回は4週ぶん。得意だと合わせて+8になる
+  const set={ht:-1,hc:0,lt:-1,mt:0,tc:0,mc:1,ac:0,weeks:7,items:{}};
+  const g0=N.calcSetGain(set,'peak',apt,[]), g1=N.calcSetGain(set,'peak',apt,['trip:0']);
+  eq(g0.hit,val(plain,'hit')*4,'修行1回で4週ぶん上がる');
+  eq(g0.life,val(plain,'life')*4,'サブも4週ぶん');
+  eq((g1.hit-g0.hit)+(g1.life-g0.life),8,'得意なら合計+8');
+  // 場所を選んでいなければ上がらない
+  eq(N.calcSetGain({...set,mt:-1},'peak',apt,[]).hit,0,'場所なしなら上がらない');
+  // 回数ぶん増える
+  eq(N.calcSetGain({...set,mc:3,weeks:21},'peak',apt,[]).hit,g0.hit*3,'回数ぶん増える');
+  // 上限は15（適正Aのピークでも超えない）
+  const aptA={life:'A',pow:'A',int:'A',hit:'A',avo:'A',tou:'A'};
+  eq(val(N.tripGain(0,'peak',aptA,['trip:0']),'hit'),15,'修行の上限は15');
+}
+
 // 育成計画のアイテム列は寿命の減りが大きい順（パラドクシンが先頭）
 eq(N.AGE_ITEMS[0].name,'パラドクシン','アイテム列の先頭はパラドクシン');
 eq(N.AGE_ITEMS.map(i=>i.agePlus).every((v,i,a)=>i===0||a[i-1]>=v),true,'寿命の減りが大きい順');

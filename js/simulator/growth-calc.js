@@ -3,7 +3,8 @@
    =========================================================== */
 
 import {
-  SK, SKEYS, STAGES, HEAVY4, LIGHT6, HM, HS, LG, GTH, EV_COST, EV_WEEKS, GOOD_BONUS, GOOD_MAX,
+  SK, SKEYS, STAGES, HEAVY4, LIGHT6, TRIP5, TRIP_SUB, TRIP_WEEKS,
+  HM, HS, LG, MT, MS, GTH, EV_COST, EV_WEEKS, GOOD_BONUS, GOOD_MAX,
 } from '../data/growth.js';
 import { ITEMS } from '../data/items.js';
 
@@ -186,7 +187,8 @@ export function peachExtra(peachIndex) {
 
 export function newSet(weeks = 0) {
   // items は { アイテム名: 回数 }。使わないアイテムはキーごと持たない
-  return { ht: -1, hc: 2, lt: -1, tc: 0, mc: 0, ac: 0, weeks, items: {} };
+  // mt は修行の場所（-1 は選んでいない）
+  return { ht: -1, hc: 2, lt: -1, mt: -1, tc: 0, mc: 0, ac: 0, weeks, items: {} };
 }
 
 /**
@@ -233,7 +235,7 @@ function setOverflow(set) {
  * （そのまま写すと、同じ寿命の消費を二重に数えてしまうため）。
  */
 function inheritSet(src) {
-  return Object.assign(newSet(0), { ht: src.ht, hc: src.hc, lt: src.lt });
+  return Object.assign(newSet(0), { ht: src.ht, hc: src.hc, lt: src.lt, mt: src.mt });
 }
 
 /**
@@ -315,6 +317,23 @@ export function lightGain(ti, stageKey, apt, good) {
 }
 
 /**
+ * 修行1週ぶんの上昇値。[{ key, value }] をメイン・サブ（ライフ）の順で返す。
+ * 場所でメインのパラメータが変わり、サブは場所に関係なくライフ。
+ * 表はどちらも5つの数字を持っていて、重トレと同じく3つ目を使う。
+ * 得意な修行なら、メインとサブが毎週それぞれ +1 される（4週なので合わせて +8）。
+ * 場所を選んでいない（mi が -1）ときは空配列。
+ */
+export function tripGain(mi, stageKey, apt, good) {
+  const t = TRIP5[mi];
+  if (!t) return [];
+  const bonus = isGood(good, `trip:${mi}`) ? GOOD_BONUS : 0;
+  return [
+    { key: t.main, value: withGood(MT[stageKey][apt[t.main]][2], bonus, GOOD_MAX.trip) },
+    { key: TRIP_SUB, value: withGood(MS[stageKey][2], bonus, GOOD_MAX.trip) },
+  ];
+}
+
+/**
  * 1セットぶんのパラメータ上昇値。
  * イベント週はトレーニングに使えないので、ここで一度だけ差し引く。
  */
@@ -342,6 +361,15 @@ export function calcSetGain(set, stageKey, apt, good) {
   if (light.length && lightCount > 0) {
     light.forEach(({ key, value }) => {
       gain[key] += value * lightCount * fullMonths;
+    });
+  }
+
+  // 修行は4週まとめて出かけ、毎週ぶん上がる（トレーニングの週数とは別に足す）
+  const trip = tripGain(parseInt(set.mt, 10), stageKey, apt, good);
+  const trips = Math.max(0, set.mc || 0);
+  if (trip.length && trips > 0) {
+    trip.forEach(({ key, value }) => {
+      gain[key] += value * TRIP_WEEKS * trips;
     });
   }
   return gain;

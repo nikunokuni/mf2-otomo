@@ -5,7 +5,9 @@
    計算そのものは growth-calc.js（画面に依存しない）に置いてある。
    =========================================================== */
 
-import { STATS, SK, SC, SCV, STAGES, SKEYS, HEAVY4, LIGHT6, EV_COST } from '../data/growth.js';
+import {
+  STATS, SK, SC, SCV, STAGES, SKEYS, HEAVY4, LIGHT6, TRIP5, TRIP_WEEKS, EV_COST,
+} from '../data/growth.js';
 import { state, save, currentMon } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
 import {
@@ -22,6 +24,7 @@ import {
   weekToDate,
   heavyGain,
   lightGain,
+  tripGain,
 } from './growth-calc.js';
 
 function sim() {
@@ -52,14 +55,25 @@ function gainBox(key, idx, field, list) {
   return h('div', { class: 'train-gain', id: `gain-${key}-${idx}-${field}` }, gainItems(list));
 }
 
+/** 修行は4週まとめて出かけるので、1回ぶん（4週ぶん）の上昇値を出す */
+function tripTotal(mi, stageKey, apt, good) {
+  return tripGain(mi, stageKey, apt, good).map(({ key, value }) => ({
+    key,
+    value: value * TRIP_WEEKS,
+  }));
+}
+
+function trainGainList(field, ti, si, apt, good) {
+  const stageKey = SKEYS[si];
+  if (field === 'ht') return heavyGain(ti, stageKey, apt, good);
+  if (field === 'lt') return lightGain(ti, stageKey, apt, good);
+  return tripTotal(ti, stageKey, apt, good);
+}
+
 function updateTrainGain(key, si, idx, field, ti) {
   const node = el(`gain-${key}-${idx}-${field}`);
   if (!node) return;
-  const apt = sim().apt;
-  const good = sim().good;
-  const list =
-    field === 'ht' ? heavyGain(ti, SKEYS[si], apt, good) : lightGain(ti, SKEYS[si], apt, good);
-  replace(node, gainItems(list));
+  replace(node, gainItems(trainGainList(field, ti, si, sim().apt, sim().good)));
 }
 
 function trainOptions(list, selected, noneLabel) {
@@ -140,7 +154,23 @@ function planRow(seg, idx, set, rowspanCells) {
       })
     ),
     numField('tc', set.tc || 0, '大会の回数'),
-    numField('mc', set.mc || 0, '修行の回数'),
+    // 修行は場所でメインの上がるパラメータが変わるので、回数と一緒に選ぶ
+    h('td', { class: 'col-num col-mc' },
+      h('input', {
+        type: 'number',
+        id: `set-mc-${key}-${idx}`,
+        value: set.mc || 0,
+        min: 0,
+        dataset: { input: 'sim:setField', ...ref, field: 'mc' },
+        attrs: { 'aria-label': '修行の回数' },
+      }),
+      h('select',
+        { dataset: { change: 'sim:setField', ...ref, field: 'mt' },
+          attrs: { 'aria-label': '修行の場所' } },
+        trainOptions(TRIP5, set.mt, '場所')
+      ),
+      gainBox(key, idx, 'mt', tripTotal(parseInt(set.mt, 10), stageKey, apt, good))
+    ),
     numField('ac', set.ac || 0, '冒険の回数'),
     ...AGE_ITEMS.map((item) =>
       h('td', { class: 'col-num' },

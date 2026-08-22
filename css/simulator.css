@@ -318,6 +318,10 @@
 .plan-table .col-num {
   width: 50px;
 }
+/* 修行は回数の下に場所のプルダウンが入るので広く */
+.plan-table .col-mc {
+  min-width: 96px;
+}
 /* 割当週は下に「トレ○週」が入るので少し広く */
 .plan-table .col-week {
   width: 62px;

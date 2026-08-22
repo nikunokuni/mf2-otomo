@@ -169,10 +169,10 @@ await page.locator('.plan-table tbody tr').first().locator('select').first().sel
 
 console.log('— 得意トレーニング —');
 await page.click('#tab-monster');
-ok((await page.locator('#goodGrid .good-item').count())===11,
-   '重トレ4＋軽トレ6＋修行の11個から選べる: '+(await page.locator('#goodGrid .good-item').count()));
+ok((await page.locator('#goodGrid .good-item').count())===15,
+   '重トレ4＋軽トレ6＋修行5の15個から選べる: '+(await page.locator('#goodGrid .good-item').count()));
 ok((await page.locator('#goodGrid .good-item').allTextContents()).join(',')
-   ==='重り引き,変動床,めいそう,プール,ドミノ倒し,しゃてき,猛勉強,巨石よけ,走り込み,丸太受け,修行','並び');
+   ==='重り引き,変動床,めいそう,プール,ドミノ倒し,しゃてき,猛勉強,巨石よけ,走り込み,丸太受け,海岸,砂漠,雪山,密林,火山','並び');
 // 複数選べる。重り引きを得意にすると、主上昇と副上昇が両方+1される
 await page.locator('#goodGrid .good-item').first().locator('input').check();
 await page.locator('#goodGrid .good-item').nth(5).locator('input').check();
@@ -186,6 +186,25 @@ await page.locator('#goodGrid .good-item').nth(5).locator('input').uncheck();
 await page.click('#tab-simulator');
 ok((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).trim()==='力+5ラ+3回-2',
    '外せば元に戻る');
+
+console.log('— 修行（場所とパラメータ上昇） —');
+// 修行は場所でメインの上がるパラメータが変わる。4週ぶんまとめて上がる
+const tripRow = page.locator('.plan-table tbody tr').first();
+await tripRow.locator('[aria-label="修行の場所"]').selectOption('0');   // 海岸＝命中
+const tripGainText = (await tripRow.locator('.train-gain').nth(2).textContent()).trim();
+// 1段階・適正C なら メイン3 / サブ1 の4週ぶん＝命中+12 ライフ+4
+ok(tripGainText==='命+12ラ+4','修行1回ぶんの上昇値が出る: '+tripGainText);
+await page.click('#tab-monster');
+await page.locator('#goodGrid .good-item').nth(10).locator('input').check();  // 海岸が得意
+await page.click('#tab-simulator');
+const tripGood = (await page.locator('.plan-table tbody tr').first().locator('.train-gain').nth(2).textContent()).trim();
+ok(tripGood==='命+16ラ+8','得意ならメインとサブが毎週+1（合計+8）: '+tripGood);
+await page.click('#tab-monster');
+await page.locator('#goodGrid .good-item').nth(10).locator('input').uncheck();
+await page.click('#tab-simulator');
+await page.locator('.plan-table tbody tr').first().locator('[aria-label="修行の場所"]').selectOption('-1');
+ok((await page.locator('.plan-table tbody tr').first().locator('.train-gain').nth(2).textContent()).trim()==='',
+   '場所を選んでいなければ上昇値は出ない');
 
 console.log('— 桃（計画表に挟み込む） —');
 // 寿命300・普通・黄金桃をピークで使う＝通算200週目で与え、ピークまで若返る
