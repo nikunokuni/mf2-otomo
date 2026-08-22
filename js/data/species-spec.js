@@ -140,6 +140,17 @@ export const SPECIES_SPEC = {
     good: ['light:0'], // ドミノ倒し
   },
 
+  アローヘッド: {
+    life: 400,
+    gtype: 'futsuu',
+    moral: -10,
+    guts: 17,
+    apt: ['C', 'C', 'D', 'C', 'D', 'A'],
+    init: [120, 80, 70, 30, 40, 170],
+    feed: ['dislike', 'normal', 'like', 'normal', 'dislike', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
