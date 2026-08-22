@@ -250,6 +250,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ヒノトリ: {
+    life: 350,
+    gtype: 'bansei',
+    moral: 90,
+    guts: 14,
+    apt: ['C', 'E', 'A', 'C', 'C', 'C'],
+    init: [170, 150, 190, 140, 160, 110],
+    feed: ['dislike', 'dislike', 'like', 'normal', 'like', 'normal'],
+    good: ['trip:4'], // カウレア火山
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
