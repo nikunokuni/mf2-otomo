@@ -12,6 +12,12 @@
      guts   ガッツ回復（30ガッツ回復にかかる秒数。表の「G回復」）
      apt    成長適正 [ライフ, ちから, かしこさ, 命中, 回避, 丈夫さ]
      init   初期パラメーター（並びは apt と同じ）
+     good   得意トレーニング（表の「得意」。複数持つことがある）
+            js/data/growth.js の GOOD_KEYS のキーで書く:
+              heavy:0 重り引き / heavy:1 変動床 / heavy:2 めいそう / heavy:3 プール
+              light:0 ドミノ倒し / light:1 しゃてき / light:2 猛勉強 /
+              light:3 巨石よけ / light:4 走り込み / light:5 丸太受け / mc 修行
+            得意なトレーニングは、上がるパラメータが1回ごとに +1 される
      feed   エサの好み（js/data/feeds.js の並び）
             ジャガもどき / ミルクもどき / サカナもどき / ゼリーもどき /
             ニクもどき / ビタミンもどき
@@ -29,6 +35,7 @@ export const SPECIES_SPEC = {
     apt: ['D', 'C', 'A', 'B', 'D', 'D'],
     init: [80, 120, 170, 130, 90, 100],
     feed: ['dislike', 'normal', 'normal', 'like', 'like', 'normal'],
+    good: [],
   },
 };
 

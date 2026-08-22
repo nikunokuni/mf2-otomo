@@ -167,6 +167,26 @@ await page.locator('.plan-table tbody tr').first().locator('select').first().sel
 ok((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).trim()==='','「なし」なら上昇値は出ない');
 await page.locator('.plan-table tbody tr').first().locator('select').first().selectOption('0');
 
+console.log('— 得意トレーニング —');
+await page.click('#tab-monster');
+ok((await page.locator('#goodGrid .good-item').count())===11,
+   '重トレ4＋軽トレ6＋修行の11個から選べる: '+(await page.locator('#goodGrid .good-item').count()));
+ok((await page.locator('#goodGrid .good-item').allTextContents()).join(',')
+   ==='重り引き,変動床,めいそう,プール,ドミノ倒し,しゃてき,猛勉強,巨石よけ,走り込み,丸太受け,修行','並び');
+// 複数選べる。重り引きを得意にすると、主上昇と副上昇が両方+1される
+await page.locator('#goodGrid .good-item').first().locator('input').check();
+await page.locator('#goodGrid .good-item').nth(5).locator('input').check();
+await page.click('#tab-simulator');
+const goodGain = (await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).trim();
+ok(goodGain==='力+6ラ+4回-2','得意な重トレは上昇値が+1される: '+goodGain);
+await page.click('#tab-monster');
+ok((await page.locator('#goodGrid input:checked').count())===2,'得意は複数持てる');
+await page.locator('#goodGrid .good-item').first().locator('input').uncheck();
+await page.locator('#goodGrid .good-item').nth(5).locator('input').uncheck();
+await page.click('#tab-simulator');
+ok((await page.locator('.plan-table tbody tr').first().locator('.train-gain').first().textContent()).trim()==='力+5ラ+3回-2',
+   '外せば元に戻る');
+
 console.log('— 桃（計画表に挟み込む） —');
 // 寿命300・普通・黄金桃をピークで使う＝通算200週目で与え、ピークまで若返る
 await page.click('#tab-monster');

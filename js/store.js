@@ -8,7 +8,7 @@
    =========================================================== */
 
 import { SK } from './data/growth.js';
-import { SKEYS } from './data/growth.js';
+import { SKEYS, GOOD_KEYS } from './data/growth.js';
 import { FEEDS, DEFAULT_LIKING } from './data/feeds.js';
 import { SPECIES_SPEC } from './data/species-spec.js';
 import { segKey } from './simulator/growth-calc.js';
@@ -70,6 +70,9 @@ export function defaultSim() {
     life: 300,
     apt,
     init,
+    // 得意トレーニング（js/data/growth.js の GOOD_KEYS のキーを並べる）。
+    // 得意なトレーニングは上昇値が1回ごとに +1 される
+    good: [],
     // plan[セグメントのキー] = セットの配列。
     // キーは育成計画の行（時系列）に対応する。桃で若返る行も同じ入れ物に入る
     // （キーの作り方は js/simulator/growth-calc.js の segKey）
@@ -309,6 +312,12 @@ function migratePlan(plan) {
   return next;
 }
 
+/** 得意トレーニングを、いま選べるキーだけの配列にそろえる */
+function normalizeGood(good) {
+  const keys = GOOD_KEYS.map((g) => g.key);
+  return (Array.isArray(good) ? good : []).filter((k, i, a) => keys.includes(k) && a.indexOf(k) === i);
+}
+
 /** 桃システムの設定を、必ず2つぶんの { use, si } にそろえる */
 function normalizePeach(peach) {
   const list = Array.isArray(peach) ? peach : [];
@@ -364,6 +373,7 @@ function normalize(loaded) {
     m.sim.life = normalizeLife(m.sim.life);
     m.sim.apt = Object.assign(defaultSim().apt, m.sim.apt || {});
     m.sim.init = Object.assign(defaultSim().init, m.sim.init || {});
+    m.sim.good = normalizeGood(m.sim.good);
     m.sim.plan = migratePlan(m.sim.plan);
     m.sim.peach = normalizePeach(m.sim.peach);
     m.rota = Object.assign(defaultRota(), m.rota || {});
@@ -444,6 +454,7 @@ export function applySpeciesSpec(mon, name) {
   FEEDS.forEach((feed, i) => {
     mon.feedLike[feed.name] = spec.feed[i] || DEFAULT_LIKING;
   });
+  mon.sim.good = normalizeGood(spec.good);
   return true;
 }
 

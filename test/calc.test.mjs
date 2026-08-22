@@ -182,6 +182,35 @@ for(let gr=6;gr<=19;gr++) for(const gc of [10,12,17,19,24,29,35,42,50])
   eq(N.planLayout(s2).segments.map(s=>s.weeks).reduce((a,b)=>a+b,0),350-3,'はみ出したぶんだけ全体が短くなる');
 }
 
+/* ---- 得意トレーニング ---- */
+{
+  const apt={life:'C',pow:'C',int:'C',hit:'C',avo:'C',tou:'C'};
+  const val=(list,key)=>list.find(x=>x.key===key).value;
+  // 重り引き（主=ちから / 副=ライフ / 減=回避）
+  const plain=N.heavyGain(0,'peak',apt,[]);
+  const good=N.heavyGain(0,'peak',apt,['heavy:0']);
+  eq(val(good,'pow'),val(plain,'pow')+1,'得意な重トレは主上昇が+1');
+  eq(val(good,'life'),val(plain,'life')+1,'得意な重トレは副上昇も+1');
+  eq(val(good,'avo'),-2,'減るぶんは変わらない');
+  // 軽トレ（しゃてき=命中）
+  const lp=N.lightGain(1,'peak',apt,[]);
+  const lg=N.lightGain(1,'peak',apt,['light:1']);
+  eq(val(lg,'hit'),val(lp,'hit')+1,'得意な軽トレは+1');
+  // 上限は成長段階や適正に関係なく 重トレ20 / 軽トレ15
+  const aptA={life:'A',pow:'A',int:'A',hit:'A',avo:'A',tou:'A'};
+  eq(val(N.heavyGain(0,'peak',aptA,['heavy:0']),'pow'),20,'重トレの上限は20');
+  eq(val(N.lightGain(1,'peak',aptA,['light:1']),'hit'),15,'軽トレの上限は15');
+  // 選んでいない得意は効かない
+  eq(N.heavyGain(0,'peak',apt,['heavy:1','light:1','mc']),plain,'別のトレの得意は効かない');
+  // 1セットぶんの合計にも乗る（4週=重トレ1回ぶん）
+  const set={ht:0,hc:4,lt:-1,tc:0,mc:0,ac:0,weeks:4,items:{}};
+  const g0=N.calcSetGain(set,'peak',apt,[]);
+  const g1=N.calcSetGain(set,'peak',apt,['heavy:0']);
+  // 得意ぶんは「トレーニング1回ごとに+1」なので、月4回なら合計+4
+  eq(g1.pow-g0.pow,4,'セットの合計には回数ぶんの得意が乗る');
+  eq(N.calcSetGain(set,'peak',apt),g0,'得意を渡さなければこれまで通り');
+}
+
 // 育成計画のアイテム列は寿命の減りが大きい順（パラドクシンが先頭）
 eq(N.AGE_ITEMS[0].name,'パラドクシン','アイテム列の先頭はパラドクシン');
 eq(N.AGE_ITEMS.map(i=>i.agePlus).every((v,i,a)=>i===0||a[i-1]>=v),true,'寿命の減りが大きい順');

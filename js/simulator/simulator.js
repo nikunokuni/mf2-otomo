@@ -56,7 +56,9 @@ function updateTrainGain(key, si, idx, field, ti) {
   const node = el(`gain-${key}-${idx}-${field}`);
   if (!node) return;
   const apt = sim().apt;
-  const list = field === 'ht' ? heavyGain(ti, SKEYS[si], apt) : lightGain(ti, SKEYS[si], apt);
+  const good = sim().good;
+  const list =
+    field === 'ht' ? heavyGain(ti, SKEYS[si], apt, good) : lightGain(ti, SKEYS[si], apt, good);
   replace(node, gainItems(list));
 }
 
@@ -86,6 +88,7 @@ function planRow(seg, idx, set, rowspanCells) {
   const heavy = clampInt(set.hc, 0, 4, 0);
   const light = Math.max(0, 4 - heavy);
   const apt = sim().apt;
+  const good = sim().good;
   const stageKey = SKEYS[seg.si];
   const key = seg.key;
   const ref = { seg: key, si: String(seg.si), idx: String(idx) };
@@ -112,7 +115,7 @@ function planRow(seg, idx, set, rowspanCells) {
           attrs: { 'aria-label': '重トレの種類' } },
         trainOptions(HEAVY4, set.ht, 'なし')
       ),
-      gainBox(key, idx, 'ht', heavyGain(parseInt(set.ht, 10), stageKey, apt))
+      gainBox(key, idx, 'ht', heavyGain(parseInt(set.ht, 10), stageKey, apt, good))
     ),
     numField('hc', heavy, '重トレの回数/月'),
     h('td', { class: 'col-train' },
@@ -121,7 +124,7 @@ function planRow(seg, idx, set, rowspanCells) {
           attrs: { 'aria-label': '軽トレの種類' } },
         trainOptions(LIGHT6, set.lt, 'なし')
       ),
-      gainBox(key, idx, 'lt', lightGain(parseInt(set.lt, 10), stageKey, apt))
+      gainBox(key, idx, 'lt', lightGain(parseInt(set.lt, 10), stageKey, apt, good))
     ),
     h('td', { class: 'col-num' },
       h('span', { class: 'light-count', id: `lc-${key}-${idx}`, text: String(light) })

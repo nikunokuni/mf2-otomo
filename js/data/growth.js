@@ -15,6 +15,13 @@ export const SC=['var(--stat-life)','var(--stat-pow)','var(--stat-int)','var(--s
 export const SCV=SK.map((k)=>`var(--stat-${k}-vivid)`);
 export const STAGES=['1段階','2段階','3段階','4段階','ピーク','準ピーク','5段階','6段階','7段階','8段階'];
 export const SKEYS=['s1','s2','s3','s4','peak','prepeak','s5','s6','s7','s8'];
+// 得意トレーニング
+//   得意なトレーニングは、そのトレーニングで上がるパラメータが1回につき +1 される
+//   （重トレは主上昇と副上昇の両方。減るぶん -2 は変わらない）。
+//   上昇値には上限があり、成長段階や適正に関係なく 重トレ20 / 軽トレ15 まで。
+// GOOD_KEYS は保存データに入るので、値を変えないこと（並びは画面に出す順）。
+export const GOOD_BONUS=1;
+export const GOOD_MAX={heavy:20,light:15};
 export const HEAVY4=[
   {name:'重り引き',main:'pow',sub:'life',pen:'avo'},
   {name:'変動床',  main:'avo',sub:'int', pen:'pow'},
@@ -25,6 +32,12 @@ export const LIGHT6=[
   {name:'ドミノ倒し',stat:'pow'},{name:'しゃてき',stat:'hit'},
   {name:'猛勉強',stat:'int'},{name:'巨石よけ',stat:'avo'},
   {name:'走り込み',stat:'life'},{name:'丸太受け',stat:'tou'},
+];
+/** 得意に選べるもの（重トレ4種 / 軽トレ6種 / 修行）。key は保存データに入る */
+export const GOOD_KEYS=[
+  ...HEAVY4.map((t,i)=>({key:`heavy:${i}`,name:t.name,kind:'heavy'})),
+  ...LIGHT6.map((t,i)=>({key:`light:${i}`,name:t.name,kind:'light'})),
+  {key:'mc',name:'修行',kind:'event'},
 ];
 export const HM={
   s1:{E:[3,3,3,4],D:[3,3,4,5],C:[3,4,5,6],B:[5,6,7,8],A:[6,7,8,9]},

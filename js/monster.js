@@ -13,7 +13,7 @@
    種族そのものの選択（グリッドとチップ）は js/species.js が持っている。
    =========================================================== */
 
-import { STATS, SK, SC } from './data/growth.js';
+import { STATS, SK, SC, GOOD_KEYS } from './data/growth.js';
 import { FEEDS, LIKING } from './data/feeds.js';
 import { hasSpec } from './data/species-spec.js';
 import {
@@ -64,6 +64,32 @@ function renderGuts(mon) {
     options.push(h('option', { value: String(i), text: String(i), selected: i === (mon.guts || 15) }));
   }
   replace(el('gutsRecovery'), options);
+}
+
+/* ---------- 得意トレーニング ---------- */
+
+/**
+ * 得意なトレーニングは、上がるパラメータが1回ごとに +1 される
+ * （重トレは主上昇と副上昇の両方）。1体で複数持てるのでチェックボックスにする。
+ * 修行は育成計画で上昇値を出していないので、いまは覚えておくだけ。
+ */
+function renderGood(s) {
+  replace(
+    el('goodGrid'),
+    GOOD_KEYS.map(({ key, name, kind }) =>
+      h(
+        'label',
+        { class: 'good-item' + (kind === 'event' ? ' good-item--event' : '') },
+        h('input', {
+          type: 'checkbox',
+          checked: s.good.includes(key),
+          dataset: { change: 'sim:good', key },
+          attrs: { 'aria-label': `${name}が得意` },
+        }),
+        h('span', { text: name })
+      )
+    )
+  );
 }
 
 /* ---------- 初期パラと適正 ---------- */
@@ -161,6 +187,7 @@ export function render() {
   replace(el('simLife'), lifeOptions(s.life));
   replace(el('simMoral'), moralOptions(s.moral));
   renderGuts(mon);
+  renderGood(s);
   renderInit(s);
   renderFeedLike(mon);
 }
@@ -215,6 +242,15 @@ export const changeActions = {
     const s = sim();
     if (!s) return;
     s.moral = normalizeMoral(target.value);
+    save();
+  },
+
+  'sim:good': (target) => {
+    const s = sim();
+    if (!s) return;
+    const key = target.dataset.key;
+    // 育成計算タブは、そのタブを開いたときに作り直されるので保存だけでよい
+    s.good = target.checked ? [...s.good, key] : s.good.filter((k) => k !== key);
     save();
   },
 

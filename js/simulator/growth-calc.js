@@ -2,7 +2,9 @@
    育成計算（画面に依存しない純粋な計算だけを置く）
    =========================================================== */
 
-import { SK, SKEYS, STAGES, HEAVY4, LIGHT6, HM, HS, LG, GTH, EV_COST, EV_WEEKS } from '../data/growth.js';
+import {
+  SK, SKEYS, STAGES, HEAVY4, LIGHT6, HM, HS, LG, GTH, EV_COST, EV_WEEKS, GOOD_BONUS, GOOD_MAX,
+} from '../data/growth.js';
 import { ITEMS } from '../data/items.js';
 
 /**
@@ -271,33 +273,52 @@ export function normalizePlan(sim) {
   return sim;
 }
 
+/** 得意なトレーニングかどうか（good はモンスタータブで選んだ得意の一覧） */
+function isGood(good, key) {
+  return Array.isArray(good) && good.includes(key);
+}
+
+/**
+ * 上がるぶんに得意の +1 を乗せて、上限で止める。
+ * 上限は成長段階や適正に関係なく 重トレ20 / 軽トレ15。
+ */
+function withGood(value, bonus, max) {
+  return Math.min(max, value + bonus);
+}
+
 /**
  * 重トレ1回ぶんの上昇値。[{ key, value }] を主上昇・副上昇・減少の順で返す。
  * 主上昇は HM テーブルの4つの数字のうち3つ目を使う（計算も画面表示もここを見る）。
+ * 得意な重トレなら、主上昇と副上昇の両方が +1 される（減るぶん -2 は変わらない）。
  * トレーニングを選んでいない（ti が -1）ときは空配列。
  */
-export function heavyGain(ti, stageKey, apt) {
+export function heavyGain(ti, stageKey, apt, good) {
   const t = HEAVY4[ti];
   if (!t) return [];
+  const bonus = isGood(good, `heavy:${ti}`) ? GOOD_BONUS : 0;
   return [
-    { key: t.main, value: HM[stageKey][apt[t.main]][2] },
-    { key: t.sub, value: HS[stageKey][apt[t.sub]] },
+    { key: t.main, value: withGood(HM[stageKey][apt[t.main]][2], bonus, GOOD_MAX.heavy) },
+    { key: t.sub, value: withGood(HS[stageKey][apt[t.sub]], bonus, GOOD_MAX.heavy) },
     { key: t.pen, value: -2 },
   ];
 }
 
-/** 軽トレ1回ぶんの上昇値。LG テーブルの値＝上がりうる最大値 */
-export function lightGain(ti, stageKey, apt) {
+/**
+ * 軽トレ1回ぶんの上昇値。LG テーブルの値＝上がりうる最大値。
+ * 得意な軽トレなら +1（上限15）。
+ */
+export function lightGain(ti, stageKey, apt, good) {
   const t = LIGHT6[ti];
   if (!t) return [];
-  return [{ key: t.stat, value: LG[stageKey][apt[t.stat]] }];
+  const bonus = isGood(good, `light:${ti}`) ? GOOD_BONUS : 0;
+  return [{ key: t.stat, value: withGood(LG[stageKey][apt[t.stat]], bonus, GOOD_MAX.light) }];
 }
 
 /**
  * 1セットぶんのパラメータ上昇値。
  * イベント週はトレーニングに使えないので、ここで一度だけ差し引く。
  */
-export function calcSetGain(set, stageKey, apt) {
+export function calcSetGain(set, stageKey, apt, good) {
   const gain = {};
   SK.forEach((k) => (gain[k] = 0));
 
@@ -308,7 +329,7 @@ export function calcSetGain(set, stageKey, apt) {
   const heavyCount = Math.max(0, Math.min(4, parseInt(set.hc, 10) || 0));
   const lightCount = Math.max(0, 4 - heavyCount);
 
-  const heavy = heavyGain(parseInt(set.ht, 10), stageKey, apt);
+  const heavy = heavyGain(parseInt(set.ht, 10), stageKey, apt, good);
   if (heavy.length && heavyCount > 0) {
     heavy.forEach(({ key, value }) => {
       gain[key] += value * heavyCount * fullMonths;
@@ -317,7 +338,7 @@ export function calcSetGain(set, stageKey, apt) {
     });
   }
 
-  const light = lightGain(parseInt(set.lt, 10), stageKey, apt);
+  const light = lightGain(parseInt(set.lt, 10), stageKey, apt, good);
   if (light.length && lightCount > 0) {
     light.forEach(({ key, value }) => {
       gain[key] += value * lightCount * fullMonths;
@@ -340,7 +361,7 @@ export function computeResult(sim) {
     const gain = {};
     SK.forEach((k) => (gain[k] = 0));
     seg.sets.forEach((set) => {
-      const setGain = calcSetGain(set, stageKey, sim.apt);
+      const setGain = calcSetGain(set, stageKey, sim.apt, sim.good);
       SK.forEach((k) => {
         gain[k] += setGain[k];
         total[k] += setGain[k];

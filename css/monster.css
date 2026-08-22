@@ -46,6 +46,29 @@
 }
 
 /* --- エサの好き嫌い --- */
+/* --- 得意トレーニング（複数選べる） --- */
+/* 2列にすると 重トレ4種＝上2行 / 軽トレ6種＝次の3行 / 修行＝最後 と、種類ごとに並ぶ */
+.good-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+.good-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.good-item input {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+/* 修行は上昇値をまだ出していないので、少し控えめに出す */
+.good-item--event span {
+  color: var(--color-text-secondary);
+}
 .feed-like-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
