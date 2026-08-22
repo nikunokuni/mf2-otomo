@@ -685,10 +685,10 @@ await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 ok((await page.locator('#memo').inputValue())==='テストメモ123','ピクシーのメモ');
 await page.locator('.chip__name', {hasText:'ライガー'}).click();
 ok((await page.locator('#memo').inputValue())==='','ライガーのメモは空');
-// エサの好き嫌いも種族ごとに持つ（ピクシーだけ「好き」にしてある）
+// エサの好き嫌いも種族ごとに持つ（ピクシーだけ手で「好き」にしてある）
 await page.click('#tab-monster');
-ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').inputValue())==='normal',
-   'ライガーの好き嫌いは初期値のまま');
+ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').inputValue())==='dislike',
+   'ライガーは自分の種族データのまま（ピクシーの「好き」が移らない）');
 await page.click('#tab-tracker');
 await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 await page.click('#tab-monster');

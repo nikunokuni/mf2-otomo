@@ -151,6 +151,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ライガー: {
+    life: 300,
+    gtype: 'hayajuku',
+    moral: 75,
+    guts: 9,
+    apt: ['D', 'D', 'B', 'A', 'B', 'E'],
+    init: [80, 90, 130, 160, 140, 70],
+    feed: ['dislike', 'normal', 'normal', 'normal', 'like', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
