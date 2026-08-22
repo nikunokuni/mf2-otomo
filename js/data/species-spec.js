@@ -129,6 +129,17 @@ export const SPECIES_SPEC = {
     good: ['light:4'], // 走り込み
   },
 
+  デュラハン: {
+    life: 400,
+    gtype: 'jizoku',
+    moral: -50,
+    guts: 14,
+    apt: ['C', 'B', 'C', 'C', 'E', 'A'],
+    init: [100, 150, 80, 110, 70, 180],
+    feed: ['dislike', 'dislike', 'normal', 'normal', 'like', 'like'],
+    good: ['light:0'], // ドミノ倒し
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
