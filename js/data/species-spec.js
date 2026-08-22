@@ -184,6 +184,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  バクー: {
+    life: 400,
+    gtype: 'bansei',
+    moral: 70,
+    guts: 16,
+    apt: ['A', 'B', 'E', 'D', 'E', 'C'],
+    init: [180, 130, 50, 70, 60, 150],
+    feed: ['like', 'like', 'like', 'dislike', 'like', 'dislike'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
