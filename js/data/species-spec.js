@@ -305,6 +305,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ジョーカー: {
+    life: 250,
+    gtype: 'jizoku',
+    moral: -90,
+    guts: 13,
+    apt: ['C', 'C', 'A', 'A', 'D', 'D'],
+    init: [120, 110, 200, 190, 100, 90],
+    feed: ['dislike', 'dislike', 'dislike', 'normal', 'like', 'normal'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
