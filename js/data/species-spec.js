@@ -261,6 +261,17 @@ export const SPECIES_SPEC = {
     good: ['trip:4'], // カウレア火山
   },
 
+  ゴースト: {
+    life: 300,
+    gtype: 'hayajuku',
+    moral: 0,
+    guts: 7,
+    apt: ['E', 'E', 'B', 'B', 'B', 'E'],
+    init: [100, 90, 120, 140, 150, 80],
+    feed: ['dislike', 'like', 'normal', 'like', 'normal', 'normal'],
+    good: ['light:3'], // 巨石よけ
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
