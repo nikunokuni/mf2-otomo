@@ -63,6 +63,17 @@ export const SPECIES_SPEC = {
     good: ['trip:1'], // マンディー砂漠
   },
 
+  コロペンドラ: {
+    life: 400,
+    gtype: 'bansei',
+    moral: 55,
+    guts: 12,
+    apt: ['A', 'D', 'D', 'C', 'C', 'E'],
+    init: [170, 50, 30, 100, 110, 60],
+    feed: ['like', 'like', 'normal', 'normal', 'normal', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
