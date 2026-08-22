@@ -327,6 +327,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ゲル: {
+    life: 350,
+    gtype: 'futsuu',
+    moral: -5,
+    guts: 14,
+    apt: ['C', 'D', 'B', 'B', 'D', 'B'],
+    init: [100, 90, 130, 120, 110, 140],
+    feed: ['dislike', 'normal', 'like', 'dislike', 'normal', 'like'],
+    good: ['light:5'], // 丸太うけ（アプリの表記は「丸太受け」）
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
