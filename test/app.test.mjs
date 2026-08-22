@@ -104,11 +104,15 @@ const moralValues = await page.locator('#simMoral option').evaluateAll(o=>o.map(
 ok(moralValues.length===41,'ヨイワルの選択肢は41個: '+moralValues.length);
 ok(moralValues[0]===-100 && moralValues[moralValues.length-1]===100,'両端が-100と100');
 ok(moralValues.every((v,i)=>i===0||v-moralValues[i-1]===5),'5きざみで並ぶ');
-ok((await page.locator('#simMoral').inputValue())==='0','はじめは0');
+// ピクシーは種族データを持っているので、その値が入っている（善悪-45）
+ok((await page.locator('#simMoral').inputValue())==='-45','種族データのヨイワルが入っている');
 const moralTexts = await page.locator('#simMoral option').allTextContents();
 ok(moralTexts.every(t=>/^[+-]?\d+$/.test(t)),'ヨイワルは数字だけ: '+moralTexts.slice(0,3).join(',')+'…');
 ok(moralTexts[moralTexts.length-1]==='+100','プラス側には+が付く: '+moralTexts[moralTexts.length-1]);
 await page.selectOption('#simMoral','-35');
+// このあとのテストは「適正C / エサふつう」を前提に書いてあるので、そこへそろえておく
+for (const sel of await page.locator('.stat-row__apt').all()) await sel.selectOption('C');
+for (const sel of await page.locator('.feed-like__select').all()) await sel.selectOption('normal');
 
 console.log('— 育成計算タブ（D4: 2階層） —');
 await page.click('#tab-simulator');
@@ -129,7 +133,7 @@ ok((await page.locator('#planWarnings').textContent()).trim()==='','問題が無
 
 console.log('— 成長適正の小表示（計画を組みながら見える） —');
 ok((await page.locator('#planApt .plan-apt__cell').count())===6,'計画の上に適正6つが出る');
-ok((await page.locator('#planApt .plan-apt__rank').allTextContents()).join('')==='CCCCCC','はじめは全部C');
+ok((await page.locator('#planApt .plan-apt__rank').allTextContents()).join('')==='CCCCCC','モンスタータブの適正を追いかける');
 ok((await page.locator('#planApt .plan-apt__cell input, #planApt .plan-apt__cell select').count())===0,
    'ここでは書き換えられない（読むだけ）');
 
@@ -383,7 +387,7 @@ ok((await feedRows.count())===6,'エサは6種類: '+(await feedRows.count()));
 const feedNames = await page.locator('.feed-table__name').allTextContents();
 ok(feedNames.join(',')==='ジャガもどき,ミルクもどき,サカナもどき,ゼリーもどき,ニクもどき,ビタミンもどき',
    'エサの並び: '+feedNames.join(','));
-// はじめは全部「普通」。ジャガもどき普通 = ストレス+4 / 恐れ度+3 / 甘え度-4 / 体型-1
+// ジャガもどき普通 = ストレス+4 / 恐れ度+3 / 甘え度-4 / 体型-1
 const jaga = () => feedRows.nth(0).locator('td').allTextContents();
 ok((await jaga()).join(',')==='ジャガもどき,普通,+4,+3,-4,-1','普通のジャガもどき: '+(await jaga()).join(','));
 ok((await page.locator('.feed-table thead th').allTextContents()).join(',')==='エサ,好み,ストレス,恐れ度,甘え度,体型',
@@ -829,9 +833,17 @@ ok((await page.locator('#simLife').inputValue())==='400','あとから変えた�
 page.once('dialog', d=>d.accept());
 await page.click('#loadSpecBtn');
 ok((await page.locator('#simLife').inputValue())==='350','「種族データを読み込む」で戻せる');
-// データを持っていない種族ではボタンを出さない
+// データを持っている種族ならボタンが出る
 await page.locator('.chip__name', {hasText:'ピクシー'}).click();
+ok(await page.locator('#loadSpecBtn').isVisible(),'データがある種族ではボタンを出す');
+// データを持っていない種族では出さない（38種族ぶん入れ終わったら、この行は消してよい）
+await page.click('#speciesGridToggle');
+await page.click('.monster-cell[data-name="ドラゴン"]');
 ok(await page.locator('#loadSpecBtn').isHidden(),'データが無い種族ではボタンを出さない');
+// ピクシーのデータがそのまま入っていることも見ておく
+await page.locator('.chip__name', {hasText:'ピクシー'}).click();
+const pixie = await page.locator('.stat-row__input').evaluateAll(ns=>ns.map(n=>n.value));
+ok(pixie.join(',')==='50,80,170,150,140,60','ピクシーの初期パラ: '+pixie.join(','));
 
 console.log('— 横スクロール —');
 const overflow = await page.evaluate(()=>document.documentElement.scrollWidth > window.innerWidth+1);

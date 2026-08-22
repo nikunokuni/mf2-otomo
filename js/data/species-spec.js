@@ -27,6 +27,17 @@
    =========================================================== */
 
 export const SPECIES_SPEC = {
+  ピクシー: {
+    life: 300,
+    gtype: 'hayajuku',
+    moral: -45,
+    guts: 7,
+    apt: ['E', 'D', 'A', 'B', 'B', 'E'],
+    init: [50, 80, 170, 150, 140, 60],
+    feed: ['dislike', 'dislike', 'like', 'like', 'dislike', 'normal'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
