@@ -252,8 +252,15 @@ ok(Number((await stageBadges.nth(1).textContent()).split('/')[1].replace('週','
 
 console.log('— 段階が始まる時期（開始時期は育成計画の中） —');
 ok(await page.locator('#subpane-plan #simMonth').isVisible(),'開始時期は育成計画のいちばん上にある');
-await page.fill('#simMonth','4');
+// 月も週もプルダウン。成長適正も同じ行に入っている
+ok(await page.locator('#simMonth').evaluate(n=>n.tagName)==='SELECT','開始月はプルダウン');
+ok((await page.locator('#simMonth option').count())===12,'開始月は12か月ぶん');
+ok(await page.locator('.sim-start #planApt').count()===1,'成長適正も育成開始と同じ行にある');
+await page.selectOption('#simMonth','4');
 await page.selectOption('#simWeek','1');
+// 選び直したら、表の「○月◎週」もその場で変わる
+ok((await page.locator('.plan-table .stage-date').first().textContent())==='4月1週',
+   '開始を変えるとすぐ日付が変わる: '+(await page.locator('.plan-table .stage-date').first().textContent()));
 await page.click('#tab-monster');
 await page.selectOption('#simLife','300');
 await page.selectOption('#simGtype','futsuu');

@@ -200,10 +200,25 @@
 
         <!-- 育成計画 -->
         <div id="subpane-plan" role="tabpanel" aria-labelledby="subtab-plan">
+          <!-- 育成開始と成長適正は1行にまとめる。
+               成長適正は上昇値に効くので、計画を組みながら見えるようにしておく
+               （書き換えるのはモンスタータブ） -->
           <div class="sim-row sim-start">
             <span class="sim-label">育成開始</span>
-            <input type="number" id="simMonth" min="1" max="12" data-input="sim:month"
-                   style="width:56px" aria-label="開始月">
+            <select id="simMonth" data-change="sim:month" style="width:60px" aria-label="開始月">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
             <span class="sim-label">月</span>
             <select id="simWeek" data-change="sim:week" style="width:60px" aria-label="開始週">
               <option value="1">1</option>
@@ -212,11 +227,8 @@
               <option value="4">4</option>
             </select>
             <span class="sim-label">週</span>
+            <div id="planApt" class="plan-apt"></div>
           </div>
-
-          <!-- 成長適正は上昇値に効くので、計画を組みながら見えるようにしておく
-               （書き換えるのはモンスタータブ） -->
-          <div id="planApt" class="plan-apt"></div>
 
           <!-- 桃システムの操作欄。若返るぶんの計画は、下の表に黄色い行として挟まる -->
           <div class="peach" id="peachArea"></div>

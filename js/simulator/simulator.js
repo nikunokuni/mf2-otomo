@@ -568,11 +568,6 @@ export const inputActions = {
     save();
   },
 
-  'sim:month': (target) => {
-    sim().month = clampInt(target.value, 1, 12, 1);
-    save();
-  },
-
   'sim:setField': (target) => {
     const s = sim();
     const { seg, idx, field } = target.dataset;
@@ -592,8 +587,16 @@ export const inputActions = {
 };
 
 export const simpleChanges = {
+  // 育成開始の月と週。表に出ている「○月◎週」もその場で書き換える
+  'sim:month': (target) => {
+    sim().month = clampInt(target.value, 1, 12, 1);
+    refreshPlanNumbers();
+    save();
+  },
+
   'sim:week': (target) => {
     sim().week = clampInt(target.value, 1, 4, 1);
+    refreshPlanNumbers();
     save();
   },
 };

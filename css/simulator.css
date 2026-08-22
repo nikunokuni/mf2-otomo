@@ -191,12 +191,13 @@
 }
 
 /* --- 成長適正の読み取り専用の帯（計画表の上） --- */
+/* 成長適正は育成開始と同じ行に置く（読むだけの帯） */
 .plan-apt {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 8px;
-  margin: 0 0 10px;
+  margin: 0 0 0 auto;
   padding: 6px 8px;
   border-radius: var(--border-radius-sm);
   background: var(--color-background-secondary);
@@ -218,9 +219,16 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-/* 育成開始（○月◎週）は1行にまとめる */
+/* 育成開始（○月◎週）と成長適正は1行にまとめる */
 .sim-start {
   margin-bottom: 10px;
+}
+/* 狭い画面では折り返すので、そのときは左そろえで横いっぱいに */
+@media (max-width: 480px) {
+  .sim-start .plan-apt {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 /* --- 育成計画テーブル --- */
