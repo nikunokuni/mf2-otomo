@@ -118,6 +118,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ロードランナー: {
+    life: 350,
+    gtype: 'futsuu',
+    moral: 10,
+    guts: 13,
+    apt: ['C', 'C', 'D', 'B', 'C', 'C'],
+    init: [130, 120, 80, 140, 100, 110],
+    feed: ['dislike', 'normal', 'like', 'normal', 'like', 'normal'],
+    good: ['light:4'], // 走り込み
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
