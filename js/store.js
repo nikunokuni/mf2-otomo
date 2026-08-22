@@ -10,6 +10,7 @@
 import { SK } from './data/growth.js';
 import { SKEYS } from './data/growth.js';
 import { FEEDS, DEFAULT_LIKING } from './data/feeds.js';
+import { SPECIES_SPEC } from './data/species-spec.js';
 import { segKey } from './simulator/growth-calc.js';
 
 const STORAGE_KEY = 'monfar_state_v1';
@@ -423,9 +424,34 @@ export function currentMon() {
   return state.current ? state.mon[state.current] || null : null;
 }
 
+/**
+ * 種族ごとに決まっている値（js/data/species-spec.js）を、1体ぶんの入れ物に写す。
+ * 埋めるのはモンスタータブに出ている7項目
+ * （寿命 / 成長タイプ / ヨイワル / ガッツ回復 / 初期パラ / 成長適正 / エサの好み）。
+ * データを持っていない種族なら何もしないで false を返す。
+ */
+export function applySpeciesSpec(mon, name) {
+  const spec = SPECIES_SPEC[name];
+  if (!mon || !spec) return false;
+  mon.sim.life = normalizeLife(spec.life);
+  mon.sim.gtype = spec.gtype;
+  mon.sim.moral = normalizeMoral(spec.moral);
+  mon.guts = spec.guts;
+  SK.forEach((key, i) => {
+    mon.sim.apt[key] = spec.apt[i];
+    mon.sim.init[key] = spec.init[i];
+  });
+  FEEDS.forEach((feed, i) => {
+    mon.feedLike[feed.name] = spec.feed[i] || DEFAULT_LIKING;
+  });
+  return true;
+}
+
 export function ensureMon(name) {
   if (!state.mon[name]) {
     state.mon[name] = defaultMon();
+    // 追加したときだけ種族のデータで埋める（あとから手で変えたぶんは上書きしない）
+    applySpeciesSpec(state.mon[name], name);
     state.order.push(name);
   }
   return state.mon[name];

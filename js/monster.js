@@ -15,10 +15,12 @@
 
 import { STATS, SK, SC } from './data/growth.js';
 import { FEEDS, LIKING } from './data/feeds.js';
+import { hasSpec } from './data/species-spec.js';
 import {
   state,
   save,
   currentMon,
+  applySpeciesSpec,
   MORAL_STEP,
   normalizeMoral,
   LIFE_MIN,
@@ -153,6 +155,8 @@ export function render() {
 
   const s = mon.sim;
   el('specSpeciesLabel').textContent = state.current;
+  // 種族のデータを持っているときだけ、読み込み直すボタンを出す
+  el('loadSpecBtn').hidden = !hasSpec(state.current);
   el('simGtype').value = s.gtype;
   replace(el('simLife'), lifeOptions(s.life));
   replace(el('simMoral'), moralOptions(s.moral));
@@ -164,6 +168,16 @@ export function render() {
 /* ---------- 操作 ---------- */
 
 export const actions = {
+  // 種族ごとに決まっている値を入れ直す（手で変えたぶんは消えるので、いちど確かめる）
+  'mon:loadSpec': () => {
+    const mon = currentMon();
+    if (!mon || !hasSpec(state.current)) return;
+    if (!confirm(`${state.current} のデータを読み込みますか？\nいま入れている値は上書きされます。`)) return;
+    applySpeciesSpec(mon, state.current);
+    save();
+    render();
+  },
+
   'sim:statStep': (target) => {
     const s = sim();
     if (!s) return;

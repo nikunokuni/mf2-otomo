@@ -764,6 +764,36 @@ ok(await page.locator('[data-action="backup:export"]').isVisible(),'書き出し
 await page.click('#tab-tracker');
 ok((await page.locator('#pane-tracker [data-action="backup:export"]').count())===0,'ほかのタブには出ない');
 
+console.log('— 種族データの自動入力 —');
+await page.click('#tab-monster');
+await page.click('#speciesGridToggle');
+await page.click('.monster-cell[data-name="スエゾー"]');
+ok((await page.locator('#specSpeciesLabel').textContent())==='スエゾー','スエゾーを追加した');
+// 表の値がそのまま入る（寿命350 / 早熟 / 善悪-65 / G回復12）
+ok((await page.locator('#simLife').inputValue())==='350','寿命が入る: '+(await page.locator('#simLife').inputValue()));
+ok((await page.locator('#simGtype').inputValue())==='hayajuku','成長タイプが入る');
+ok((await page.locator('#simMoral').inputValue())==='-65','ヨイワルが入る');
+ok((await page.locator('#gutsRecovery').inputValue())==='12','ガッツ回復が入る');
+const suezoApt = await page.locator('.stat-row__apt').evaluateAll(ns=>ns.map(n=>n.value));
+ok(suezoApt.join(',')==='D,C,A,B,D,D','成長適正が入る: '+suezoApt.join(','));
+const suezoInit = await page.locator('.stat-row__input').evaluateAll(ns=>ns.map(n=>n.value));
+ok(suezoInit.join(',')==='80,120,170,130,90,100','初期パラが入る: '+suezoInit.join(','));
+const suezoFeed = await page.locator('.feed-like__select').evaluateAll(ns=>ns.map(n=>n.value));
+ok(suezoFeed.join(',')==='dislike,normal,normal,like,like,normal','エサの好みが入る: '+suezoFeed.join(','));
+// 手で変えたぶんは、選び直しても上書きされない
+await page.selectOption('#simLife','400');
+await page.click('#speciesGridToggle');
+await page.click('.monster-cell[data-name="ピクシー"]');
+await page.locator('.chip__name', {hasText:'スエゾー'}).click();
+ok((await page.locator('#simLife').inputValue())==='400','あとから変えた値は残る');
+// ボタンを押せば種族のデータに戻せる
+page.once('dialog', d=>d.accept());
+await page.click('#loadSpecBtn');
+ok((await page.locator('#simLife').inputValue())==='350','「種族データを読み込む」で戻せる');
+// データを持っていない種族ではボタンを出さない
+await page.locator('.chip__name', {hasText:'ピクシー'}).click();
+ok(await page.locator('#loadSpecBtn').isHidden(),'データが無い種族ではボタンを出さない');
+
 console.log('— 横スクロール —');
 const overflow = await page.evaluate(()=>document.documentElement.scrollWidth > window.innerWidth+1);
 ok(!overflow,'ページ全体に横スクロールが出ていない');
