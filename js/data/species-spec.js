@@ -283,6 +283,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ジール: {
+    life: 350,
+    gtype: 'bansei',
+    moral: 15,
+    guts: 16,
+    apt: ['C', 'B', 'B', 'D', 'D', 'C'],
+    init: [140, 160, 150, 110, 100, 130],
+    feed: ['normal', 'dislike', 'like', 'dislike', 'like', 'normal'],
+    good: ['trip:2'], // パパス雪山
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
