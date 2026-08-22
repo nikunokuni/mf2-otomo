@@ -206,6 +206,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  アーケロ: {
+    life: 450,
+    gtype: 'bansei',
+    moral: -55,
+    guts: 17,
+    apt: ['D', 'E', 'A', 'C', 'A', 'D'],
+    init: [70, 60, 170, 140, 160, 100],
+    feed: ['dislike', 'dislike', 'like', 'dislike', 'normal', 'dislike'],
+    good: ['heavy:2'], // めいそう
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
