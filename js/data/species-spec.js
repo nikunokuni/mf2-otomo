@@ -415,6 +415,17 @@ export const SPECIES_SPEC = {
     good: ['trip:3'], // パレパレジャングル（密林）
   },
 
+  ワーム: {
+    life: 300,
+    gtype: 'bansei',
+    moral: 20,
+    guts: 15,
+    apt: ['A', 'C', 'C', 'C', 'E', 'D'],
+    init: [180, 100, 110, 120, 60, 90],
+    feed: ['normal', 'normal', 'dislike', 'like', 'dislike', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
