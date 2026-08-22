@@ -360,6 +360,17 @@ export const SPECIES_SPEC = {
     good: ['heavy:3'], // プール
   },
 
+  モック: {
+    life: 450,
+    gtype: 'hayajuku',
+    moral: -15,
+    guts: 12,
+    apt: ['E', 'D', 'A', 'D', 'D', 'D'],
+    init: [200, 70, 140, 50, 60, 40],
+    feed: ['normal', 'like', 'like', 'normal', 'normal', 'normal'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
