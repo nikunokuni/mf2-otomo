@@ -16,7 +16,10 @@
             js/data/growth.js の GOOD_KEYS のキーで書く:
               heavy:0 重り引き / heavy:1 変動床 / heavy:2 めいそう / heavy:3 プール
               light:0 ドミノ倒し / light:1 しゃてき / light:2 猛勉強 /
-              light:3 巨石よけ / light:4 走り込み / light:5 丸太受け / mc 修行
+              light:3 巨石よけ / light:4 走り込み / light:5 丸太受け
+              trip:0 海岸 / trip:1 砂漠 / trip:2 雪山 / trip:3 密林 / trip:4 火山
+            表に修行先（トーレス海岸・マンディー砂漠など）が書いてあるときは、
+            地名の部分を落として trip: のキーにする
             得意なトレーニングは、上がるパラメータが1回ごとに +1 される
      feed   エサの好み（js/data/feeds.js の並び）
             ジャガもどき / ミルクもどき / サカナもどき / ゼリーもどき /
@@ -47,6 +50,17 @@ export const SPECIES_SPEC = {
     init: [100, 170, 160, 120, 90, 110],
     feed: ['dislike', 'dislike', 'normal', 'normal', 'like', 'normal'],
     good: [],
+  },
+
+  ケンタウロス: {
+    life: 300,
+    gtype: 'futsuu',
+    moral: 75,
+    guts: 16,
+    apt: ['C', 'C', 'B', 'A', 'D', 'D'],
+    init: [90, 100, 140, 160, 150, 80],
+    feed: ['normal', 'normal', 'dislike', 'like', 'like', 'like'],
+    good: ['trip:1'], // マンディー砂漠
   },
 
   スエゾー: {
