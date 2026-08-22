@@ -349,6 +349,17 @@ export const SPECIES_SPEC = {
     good: ['light:2'], // 猛勉強
   },
 
+  ナイトン: {
+    life: 350,
+    gtype: 'bansei',
+    moral: 45,
+    guts: 10,
+    apt: ['C', 'D', 'D', 'D', 'D', 'A'],
+    init: [90, 40, 30, 70, 50, 160],
+    feed: ['dislike', 'normal', 'like', 'normal', 'dislike', 'normal'],
+    good: ['heavy:3'], // プール
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
