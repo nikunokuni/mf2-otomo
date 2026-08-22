@@ -74,6 +74,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ビークロン: {
+    life: 300,
+    gtype: 'hayajuku',
+    moral: 30,
+    guts: 13,
+    apt: ['B', 'B', 'E', 'D', 'D', 'B'],
+    init: [120, 150, 50, 70, 90, 140],
+    feed: ['like', 'normal', 'normal', 'like', 'normal', 'like'],
+    good: ['heavy:0'], // 重り引き
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
