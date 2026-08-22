@@ -393,6 +393,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  モノリス: {
+    life: 250,
+    gtype: 'futsuu',
+    moral: -35,
+    guts: 18,
+    apt: ['D', 'C', 'C', 'D', 'E', 'A'],
+    init: [110, 130, 140, 100, 10, 220],
+    feed: ['dislike', 'normal', 'normal', 'like', 'normal', 'normal'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
