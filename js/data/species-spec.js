@@ -294,6 +294,17 @@ export const SPECIES_SPEC = {
     good: ['trip:2'], // パパス雪山
   },
 
+  モッチー: {
+    life: 350,
+    gtype: 'futsuu',
+    moral: 50,
+    guts: 11,
+    apt: ['C', 'C', 'C', 'B', 'B', 'B'],
+    init: [110, 100, 120, 140, 150, 130],
+    feed: ['dislike', 'normal', 'like', 'like', 'normal', 'like'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',
