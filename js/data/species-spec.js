@@ -38,6 +38,17 @@ export const SPECIES_SPEC = {
     good: [],
   },
 
+  ドラゴン: {
+    life: 250,
+    gtype: 'hayajuku',
+    moral: -70,
+    guts: 19,
+    apt: ['C', 'A', 'A', 'C', 'D', 'C'],
+    init: [100, 170, 160, 120, 90, 110],
+    feed: ['dislike', 'dislike', 'normal', 'normal', 'like', 'normal'],
+    good: [],
+  },
+
   スエゾー: {
     life: 350,
     gtype: 'hayajuku',

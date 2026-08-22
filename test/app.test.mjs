@@ -838,12 +838,24 @@ await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 ok(await page.locator('#loadSpecBtn').isVisible(),'データがある種族ではボタンを出す');
 // データを持っていない種族では出さない（38種族ぶん入れ終わったら、この行は消してよい）
 await page.click('#speciesGridToggle');
-await page.click('.monster-cell[data-name="ドラゴン"]');
+await page.click('.monster-cell[data-name="ケンタウロス"]');
 ok(await page.locator('#loadSpecBtn').isHidden(),'データが無い種族ではボタンを出さない');
 // ピクシーのデータがそのまま入っていることも見ておく
 await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 const pixie = await page.locator('.stat-row__input').evaluateAll(ns=>ns.map(n=>n.value));
 ok(pixie.join(',')==='50,80,170,150,140,60','ピクシーの初期パラ: '+pixie.join(','));
+// ドラゴンも入っている（寿命250 / 早熟 / 善悪-70 / G回復19）
+await page.click('#speciesGridToggle');
+await page.click('.monster-cell[data-name="ドラゴン"]');
+ok((await page.locator('#simLife').inputValue())==='250','ドラゴンの寿命: '+(await page.locator('#simLife').inputValue()));
+ok((await page.locator('#simMoral').inputValue())==='-70','ドラゴンのヨイワル');
+ok((await page.locator('#gutsRecovery').inputValue())==='19','ドラゴンのガッツ回復');
+const dragonApt = await page.locator('.stat-row__apt').evaluateAll(ns=>ns.map(n=>n.value));
+ok(dragonApt.join(',')==='C,A,A,C,D,C','ドラゴンの成長適正: '+dragonApt.join(','));
+const dragonInit = await page.locator('.stat-row__input').evaluateAll(ns=>ns.map(n=>n.value));
+ok(dragonInit.join(',')==='100,170,160,120,90,110','ドラゴンの初期パラ: '+dragonInit.join(','));
+const dragonFeed = await page.locator('.feed-like__select').evaluateAll(ns=>ns.map(n=>n.value));
+ok(dragonFeed.join(',')==='dislike,dislike,normal,normal,like,normal','ドラゴンのエサの好み: '+dragonFeed.join(','));
 
 console.log('— 横スクロール —');
 const overflow = await page.evaluate(()=>document.documentElement.scrollWidth > window.innerWidth+1);
