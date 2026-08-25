@@ -8,7 +8,8 @@
      開いたかどうかは state.ui.movesOpen に覚える
    ・データ（js/data/moves.js）は、初めて開いたときに取りに行く。
      全種族ぶんが入ると50KB前後になる見込みなので、アイコンと同じ遅延読み込み
-   ・距離での絞り込みは画面の中だけの状態（保存しない）
+   ・並べ替えは画面の中だけの状態（保存しない）。
+     はじめは @wiki の表の並びのままで、押した列で並べ替える
    ・技名の地色は @wiki と同じ塗り分け（黄＝ちから技 / 緑＝かしこさ技）。
      色の意味は画面には書かない（見れば分かるので）
    =========================================================== */
@@ -16,8 +17,11 @@
 import { state, save } from '../store.js';
 import { el, h, replace } from '../dom.js';
 
-/** 距離の絞り込み。null は「ぜんぶ」 */
-let distFilter = null;
+/**
+ * 並べ替え。null なら @wiki の表のままの並び。
+ * key は SORTS のキー、desc は大きい順かどうか。
+ */
+let sort = null;
 
 /* ---------- データの遅延読み込み ---------- */
 
@@ -107,27 +111,72 @@ function table(list) {
   );
 }
 
-/** 距離の絞り込みボタン。表の「遠←距離→近」と同じ 1〜4 で並べる */
-function filterBar() {
-  const buttons = [{ label: '全', dist: null }].concat(
-    [1, 2, 3, 4].map((d) => ({ label: String(d), dist: d }))
-  );
+/* ---------- 並べ替え ---------- */
 
+/**
+ * 並べ替えに使える列。
+ *   value  その技の値を取り出す（空欄の技は null）
+ *   desc   はじめに押したときの向き。true=大きい順
+ *          ダメージや命中は「大きいほど強い」ので大きい順、
+ *          消費ガッツと当時間は「小さいほど良い」ので小さい順から始める
+ */
+const SORTS = {
+  guts: { label: 'G', title: '消費ガッツ', value: (mv) => mv.guts, desc: false },
+  dmg: { label: 'ダメ', title: 'ダメージ', value: (mv) => rankValue(mv.dmg), desc: true },
+  acc: { label: '命', title: '命中', value: (mv) => rankValue(mv.acc), desc: true },
+  gd: { label: 'GD', title: 'ガッツダウン', value: (mv) => rankValue(mv.gd), desc: true },
+  cr: { label: 'CR', title: 'クリティカル', value: (mv) => rankValue(mv.cr), desc: true },
+  tHit: { label: '時間', title: '当たったときの使用時間', value: (mv) => mv.tHit, desc: false },
+};
+
+/** [ランク, 数値] の数値のほう。空欄は null */
+function rankValue(pair) {
+  return pair ? pair[1] : null;
+}
+
+/**
+ * 並べ替えた配列を返す。
+ * 空欄（—）の技は、どちらの向きでも必ずいちばん下に置く。
+ * 同じ値どうしは @wiki の表の並びのまま（JS の sort は安定なので、そのままで保たれる）。
+ */
+function sorted(list) {
+  if (!sort) return list;
+  const { value } = SORTS[sort.key];
+  return list.slice().sort((a, b) => {
+    const va = value(a);
+    const vb = value(b);
+    if (va === null && vb === null) return 0;
+    if (va === null) return 1;
+    if (vb === null) return -1;
+    return sort.desc ? vb - va : va - vb;
+  });
+}
+
+/**
+ * 並べ替えのボタン。押すたびに
+ *   押していない → その列で並べ替え → 逆順 → 表のままに戻る
+ * と変わる。
+ */
+function sortBar() {
   return h(
     'div',
-    { class: 'moves__filter' },
-    buttons.map(({ label, dist }) =>
-      h('button', {
+    { class: 'moves__sort' },
+    Object.entries(SORTS).map(([key, { label, title, desc }]) => {
+      const on = sort && sort.key === key;
+      const arrow = on ? (sort.desc ? ' ▼' : ' ▲') : '';
+      return h('button', {
         type: 'button',
-        class: 'moves__filter-btn',
-        text: label,
-        dataset: { action: 'moves:filter', dist: dist === null ? '' : String(dist) },
+        class: 'moves__sort-btn',
+        text: label + arrow,
+        dataset: { action: 'moves:sort', key },
         attrs: {
-          'aria-pressed': String(distFilter === dist),
-          'aria-label': dist === null ? 'すべての距離' : `距離${dist}`,
+          'aria-pressed': String(!!on),
+          'aria-label': on
+            ? `${title}で並べ替え中（${sort.desc ? '大きい順' : '小さい順'}）`
+            : `${title}で並べ替える（${desc ? '大きい順' : '小さい順'}）`,
         },
-      })
-    )
+      });
+    })
   );
 }
 
@@ -139,8 +188,7 @@ function body(species) {
       text: 'この種族の技データはまだ入っていません。',
     });
   }
-  const shown = distFilter === null ? all : all.filter((mv) => mv.dist === distFilter);
-  return h('div', {}, filterBar(), table(shown));
+  return h('div', {}, sortBar(), table(sorted(all)));
 }
 
 /* ---------- 描画 ---------- */
@@ -188,9 +236,12 @@ export const actions = {
     render();
   },
 
-  'moves:filter': (target) => {
-    const raw = target.dataset.dist;
-    distFilter = raw === '' ? null : Number(raw);
+  'moves:sort': (target) => {
+    const key = target.dataset.key;
+    if (!sort || sort.key !== key) sort = { key, desc: SORTS[key].desc };
+    // 同じ列をもう一度押したら逆順に、そのあともう一度で表のままに戻す
+    else if (sort.desc === SORTS[key].desc) sort = { key, desc: !sort.desc };
+    else sort = null;
     render();
   },
 };

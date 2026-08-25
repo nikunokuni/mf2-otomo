@@ -137,14 +137,31 @@ ok(halves.rankE,'ランクEの地色も半々');
 ok((await page.locator('.moves-table .rank--E').count())>0,'Eランクに色が付く');
 ok((await page.locator('.moves-table tbody tr').filter({hasText:'ドレイン'}).locator('.moves-moral--bad').count())>0,'ヨイワルのワル側が出る');
 ok((await page.locator('.moves-table tbody tr').filter({hasText:'リフレッシュ'}).locator('.moves-moral--good').count())>0,'ヨイワルのヨイ側が出る');
-// 距離で絞り込む（1=近 … 4=遠）
-ok((await page.locator('.moves__filter-btn').allTextContents()).join(',')==='全,1,2,3,4','絞り込みは 全 / 1 / 2 / 3 / 4');
-await page.locator('.moves__filter-btn', {hasText:/^1$/}).click();
-ok((await page.locator('.moves-table tbody tr').count())===5,'距離1にしぼると5技');
-await page.locator('.moves__filter-btn', {hasText:/^4$/}).click();
-ok((await page.locator('.moves-table tbody tr').count())===5,'距離4にしぼると5技');
-await page.locator('.moves__filter-btn', {hasText:/^全$/}).click();
-ok((await page.locator('.moves-table tbody tr').count())===21,'全に戻すと21技');
+// 並べ替え
+const names = () => page.locator('.moves-table tbody tr td:first-child').allTextContents();
+ok((await page.locator('.moves__sort-btn').allTextContents()).join(',')==='G,ダメ,命,GD,CR,時間','並べ替えは G / ダメ / 命 / GD / CR / 時間');
+ok((await names())[0]==='タッチ','はじめは @wiki の表のままの並び');
+// 消費ガッツは「小さいほど良い」ので、はじめは小さい順
+await page.locator('.moves__sort-btn[data-key="guts"]').click();
+const byGuts = await names();
+ok(byGuts[0]==='キック'&&byGuts[byGuts.length-1]==='デスファイナル','Gは小さい順（キック10 → デスファイナル52）');
+ok((await page.locator('.moves__sort-btn[data-key="guts"]').textContent())==='G ▲','向きが矢印で出る');
+await page.locator('.moves__sort-btn[data-key="guts"]').click();
+const byGutsDesc = await names();
+ok(byGutsDesc[0]==='デスファイナル','もう一度押すと逆順');
+await page.locator('.moves__sort-btn[data-key="guts"]').click();
+ok((await names())[0]==='タッチ','さらに押すと表のままに戻る');
+ok((await page.locator('.moves__sort-btn[aria-pressed="true"]').count())===0,'戻ると押した状態も外れる');
+// ダメージは「大きいほど強い」ので、はじめは大きい順。空欄の技はいちばん下
+await page.locator('.moves__sort-btn[data-key="dmg"]').click();
+const byDmg = await names();
+ok(byDmg[0]==='ファイアブレス','ダメは大きい順（ファイアブレス45）');
+ok(byDmg.slice(-2).sort().join(',')===['なげキッス','リフレッシュ'].sort().join(','),'ダメージが空欄の技は下に置く');
+ok((await page.locator('.moves-table tbody tr').count())===21,'並べ替えても技は減らない');
+// 当時間も「短いほど良い」ので小さい順から
+await page.locator('.moves__sort-btn[data-key="tHit"]').click();
+ok((await names())[0]==='サンダー','時間は小さい順（サンダー2.1）');
+ok((await page.locator('.moves__sort-btn[aria-pressed="true"]').count())===1,'押した状態になるのは1つだけ');
 ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('monfar_state_v1')).ui.movesOpen)===true,'開いたことが保存される');
 await page.click('#movesToggle');
 ok(await page.locator('#movesBody').isHidden(),'もう一度押すと閉じる');
