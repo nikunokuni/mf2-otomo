@@ -100,7 +100,6 @@ ok((await page.locator('.moves-table td.moves-name--pow').count())===8,'ちか�
 ok((await page.locator('.moves-table td.moves-name--int').count())===13,'かしこさ技（緑）は13技');
 ok((await page.locator('.moves-table td.moves-name--pow', {hasText:/^タッチ$/}).count())===1,'タッチはちから技');
 ok((await page.locator('.moves-table td.moves-name--int', {hasText:/^サンダー$/}).count())===1,'サンダーはかしこさ技');
-ok((await page.locator('.moves__legend .is-pow').count())===1,'色の意味の見出しが出る');
 const powBg = await page.locator('.moves-table td.moves-name--pow').first().evaluate(e=>getComputedStyle(e).backgroundColor);
 ok(powBg==='rgb(255, 255, 0)','ちから技の地色は @wiki と同じ黄色: '+powBg);
 const intBg = await page.locator('.moves-table td.moves-name--int').first().evaluate(e=>getComputedStyle(e).backgroundColor);

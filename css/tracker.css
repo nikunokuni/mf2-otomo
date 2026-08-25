@@ -271,24 +271,6 @@
   color: var(--move-int-fg);
 }
 
-/* 色の意味の見出し */
-.moves__legend {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
-.moves__legend b {
-  display: inline-block;
-  padding: 1px 8px;
-  border-radius: var(--border-radius-sm);
-  font-weight: 600;
-}
-.moves__legend .is-pow { background: var(--move-pow-bg); color: var(--move-pow-fg); }
-.moves__legend .is-int { background: var(--move-int-bg); color: var(--move-int-fg); }
 .moves-table td {
   white-space: nowrap;
 }

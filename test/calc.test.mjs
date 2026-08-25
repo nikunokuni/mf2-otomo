@@ -504,20 +504,17 @@ eq(R.lifeTotals(lifeRows),{age:3,extra:3,total:6},'合計の内訳');
    技名を打ち間違えるとここで落ちる（種族を足してもテストを書き足す必要はない）。 */
 console.log('\n— 技データと使い込みデータの突き合わせ —');
 
-/* @wiki の表と monsters.js で食い違っていて、まだどちらが正しいか決めていないもの。
-   直したら、この行も消すこと。 */
-const KNOWN_DIFF = [
-  // monsters.js は need:30、@wiki の備考は「ハイキック50回」
-  'ピクシー ハイキック→ヒールレイド 使い込み回数',
-];
-const seenDiff = [];
-
 for (const [species, list] of Object.entries(MOVES)) {
   const byName = new Map(list.map((mv) => [mv.name, mv]));
   eq(byName.size, list.length, `${species}: 技名の重複が無い`);
   // 技名の地色（@wiki の黄＝ちから / 緑＝かしこさ）は全技ぶん入っていること
   eq(list.filter((mv) => mv.stat !== 'pow' && mv.stat !== 'int').map((mv) => mv.name), [],
      `${species}: ちから技 / かしこさ技 がすべて入っている`);
+  // 最初から持っている技（画面には出さないが、修行で覚える技と区別するために持つ）。
+  // 使い込みで覚える技が初期技になっていたら、どちらかの写し間違い
+  eq(list.filter((mv) => mv.init && /^.+\d+回/.test(mv.note || '')).map((mv) => mv.name), [],
+     `${species}: 使い込みで覚える技が初期技になっていない`);
+  eq(list.some((mv) => mv.init), true, `${species}: 最初から持っている技がある`);
 
   for (const pair of MONSTER_DATA[species] || []) {
     const from = byName.get(pair.from);
@@ -536,9 +533,7 @@ for (const [species, list] of Object.entries(MOVES)) {
     eq(!!m, true, `${species} ${pair.to}: 備考に使い込み条件がある`);
     if (!m) continue;
     eq(m[1], pair.from, `${species} ${pair.to}: 備考の下位技`);
-    const label = `${species} ${pair.from}→${pair.to} 使い込み回数`;
-    if (Number(m[2]) !== pair.need && KNOWN_DIFF.includes(label)) seenDiff.push(label);
-    else eq(Number(m[2]), pair.need, label);
+    eq(Number(m[2]), pair.need, `${species} ${pair.from}→${pair.to} 使い込み回数`);
   }
 
   // milestone（途中で覚える技）も名簿に載っていること
@@ -548,7 +543,6 @@ for (const [species, list] of Object.entries(MOVES)) {
        `${species}: 途中で覚える「${pair.milestone.to}」が技データにある`);
   }
 }
-eq(seenDiff.sort(), KNOWN_DIFF.slice().sort(), '食い違いは分かっているぶんだけ');
 console.log(`技データは ${Object.keys(MOVES).length} 種族ぶん / ` +
   `${Object.values(MOVES).reduce((n, l) => n + l.length, 0)}技`);
 

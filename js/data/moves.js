@@ -27,6 +27,9 @@
      mvHit  移動(当)  '1' や '2→3' のように表のまま
      mvMiss 移動(外)
      rapid  連射      強 / 並
+     init   最初から持っている技なら true（無ければ書かない）
+            @wiki の表では「種類」のセルが淡い黄色（#ffffa0）になっているもの。
+            画面には出していないが、修行で覚える技と区別が付くので持っておく
    =========================================================== */
 
 /** ランクの並び（色分けに使う。S がいちばん上） */
@@ -37,9 +40,9 @@ export const KINDS = ['バランス', '大ダメージ', '超必殺', '命中', 
 
 export const MOVES = {
   ピクシー: [
-    { name:'タッチ',        stat:'pow', kind:'バランス',     dist:1, guts:12, dmg:['E',6],  acc:['A',10],  gd:null,       cr:null,       moral:null, note:'',                              tHit:3.8, tMiss:3.8, mvHit:'1',      mvMiss:'1→2',   rapid:'強' },
+    { init:true, name:'タッチ',        stat:'pow', kind:'バランス',     dist:1, guts:12, dmg:['E',6],  acc:['A',10],  gd:null,       cr:null,       moral:null, note:'',                              tHit:3.8, tMiss:3.8, mvHit:'1',      mvMiss:'1→2',   rapid:'強' },
     { name:'はり手',        stat:'pow', kind:'バランス',     dist:1, guts:18, dmg:['D',15], acc:['A',9],   gd:['E',5],    cr:null,       moral:null, note:'タッチ30回',                    tHit:3.8, tMiss:4.1, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
-    { name:'キック',        stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['E',7],  acc:['B',4],   gd:null,       cr:null,       moral:null, note:'',                              tHit:3.8, tMiss:4.1, mvHit:'1',      mvMiss:'1→2',   rapid:'強' },
+    { init:true, name:'キック',        stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['E',7],  acc:['B',4],   gd:null,       cr:null,       moral:null, note:'',                              tHit:3.8, tMiss:4.1, mvHit:'1',      mvMiss:'1→2',   rapid:'強' },
     { name:'ハイキック',    stat:'pow', kind:'バランス',     dist:1, guts:19, dmg:['D',15], acc:['B',3],   gd:['E',5],    cr:['E',5],    moral:null, note:'キック30回',                    tHit:3.3, tMiss:4.3, mvHit:'1',      mvMiss:'1→2',   rapid:'強' },
     { name:'ヒールレイド',  stat:'pow', kind:'大ダメージ',   dist:1, guts:30, dmg:['C',28], acc:['D',-10], gd:['C',20],   cr:['E',5],    moral:null, note:'ハイキック50回',                tHit:5.5, tMiss:4.3, mvHit:'1→2-3',  mvMiss:'1→2',   rapid:'並' },
     { name:'バン',          stat:'int', kind:'超必殺',       dist:2, guts:42, dmg:['B',34], acc:['D',-11], gd:['D',16],   cr:['C',15],   moral:null, note:'',                              tHit:6.1, tMiss:4.8, mvHit:'2→3',    mvMiss:'2',     rapid:'並' },
