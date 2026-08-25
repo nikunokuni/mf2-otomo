@@ -264,11 +264,11 @@
 /* 技名の地色（@wiki と同じ塗り分け）。
    左に貼り付けてある列なので、地は必ず不透明にしておくこと */
 .moves-table td.moves-name--pow {
-  background: var(--move-pow-bg);
+  background: var(--move-pow-fill);
   color: var(--move-pow-fg);
 }
 .moves-table td.moves-name--int {
-  background: var(--move-int-bg);
+  background: var(--move-int-fill);
   color: var(--move-int-fg);
 }
 
@@ -296,12 +296,14 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.rank--S { background: var(--rank-s-bg); color: var(--rank-fg-dark); }
-.rank--A { background: var(--rank-a-bg); color: var(--rank-fg-light); }
-.rank--B { background: var(--rank-b-bg); color: var(--rank-fg-dark); }
-.rank--C { background: var(--rank-c-bg); color: var(--rank-fg-dark); }
-.rank--D { background: var(--rank-d-bg); color: var(--rank-fg-dark); }
-.rank--E { background: var(--rank-e-bg); color: var(--rank-fg-light); }
+/* 薄めた地の上なので、文字は本文と同じ色でどのランクも読める */
+.rank { color: var(--color-text-primary); }
+.rank--S { background: var(--rank-s-fill); }
+.rank--A { background: var(--rank-a-fill); }
+.rank--B { background: var(--rank-b-fill); }
+.rank--C { background: var(--rank-c-fill); }
+.rank--D { background: var(--rank-d-fill); }
+.rank--E { background: var(--rank-e-fill); }
 
 /* ヨイワル */
 .moves-moral--good { color: var(--color-accent-strong); }

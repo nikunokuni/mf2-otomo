@@ -100,10 +100,40 @@ ok((await page.locator('.moves-table td.moves-name--pow').count())===8,'ちか�
 ok((await page.locator('.moves-table td.moves-name--int').count())===13,'かしこさ技（緑）は13技');
 ok((await page.locator('.moves-table td.moves-name--pow', {hasText:/^タッチ$/}).count())===1,'タッチはちから技');
 ok((await page.locator('.moves-table td.moves-name--int', {hasText:/^サンダー$/}).count())===1,'サンダーはかしこさ技');
-const powBg = await page.locator('.moves-table td.moves-name--pow').first().evaluate(e=>getComputedStyle(e).backgroundColor);
-ok(powBg==='rgb(255, 255, 0)','ちから技の地色は @wiki と同じ黄色: '+powBg);
-const intBg = await page.locator('.moves-table td.moves-name--int').first().evaluate(e=>getComputedStyle(e).backgroundColor);
-ok(intBg==='rgb(0, 128, 0)','かしこさ技の地色は @wiki と同じ緑: '+intBg);
+// 塗る色は「@wiki の色と地の色をちょうど半分ずつ混ぜたもの」。
+// opacity ではなく混ぜているのは、技名の列を左に貼り付けていて地が透けてはいけないため。
+const halves = await page.evaluate(() => {
+  // color(srgb ...) でも rgb(...) でも同じ形（0〜255）で取り出せるように、canvas に塗って読む
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  const toRgb = (v) => {
+    ctx.clearRect(0,0,1,1); ctx.fillStyle = '#000'; ctx.fillStyle = v;
+    ctx.fillRect(0,0,1,1);
+    const d = ctx.getImageData(0,0,1,1).data;
+    return [d[0], d[1], d[2]];
+  };
+  const root = getComputedStyle(document.documentElement);
+  const paper = toRgb(root.getPropertyValue('--color-background-primary'));
+  const check = (sel, token) => {
+    const el = document.querySelector(sel);
+    const got = toRgb(getComputedStyle(el).backgroundColor);
+    const src = toRgb(root.getPropertyValue(token));
+    const want = src.map((v,i)=>(v+paper[i])/2);
+    // 透けていない（不透明）ことと、ちょうど半分であること
+    const opaque = !getComputedStyle(el).backgroundColor.includes('rgba(0, 0, 0, 0)');
+    return opaque && want.every((v,i)=>Math.abs(v-got[i])<=1.5);
+  };
+  return {
+    pow: check('.moves-table td.moves-name--pow','--move-pow-bg'),
+    int: check('.moves-table td.moves-name--int','--move-int-bg'),
+    rankA: check('.moves-table .rank--A','--rank-a-bg'),
+    rankE: check('.moves-table .rank--E','--rank-e-bg'),
+  };
+});
+ok(halves.pow,'ちから技の地色は @wiki の黄色と地の色の半々');
+ok(halves.int,'かしこさ技の地色は @wiki の緑と地の色の半々');
+ok(halves.rankA,'ランクAの地色も半々');
+ok(halves.rankE,'ランクEの地色も半々');
 ok((await page.locator('.moves-table .rank--E').count())>0,'Eランクに色が付く');
 ok((await page.locator('.moves-table tbody tr').filter({hasText:'ドレイン'}).locator('.moves-moral--bad').count())>0,'ヨイワルのワル側が出る');
 ok((await page.locator('.moves-table tbody tr').filter({hasText:'リフレッシュ'}).locator('.moves-moral--good').count())>0,'ヨイワルのヨイ側が出る');

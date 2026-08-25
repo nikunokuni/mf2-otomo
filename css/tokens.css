@@ -111,14 +111,14 @@
 }
 
 /* ===========================================================
-   技のランク色（S〜E）
+   技一覧の色（ランク S〜E と、技名セルの ちから / かしこさ）
    -----------------------------------------------------------
    有志Wikiの技一覧の色分けに合わせている。
-   バッジとして「面で塗る」ぶんなので、パラメータの vivid 色と同じく
-   ライト/ダークで変えない（背景を自前で持つので、どちらでも読める）。
-   文字色だけは、地の明るさに合わせて白と黒を使い分ける。
+   ただし @wiki の色をそのまま塗ると発色が強すぎるので、
+   実際に塗るのは **地の色と半分ずつ混ぜたもの**（--*-fill）。
    =========================================================== */
 :root {
+  /* @wiki の色そのもの（混ぜる前のもと） */
   --rank-s-bg: #ffb6c1;
   --rank-a-bg: #f42b2b;
   --rank-b-bg: #ffa42e;
@@ -126,13 +126,49 @@
   --rank-d-bg: #40dcf0;
   --rank-e-bg: #a24df0;
 
-  --rank-fg-dark: #10121a;
-  --rank-fg-light: #ffffff;
-
-  /* 技名セルの地色。@wiki は黄＝ちから技 / 緑＝かしこさ技で塗り分けている。
-     @wiki は緑の上も黒文字だが、それだと読みにくいので文字だけ白にした */
+  /* 技名セルの地色。@wiki は黄＝ちから技 / 緑＝かしこさ技で塗り分けている */
   --move-pow-bg: #ffff00;
-  --move-pow-fg: #10121a;
   --move-int-bg: #008000;
-  --move-int-fg: #ffffff;
+
+  /* color-mix が使えない環境では、元の色がそのまま出る（発色は強いが読める） */
+  --rank-s-fill: var(--rank-s-bg);
+  --rank-a-fill: var(--rank-a-bg);
+  --rank-b-fill: var(--rank-b-bg);
+  --rank-c-fill: var(--rank-c-bg);
+  --rank-d-fill: var(--rank-d-bg);
+  --rank-e-fill: var(--rank-e-bg);
+  --move-pow-fill: var(--move-pow-bg);
+  --move-int-fill: var(--move-int-bg);
+
+  /* 薄めたあとの地に対する文字色。
+     ライトはどれも淡いので濃い文字1色で足りる。
+     ダークだけ、かしこさ技の緑が沈むので明るい文字にする（下の @media） */
+  --move-pow-fg: #10121a;
+  --move-int-fg: #10121a;
+}
+
+/* 実際に塗るのは、地の色と半分ずつ混ぜたもの（＝不透明度50%で重ねたのと同じ見え方）。
+   混ぜる相手が地の色なので、ダークでは自動的に暗いほうへ寄る。
+   ★色を強く／弱くしたいときは、ここの 50% だけを変えればよい★
+   技名のセルは左に貼り付けてあって地が透けてはいけないので、
+   opacity ではなく「混ぜて不透明な色を作る」やり方にしている。 */
+@supports (color: color-mix(in srgb, red 50%, white)) {
+  :root {
+    --rank-s-fill: color-mix(in srgb, var(--rank-s-bg) 50%, var(--color-background-primary));
+    --rank-a-fill: color-mix(in srgb, var(--rank-a-bg) 50%, var(--color-background-primary));
+    --rank-b-fill: color-mix(in srgb, var(--rank-b-bg) 50%, var(--color-background-primary));
+    --rank-c-fill: color-mix(in srgb, var(--rank-c-bg) 50%, var(--color-background-primary));
+    --rank-d-fill: color-mix(in srgb, var(--rank-d-bg) 50%, var(--color-background-primary));
+    --rank-e-fill: color-mix(in srgb, var(--rank-e-bg) 50%, var(--color-background-primary));
+    --move-pow-fill: color-mix(in srgb, var(--move-pow-bg) 50%, var(--color-background-primary));
+    --move-int-fill: color-mix(in srgb, var(--move-int-bg) 50%, var(--color-background-primary));
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 薄めた緑はダークだと暗く沈むので、かしこさ技だけ明るい文字にする。
+       （この :root は上のダークの塊より後ろに置くこと。前に書くと負ける） */
+    --move-int-fg: #f2f2f7;
+  }
 }
