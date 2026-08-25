@@ -515,6 +515,14 @@ for (const [species, list] of Object.entries(MOVES)) {
   eq(list.filter((mv) => mv.init && /^.+\d+回/.test(mv.note || '')).map((mv) => mv.name), [],
      `${species}: 使い込みで覚える技が初期技になっていない`);
   eq(list.some((mv) => mv.init), true, `${species}: 最初から持っている技がある`);
+  // 技名の数字は全角にそろえる（monsters.js が ３連アタック のように全角で持っていて、
+  // そこが保存データのキーになっているため）。
+  // monsters.js 自身が半角で持っている技名（G・キューブ2）だけは、そのままでよい
+  const inMonsters = new Set(
+    (MONSTER_DATA[species] || []).flatMap((p) => [p.from, p.to, p.milestone && p.milestone.to])
+  );
+  eq(list.filter((mv) => /[0-9]/.test(mv.name) && !inMonsters.has(mv.name)).map((mv) => mv.name), [],
+     `${species}: 技名の数字が半角のまま残っていない`);
 
   for (const pair of MONSTER_DATA[species] || []) {
     const from = byName.get(pair.from);
@@ -528,8 +536,9 @@ for (const [species, list] of Object.entries(MOVES)) {
     eq(from.tHit, pair.hit, `${species} ${pair.from}: 当時間`);
     eq(from.tMiss, pair.miss, `${species} ${pair.from}: 外時間`);
 
-    // 上位技の備考には「<下位技><回数>回」が入っている
-    const m = /^(.+?)(\d+)回/.exec(to.note || '');
+    // 上位技の備考には「<下位技><回数>回」が入っている。
+    // 先頭に ※（@wiki の注記の印）が付くことがあるので、それは外して見る
+    const m = /^※?(.+?)(\d+)回/.exec(to.note || '');
     eq(!!m, true, `${species} ${pair.to}: 備考に使い込み条件がある`);
     if (!m) continue;
     eq(m[1], pair.from, `${species} ${pair.to}: 備考の下位技`);

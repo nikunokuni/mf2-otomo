@@ -10,7 +10,9 @@
    （ズレたら test/calc.test.mjs が落ちる）。
 
    1技ぶんの中身（並びは @wiki の表と同じ）:
-     name   技名
+     name   技名。**数字は全角**（monsters.js が ３連アタック / ２連刈爪 のように
+            全角で持っていて、そこが保存データのキーになっているため。
+            @wiki の表記は半角だが、2つのファイルで食い違うほうが危ない）
      stat   ちから技 / かしこさ技  'pow' / 'int'
             @wiki の表で技名セルの背景色になっているもの（黄＝ちから / 緑＝かしこさ）
      kind   種類  バランス / 大ダメージ / 超必殺 / 命中 / ガッツダウン / クリティカル
@@ -88,7 +90,7 @@ export const MOVES = {
   ケンタウロス: [
     { init:true, name:'スマッシュ',   stat:'pow', kind:'バランス',     dist:1, guts:13, dmg:['D',15], acc:['A',5],   gd:null,     cr:['E',5],  moral:null, note:'',                    tHit:2.8, tMiss:3.1, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
     { name:'スマッシュコンボ',        stat:'pow', kind:'バランス',     dist:1, guts:20, dmg:['C',20], acc:['A',5],   gd:['E',5],  cr:['E',5],  moral:null, note:'スマッシュ30回',      tHit:5.1, tMiss:4.1, mvHit:'1→2',    mvMiss:'1→2',   rapid:'並' },
-    { name:'3段突き',                 stat:'pow', kind:'命中',         dist:1, guts:27, dmg:['C',25], acc:['S',15],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                    tHit:4.8, tMiss:3.8, mvHit:'1→2-3',  mvMiss:'1→2',   rapid:'並' },
+    { name:'３段突き',                 stat:'pow', kind:'命中',         dist:1, guts:27, dmg:['C',25], acc:['S',15],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                    tHit:4.8, tMiss:3.8, mvHit:'1→2-3',  mvMiss:'1→2',   rapid:'並' },
     { name:'さらし投げ',              stat:'pow', kind:'大ダメージ',   dist:1, guts:28, dmg:['A',49], acc:['E',-15], gd:['E',9],  cr:['E',5],  moral:null, note:'',                    tHit:5.5, tMiss:2.3, mvHit:'1→2',    mvMiss:'1→2',   rapid:'並' },
     { name:'Zスマッシュ',             stat:'pow', kind:'超必殺',       dist:1, guts:55, dmg:['B',35], acc:['A',5],   gd:['B',35], cr:['A',25], moral:50,   note:'ブラッディクロス50回',tHit:5.5, tMiss:4.5, mvHit:'1→2',    mvMiss:'1→2',   rapid:'並' },
     { name:'ハイパー突き',            stat:'pow', kind:'命中',         dist:2, guts:18, dmg:['D',16], acc:['S',16],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                    tHit:4.8, tMiss:2.8, mvHit:'2→2-3',  mvMiss:'2',     rapid:'強' },
@@ -103,5 +105,23 @@ export const MOVES = {
     { name:'超エネルギー弾',          stat:'int', kind:'ガッツダウン', dist:4, guts:25, dmg:['D',11], acc:['C',0],   gd:['B',37], cr:['E',5],  moral:null, note:'エネルギー弾50回',    tHit:5.5, tMiss:4.5, mvHit:'4→5',    mvMiss:'4→4-5', rapid:'並' },
     { name:'サテラアタック',          stat:'pow', kind:'クリティカル', dist:4, guts:26, dmg:['C',22], acc:['C',-3],  gd:['D',10], cr:['S',30], moral:null, note:'スロウランサー50回',  tHit:4.1, tMiss:3.8, mvHit:'4→5',    mvMiss:'4',     rapid:'並' },
     { name:'メテオドライブ',          stat:'pow', kind:'超必殺',       dist:4, guts:50, dmg:['S',55], acc:['D',-5],  gd:['D',15], cr:['C',15], moral:null, note:'',                    tHit:4.3, tMiss:3.3, mvHit:'4→5',    mvMiss:'4',     rapid:'並' },
+  ],
+
+  コロペンドラ: [
+    { init:true, name:'かま首突き',   stat:'pow', kind:'バランス',     dist:1, guts:12, dmg:['D',12], acc:['A',5],   gd:null,     cr:['E',5],  moral:null, note:'',                                    tHit:3.1, tMiss:3.1, mvHit:'1→2',    mvMiss:'1→2',   rapid:'強' },
+    { name:'デス・ドミノ',            stat:'pow', kind:'大ダメージ',   dist:1, guts:17, dmg:['B',30], acc:['D',-9],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                                    tHit:4.5, tMiss:3.8, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
+    { init:true, name:'ヒップアタック',stat:'pow', kind:'バランス',     dist:2, guts:10, dmg:['E',8],  acc:['A',9],   gd:['E',5],  cr:null,     moral:null, note:'',                                    tHit:1.1, tMiss:1.5, mvHit:'2',      mvMiss:'2→2-3', rapid:'強' },
+    { name:'ダブルヒップ',            stat:'pow', kind:'バランス',     dist:2, guts:14, dmg:['D',15], acc:['A',9],   gd:['E',5],  cr:null,     moral:null, note:'※ヒップアタック30回',                tHit:4.1, tMiss:1.8, mvHit:'2→3',    mvMiss:'2→2-3', rapid:'強' },
+    { name:'いけにえ',                stat:'pow', kind:'命中',         dist:2, guts:28, dmg:['C',23], acc:['S',20],  gd:['D',18], cr:['D',10], moral:null, note:'失敗時自爆ダメージ10(D)',             tHit:5.5, tMiss:4.1, mvHit:'2→3',    mvMiss:'2→2-3', rapid:'並' },
+    { name:'ヒールダンス',            stat:'int', kind:'超必殺',       dist:2, guts:50, dmg:['B',30], acc:['E',-20], gd:['B',30], cr:null,     moral:-50,  note:'ライフ＆ガッツドレイン率100%',        tHit:3.8, tMiss:3.8, mvHit:'2',      mvMiss:'2',     rapid:'並' },
+    { name:'ねずみ花火',              stat:'pow', kind:'ガッツダウン', dist:3, guts:18, dmg:['E',5],  acc:['C',0],   gd:['C',28], cr:['E',5],  moral:null, note:'',                                    tHit:4.1, tMiss:4.8, mvHit:'3',      mvMiss:'3',     rapid:'並' },
+    { name:'超ねずみ花火',            stat:'pow', kind:'ガッツダウン', dist:3, guts:30, dmg:['D',11], acc:['C',0],   gd:['A',40], cr:['E',5],  moral:null, note:'ねずみ花火50回',                      tHit:4.8, tMiss:5.1, mvHit:'3→4',    mvMiss:'3→3-4', rapid:'並' },
+    { name:'３連アタック',            stat:'pow', kind:'クリティカル', dist:3, guts:18, dmg:['C',20], acc:['C',-2],  gd:['E',5],  cr:['B',20], moral:null, note:'',                                    tHit:5.8, tMiss:5.3, mvHit:'3→4',    mvMiss:'3',     rapid:'並' },
+    { name:'デルタアタック',          stat:'int', kind:'超必殺',       dist:3, guts:55, dmg:['B',30], acc:['S',15],  gd:['B',30], cr:['C',15], moral:20,   note:'３連アタック50回',                    tHit:7.5, tMiss:7.1, mvHit:'3',      mvMiss:'3',     rapid:'並' },
+    { name:'ショットガン',            stat:'int', kind:'命中',         dist:4, guts:18, dmg:['D',14], acc:['S',15],  gd:['E',7],  cr:['E',5],  moral:null, note:'',                                    tHit:4.3, tMiss:4.1, mvHit:'4',      mvMiss:'4',     rapid:'並' },
+    { name:'超ショットガン',          stat:'int', kind:'命中',         dist:4, guts:24, dmg:['C',22], acc:['A',10],  gd:['E',9],  cr:['E',5],  moral:null, note:'ショットガン50回',                    tHit:4.3, tMiss:3.5, mvHit:'4→4-5',  mvMiss:'4',     rapid:'並' },
+    { name:'大車輪',                  stat:'pow', kind:'大ダメージ',   dist:4, guts:29, dmg:['A',42], acc:['E',-15], gd:['D',12], cr:['E',5],  moral:null, note:'',                                    tHit:4.8, tMiss:2.8, mvHit:'4→4-5',  mvMiss:'4→1-2', rapid:'並' },
+    { name:'マッハトルネード',        stat:'pow', kind:'クリティカル', dist:4, guts:29, dmg:['C',26], acc:['D',-5],  gd:['D',10], cr:['A',26], moral:null, note:'',                                    tHit:4.5, tMiss:2.5, mvHit:'4→4-5',  mvMiss:'4→1',   rapid:'並' },
+    { name:'メテオドライブ',          stat:'pow', kind:'超必殺',       dist:4, guts:50, dmg:['S',55], acc:['D',-10], gd:['A',45], cr:['E',5],  moral:null, note:'失敗時自爆ダメージ30(B)',             tHit:4.8, tMiss:4.1, mvHit:'4',      mvMiss:'4',     rapid:'並' },
   ],
 };
