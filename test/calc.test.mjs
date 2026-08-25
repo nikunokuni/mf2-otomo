@@ -7,6 +7,8 @@ import {moralRange,clampInner,pctDelta,applyPct,applyDelta} from '../js/simulato
 import * as R from '../js/simulator/rota-calc.js';
 import {FEEDS,feedEffect} from '../js/data/feeds.js';
 import * as A from '../js/data/acts.js';
+import {MOVES} from '../js/data/moves.js';
+import {MONSTER_DATA} from '../js/data/monsters.js';
 
 /* ---- 旧実装をそのまま写したもの ---- */
 const O={};
@@ -496,6 +498,57 @@ eq(lifeRows.map(r=>r.extraLife).join(','),'0,1,2','各週の追加ぶん（体�
 eq(lifeRows.map(r=>r.lifeCost).join(','),'1,2,3','各週の合計（週経過1を足す）');
 eq(R.lifeTotals(lifeRows),{age:3,extra:3,total:6},'合計の内訳');
 
+/* ---- 技データ（moves.js）と使い込みデータ（monsters.js）の突き合わせ ----
+   moves.js は @wiki の技一覧を写したもの、monsters.js は使い込みの記録のキーを持つ
+   ファイルで、消費G・当時間・外時間・使い込み回数が重なっている。
+   技名を打ち間違えるとここで落ちる（種族を足してもテストを書き足す必要はない）。 */
+console.log('\n— 技データと使い込みデータの突き合わせ —');
+
+/* @wiki の表と monsters.js で食い違っていて、まだどちらが正しいか決めていないもの。
+   直したら、この行も消すこと。 */
+const KNOWN_DIFF = [
+  // monsters.js は need:30、@wiki の備考は「ハイキック50回」
+  'ピクシー ハイキック→ヒールレイド 使い込み回数',
+];
+const seenDiff = [];
+
+for (const [species, list] of Object.entries(MOVES)) {
+  const byName = new Map(list.map((mv) => [mv.name, mv]));
+  eq(byName.size, list.length, `${species}: 技名の重複が無い`);
+
+  for (const pair of MONSTER_DATA[species] || []) {
+    const from = byName.get(pair.from);
+    const to = byName.get(pair.to);
+    eq(!!from, true, `${species}: 下位技「${pair.from}」が技データにある`);
+    eq(!!to, true, `${species}: 上位技「${pair.to}」が技データにある`);
+    if (!from || !to) continue;
+
+    // 使い込みは下位技を撃ち続けるので、消費Gとモーション秒は下位技のもの
+    eq(from.guts, pair.guts, `${species} ${pair.from}: 消費G`);
+    eq(from.tHit, pair.hit, `${species} ${pair.from}: 当時間`);
+    eq(from.tMiss, pair.miss, `${species} ${pair.from}: 外時間`);
+
+    // 上位技の備考には「<下位技><回数>回」が入っている
+    const m = /^(.+?)(\d+)回/.exec(to.note || '');
+    eq(!!m, true, `${species} ${pair.to}: 備考に使い込み条件がある`);
+    if (!m) continue;
+    eq(m[1], pair.from, `${species} ${pair.to}: 備考の下位技`);
+    const label = `${species} ${pair.from}→${pair.to} 使い込み回数`;
+    if (Number(m[2]) !== pair.need && KNOWN_DIFF.includes(label)) seenDiff.push(label);
+    else eq(Number(m[2]), pair.need, label);
+  }
+
+  // milestone（途中で覚える技）も名簿に載っていること
+  for (const pair of MONSTER_DATA[species] || []) {
+    if (!pair.milestone) continue;
+    eq(byName.has(pair.milestone.to), true,
+       `${species}: 途中で覚える「${pair.milestone.to}」が技データにある`);
+  }
+}
+eq(seenDiff.sort(), KNOWN_DIFF.slice().sort(), '食い違いは分かっているぶんだけ');
+console.log(`技データは ${Object.keys(MOVES).length} 種族ぶん / ` +
+  `${Object.values(MOVES).reduce((n, l) => n + l.length, 0)}技`);
+
 console.log(`\n照合 ${checks}件 / 不一致 ${fail}件`);
 
 /* ---- イベント週の二重計上を確認 ---- */
@@ -504,3 +557,5 @@ const set={ht:0,hc:4,lt:-1,tc:2,mc:0,ac:0,weeks:40};
 console.log('\n[旧] weeks=40, 大会2回(8週) の上昇値:', JSON.stringify(O.calcSetGain({...set,weeks:40-8},'peak',apt)));
 console.log('[新] 同条件                      :', JSON.stringify(N.calcSetGain(set,'peak',apt)));
 console.log('※旧は weeks 自体を 40→32 に減らしたうえで、計算内でさらに8週を引いていた（24週ぶんしか育たない）');
+
+process.exit(fail ? 1 : 0);

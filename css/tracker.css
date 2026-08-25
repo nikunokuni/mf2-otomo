@@ -208,3 +208,89 @@
     font-size: 14px;
   }
 }
+
+/* --- 技一覧（たたんだカード。畳み方は調整ローテの下ごしらえと同じ） --- */
+.moves__toggle {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.moves__count {
+  margin-left: 6px;
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.moves__filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+.moves__filter-btn {
+  border: var(--hairline) solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  color: var(--color-text-secondary);
+  border-radius: 99px;
+  padding: 3px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.moves__filter-btn[aria-pressed='true'] {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+/* 横に長い表なので、技名だけ左に貼り付けておく */
+.moves-table th:first-child,
+.moves-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--color-background-primary);
+  z-index: 1;
+}
+.moves-table td:first-child {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.moves-table td {
+  white-space: nowrap;
+}
+.moves-table__note {
+  text-align: left !important;
+  white-space: normal !important;
+  min-width: 9em;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.moves-table__none {
+  color: var(--color-text-tertiary);
+}
+
+/* ランク付きの値（ダメージ / 命中 / GD / CR）。@wiki の色分けに合わせる */
+.rank {
+  display: inline-block;
+  min-width: 3.6em;
+  padding: 1px 5px;
+  border-radius: var(--border-radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.rank--S { background: var(--rank-s-bg); color: var(--rank-fg-dark); }
+.rank--A { background: var(--rank-a-bg); color: var(--rank-fg-light); }
+.rank--B { background: var(--rank-b-bg); color: var(--rank-fg-dark); }
+.rank--C { background: var(--rank-c-bg); color: var(--rank-fg-dark); }
+.rank--D { background: var(--rank-d-bg); color: var(--rank-fg-dark); }
+.rank--E { background: var(--rank-e-bg); color: var(--rank-fg-light); }
+
+/* ヨイワル */
+.moves-moral--good { color: var(--color-accent-strong); }
+.moves-moral--bad { color: var(--color-ng); }

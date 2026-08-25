@@ -10,6 +10,7 @@ import * as tabs from './tabs.js';
 import * as species from './species.js';
 import * as monster from './monster.js';
 import * as tracker from './tracker/tracker.js';
+import * as moves from './tracker/moves.js';
 import * as simulator from './simulator/simulator.js';
 import * as rotation from './simulator/rotation.js';
 import * as reference from './reference/reference.js';
@@ -57,6 +58,7 @@ function renderAll() {
   species.renderChips();
   monster.render();
   tracker.render();
+  moves.render();
   simulator.render();
   rotation.render();
   reference.render();
@@ -72,6 +74,7 @@ function start() {
     ...species.actions,
     ...monster.actions,
     ...tracker.actions,
+    ...moves.actions,
     ...simulator.actions,
     ...rotation.actions,
     ...reference.actions,
@@ -115,6 +118,7 @@ function start() {
   tabs.onTopShown((name) => {
     if (name === 'tracker') {
       tracker.render();
+      moves.render();
       tracker.openPickerIfEmpty();
     } else if (name === 'simulator') simulator.render();
     else if (name === 'reference') reference.render();

@@ -79,6 +79,36 @@ ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'�
 console.log('— メモ（B1） —');
 await page.fill('#memo','テストメモ123');
 
+console.log('— 技一覧（使い込みタブのたたんだカード） —');
+ok(await page.locator('#movesCard').isVisible(),'技一覧のカードが出る');
+ok(await page.locator('#movesBody').isHidden(),'はじめは畳んである');
+ok((await page.locator('#movesToggle').getAttribute('aria-expanded'))==='false','aria-expanded=false');
+await page.click('#movesToggle');
+await page.waitForSelector('.moves-table tbody tr');
+ok(await page.locator('#movesBody').isVisible(),'押すと開く');
+ok((await page.locator('#movesToggle').getAttribute('aria-expanded'))==='true','aria-expanded=true');
+ok((await page.locator('#movesToggle').textContent()).includes('全21技'),'技の数を見出しに出す');
+ok((await page.locator('.moves-table thead th').count())===15,'列は15');
+ok((await page.locator('.moves-table tbody tr').count())===21,'ピクシーは21技');
+const movesRow1 = await page.locator('.moves-table tbody tr').first().locator('td').allTextContents();
+ok(movesRow1[0]==='タッチ','1行目は表のいちばん上と同じ（タッチ）');
+ok(movesRow1[3]==='12','消費Gは12');
+ok(movesRow1[4]==='E(6)','ダメージは E(6) の形');
+ok((await page.locator('.moves-table .rank--S').count())>0,'Sランクに色が付く');
+ok((await page.locator('.moves-table .rank--E').count())>0,'Eランクに色が付く');
+ok((await page.locator('.moves-table tbody tr').filter({hasText:'ドレイン'}).locator('.moves-moral--bad').count())>0,'ヨイワルのワル側が出る');
+ok((await page.locator('.moves-table tbody tr').filter({hasText:'リフレッシュ'}).locator('.moves-moral--good').count())>0,'ヨイワルのヨイ側が出る');
+// 距離で絞り込む（1=近 … 4=遠）
+await page.locator('.moves__filter-btn', {hasText:'近1'}).click();
+ok((await page.locator('.moves-table tbody tr').count())===5,'距離1にしぼると5技');
+await page.locator('.moves__filter-btn', {hasText:'遠4'}).click();
+ok((await page.locator('.moves-table tbody tr').count())===5,'距離4にしぼると5技');
+await page.locator('.moves__filter-btn', {hasText:'ぜんぶ'}).click();
+ok((await page.locator('.moves-table tbody tr').count())===21,'ぜんぶに戻すと21技');
+ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('monfar_state_v1')).ui.movesOpen)===true,'開いたことが保存される');
+await page.click('#movesToggle');
+ok(await page.locator('#movesBody').isHidden(),'もう一度押すと閉じる');
+
 console.log('— 個体データ（モンスタータブ） —');
 await page.click('#tab-monster');
 // 成長タイプ / 寿命 / ヨイワル は3つとも1行に並ぶ
@@ -669,6 +699,10 @@ ok((await page.locator('#techBody').textContent()).includes('使い込みで進�
 ok((await page.locator('#sessionControls').textContent()).trim()==='','技がない種族では大会開始ボタンを出さない');
 ok(await page.locator('#changeTechBtn').isHidden(),'技なし種族では「技を変更」も出さない');
 ok(await page.locator('#techPickerCard').isHidden(),'技なし種族では技選択も開かない');
+await page.click('#movesToggle');
+await page.waitForSelector('#movesBody .empty');
+ok((await page.locator('#movesBody').textContent()).includes('まだ入っていません'),'技データが無い種族は、その旨を出す');
+await page.click('#movesToggle');
 await page.click('#tab-simulator');
 ok(await page.locator('#simBody').isVisible(),'技なし種族でも育成計算は使える');
 const visibleSub = await page.evaluate(()=>['plan','rotation','result'].filter(t=>!document.getElementById('subpane-'+t).hidden));
