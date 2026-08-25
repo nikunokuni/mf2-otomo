@@ -95,6 +95,16 @@ ok(movesRow1[0]==='タッチ','1行目は表のいちばん上と同じ（タッ
 ok(movesRow1[3]==='12','消費Gは12');
 ok(movesRow1[4]==='E(6)','ダメージは E(6) の形');
 ok((await page.locator('.moves-table .rank--S').count())>0,'Sランクに色が付く');
+// 技名の地色（@wiki の黄＝ちから技 / 緑＝かしこさ技）
+ok((await page.locator('.moves-table td.moves-name--pow').count())===8,'ちから技（黄）は8技');
+ok((await page.locator('.moves-table td.moves-name--int').count())===13,'かしこさ技（緑）は13技');
+ok((await page.locator('.moves-table td.moves-name--pow', {hasText:/^タッチ$/}).count())===1,'タッチはちから技');
+ok((await page.locator('.moves-table td.moves-name--int', {hasText:/^サンダー$/}).count())===1,'サンダーはかしこさ技');
+ok((await page.locator('.moves__legend .is-pow').count())===1,'色の意味の見出しが出る');
+const powBg = await page.locator('.moves-table td.moves-name--pow').first().evaluate(e=>getComputedStyle(e).backgroundColor);
+ok(powBg==='rgb(255, 255, 0)','ちから技の地色は @wiki と同じ黄色: '+powBg);
+const intBg = await page.locator('.moves-table td.moves-name--int').first().evaluate(e=>getComputedStyle(e).backgroundColor);
+ok(intBg==='rgb(0, 128, 0)','かしこさ技の地色は @wiki と同じ緑: '+intBg);
 ok((await page.locator('.moves-table .rank--E').count())>0,'Eランクに色が付く');
 ok((await page.locator('.moves-table tbody tr').filter({hasText:'ドレイン'}).locator('.moves-moral--bad').count())>0,'ヨイワルのワル側が出る');
 ok((await page.locator('.moves-table tbody tr').filter({hasText:'リフレッシュ'}).locator('.moves-moral--good').count())>0,'ヨイワルのヨイ側が出る');

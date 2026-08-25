@@ -9,6 +9,7 @@
    ・データ（js/data/moves.js）は、初めて開いたときに取りに行く。
      全種族ぶんが入ると50KB前後になる見込みなので、アイコンと同じ遅延読み込み
    ・距離での絞り込みは画面の中だけの状態（保存しない）
+   ・技名の地色は @wiki と同じ塗り分け（黄＝ちから技 / 緑＝かしこさ技）
    =========================================================== */
 
 import { state, save } from '../store.js';
@@ -75,7 +76,7 @@ function table(list) {
     h(
       'tr',
       {},
-      h('td', { text: mv.name }),
+      h('td', { class: `moves-name--${mv.stat}`, text: mv.name }),
       h('td', { text: mv.kind }),
       h('td', { text: String(mv.dist) }),
       h('td', { text: String(mv.guts) }),
@@ -130,6 +131,16 @@ function filterBar(list) {
   );
 }
 
+/** 技名の色が何を表しているかの見出し */
+function legend() {
+  return h(
+    'div',
+    { class: 'moves__legend' },
+    h('b', { class: 'is-pow', text: 'ちから技' }),
+    h('b', { class: 'is-int', text: 'かしこさ技' })
+  );
+}
+
 function body(species) {
   const all = movesOf(species);
   if (!all.length) {
@@ -139,7 +150,7 @@ function body(species) {
     });
   }
   const shown = distFilter === null ? all : all.filter((mv) => mv.dist === distFilter);
-  return h('div', {}, filterBar(all), table(shown));
+  return h('div', {}, legend(), filterBar(all), table(shown));
 }
 
 /* ---------- 描画 ---------- */

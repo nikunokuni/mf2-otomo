@@ -515,6 +515,9 @@ const seenDiff = [];
 for (const [species, list] of Object.entries(MOVES)) {
   const byName = new Map(list.map((mv) => [mv.name, mv]));
   eq(byName.size, list.length, `${species}: 技名の重複が無い`);
+  // 技名の地色（@wiki の黄＝ちから / 緑＝かしこさ）は全技ぶん入っていること
+  eq(list.filter((mv) => mv.stat !== 'pow' && mv.stat !== 'int').map((mv) => mv.name), [],
+     `${species}: ちから技 / かしこさ技 がすべて入っている`);
 
   for (const pair of MONSTER_DATA[species] || []) {
     const from = byName.get(pair.from);

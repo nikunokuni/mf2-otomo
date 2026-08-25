@@ -128,4 +128,11 @@
 
   --rank-fg-dark: #10121a;
   --rank-fg-light: #ffffff;
+
+  /* 技名セルの地色。@wiki は黄＝ちから技 / 緑＝かしこさ技で塗り分けている。
+     @wiki は緑の上も黒文字だが、それだと読みにくいので文字だけ白にした */
+  --move-pow-bg: #ffff00;
+  --move-pow-fg: #10121a;
+  --move-int-bg: #008000;
+  --move-int-fg: #ffffff;
 }
