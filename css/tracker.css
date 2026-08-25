@@ -234,6 +234,7 @@
   margin: 10px 0;
 }
 .moves__filter-btn {
+  min-width: 2.8em;
   border: var(--hairline) solid var(--color-border-secondary);
   background: var(--color-background-primary);
   color: var(--color-text-secondary);

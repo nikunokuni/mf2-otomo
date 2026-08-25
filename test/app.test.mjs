@@ -108,12 +108,13 @@ ok((await page.locator('.moves-table .rank--E').count())>0,'Eランクに色が�
 ok((await page.locator('.moves-table tbody tr').filter({hasText:'ドレイン'}).locator('.moves-moral--bad').count())>0,'ヨイワルのワル側が出る');
 ok((await page.locator('.moves-table tbody tr').filter({hasText:'リフレッシュ'}).locator('.moves-moral--good').count())>0,'ヨイワルのヨイ側が出る');
 // 距離で絞り込む（1=近 … 4=遠）
-await page.locator('.moves__filter-btn', {hasText:'近1'}).click();
+ok((await page.locator('.moves__filter-btn').allTextContents()).join(',')==='全,1,2,3,4','絞り込みは 全 / 1 / 2 / 3 / 4');
+await page.locator('.moves__filter-btn', {hasText:/^1$/}).click();
 ok((await page.locator('.moves-table tbody tr').count())===5,'距離1にしぼると5技');
-await page.locator('.moves__filter-btn', {hasText:'遠4'}).click();
+await page.locator('.moves__filter-btn', {hasText:/^4$/}).click();
 ok((await page.locator('.moves-table tbody tr').count())===5,'距離4にしぼると5技');
-await page.locator('.moves__filter-btn', {hasText:'ぜんぶ'}).click();
-ok((await page.locator('.moves-table tbody tr').count())===21,'ぜんぶに戻すと21技');
+await page.locator('.moves__filter-btn', {hasText:/^全$/}).click();
+ok((await page.locator('.moves-table tbody tr').count())===21,'全に戻すと21技');
 ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('monfar_state_v1')).ui.movesOpen)===true,'開いたことが保存される');
 await page.click('#movesToggle');
 ok(await page.locator('#movesBody').isHidden(),'もう一度押すと閉じる');

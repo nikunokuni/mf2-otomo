@@ -107,28 +107,27 @@ function table(list) {
   );
 }
 
-/** 距離の絞り込みボタン。1=近 … 4=遠 */
-function filterBar(list) {
-  const buttons = [{ label: 'ぜんぶ', dist: null }].concat(
-    [1, 2, 3, 4].map((d) => ({
-      label: d === 1 ? '近1' : d === 4 ? '遠4' : String(d),
-      dist: d,
-    }))
+/** 距離の絞り込みボタン。表の「遠←距離→近」と同じ 1〜4 で並べる */
+function filterBar() {
+  const buttons = [{ label: '全', dist: null }].concat(
+    [1, 2, 3, 4].map((d) => ({ label: String(d), dist: d }))
   );
 
   return h(
     'div',
     { class: 'moves__filter' },
-    buttons.map(({ label, dist }) => {
-      const count = dist === null ? list.length : list.filter((mv) => mv.dist === dist).length;
-      return h('button', {
+    buttons.map(({ label, dist }) =>
+      h('button', {
         type: 'button',
         class: 'moves__filter-btn',
-        text: `${label}（${count}）`,
+        text: label,
         dataset: { action: 'moves:filter', dist: dist === null ? '' : String(dist) },
-        attrs: { 'aria-pressed': String(distFilter === dist) },
-      });
-    })
+        attrs: {
+          'aria-pressed': String(distFilter === dist),
+          'aria-label': dist === null ? 'すべての距離' : `距離${dist}`,
+        },
+      })
+    )
   );
 }
 
@@ -141,7 +140,7 @@ function body(species) {
     });
   }
   const shown = distFilter === null ? all : all.filter((mv) => mv.dist === distFilter);
-  return h('div', {}, filterBar(all), table(shown));
+  return h('div', {}, filterBar(), table(shown));
 }
 
 /* ---------- 描画 ---------- */
