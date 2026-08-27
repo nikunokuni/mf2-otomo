@@ -5,10 +5,12 @@
    ・「大会開始」してから回数を数え、合格なら累計に足す／
      やり直しなら破棄する
    ・記録は種族ごと・技ごとに残るので、技の選択を外しても消えない
+   ・履歴は消せる。合格の履歴を消すと、そこで足した回数を累計から戻す
+     （間違えて「合格」を押したときに元へ戻すため）
    =========================================================== */
 
 import { MONSTER_DATA } from '../data/monsters.js';
-import { state, save, currentMon, techKey } from '../store.js';
+import { state, save, currentMon, techKey, newLogId } from '../store.js';
 import { el, h, replace } from '../dom.js';
 import { hasTech } from '../species.js';
 import { calcIdeal } from './ideal.js';
@@ -252,7 +254,16 @@ function renderLog() {
           class: 'log-item__text ' + (entry.type === 'ok' ? 'log-ok' : 'log-ng'),
           text: (entry.type === 'ok' ? '✓ ' : '✗ ') + entry.text,
         }),
-        h('span', { class: 'log-item__date', text: entry.date })
+        h('span', { class: 'log-item__date', text: entry.date }),
+        h('button', {
+          type: 'button',
+          class: 'log-item__del',
+          text: '×',
+          dataset: { action: 'tracker:delLog', id: entry.id },
+          attrs: {
+            'aria-label': `${entry.date} の${entry.type === 'ok' ? '合格' : 'やり直し'}の履歴を削除`,
+          },
+        })
       )
     )
   );
@@ -330,23 +341,28 @@ export const actions = {
     const mon = currentMon();
     if (!mon) return;
     const all = techsOf(state.current);
-    const gains = [];
+    const labels = [];
+    // 技ごとに足した回数。この履歴を消したときに戻すぶんになる
+    const gains = {};
 
     mon.selected.forEach((key) => {
       const p = progressOf(mon, key);
       if (!p.session) return;
       const tech = all.find((t) => techKey(t) === key);
       p.total += p.session;
-      gains.push(`${tech ? tech.from : key}+${p.session}`);
+      gains[key] = p.session;
+      labels.push(`${tech ? tech.from : key}+${p.session}`);
       if (tech && p.total >= tech.need) p.done = true;
       p.session = 0;
     });
 
     mon.inSession = false;
     mon.log.unshift({
+      id: newLogId(),
       type: 'ok',
-      text: `合格: ${gains.length ? gains.join(', ') : 'なし'}`,
+      text: `合格: ${labels.length ? labels.join(', ') : 'なし'}`,
       date: new Date().toLocaleDateString('ja-JP'),
+      gains,
     });
     save();
     render();
@@ -368,10 +384,61 @@ export const actions = {
 
     mon.inSession = false;
     mon.log.unshift({
+      id: newLogId(),
       type: 'ng',
       text: `やり直し: ${discarded.length ? discarded.join(', ') + ' を破棄' : 'なし'}`,
       date: new Date().toLocaleDateString('ja-JP'),
+      // 破棄したぶんは累計に足していないので、消しても戻すものは無い
+      gains: {},
     });
+    save();
+    render();
+  },
+
+  /**
+   * 履歴を1件消す。合格の履歴なら、そこで足した回数を累計から戻す。
+   * 累計は各履歴の足し算なので、途中の履歴を消しても計算は合う。
+   */
+  'tracker:delLog': (target) => {
+    const mon = currentMon();
+    if (!mon) return;
+    const id = target.dataset.id;
+    const entry = mon.log.find((e) => e.id === id);
+    if (!entry) return;
+
+    // gains を持たない古い記録は、戻す数が分からないので記録だけ消す
+    const gains = entry.gains && typeof entry.gains === 'object' ? entry.gains : null;
+    const all = techsOf(state.current);
+    const labels = gains
+      ? Object.entries(gains).map(([key, n]) => {
+          const tech = all.find((t) => techKey(t) === key);
+          return `${tech ? tech.from : key}-${n}`;
+        })
+      : [];
+
+    let message;
+    if (!gains) {
+      message = 'この履歴には回数の内訳が残っていないため、累計は戻りません。\n記録だけ消します。よろしいですか？';
+    } else if (!labels.length) {
+      message = 'この履歴で累計に足した回数はありません。\n記録だけ消します。よろしいですか？';
+    } else {
+      message = `この履歴を削除して、累計から ${labels.join(', ')} を戻します。\nよろしいですか？`;
+    }
+    if (!confirm(message)) return;
+
+    if (gains) {
+      Object.entries(gains).forEach(([key, n]) => {
+        // 技の選択を外していても記録は残っているので、progress を直接たどる
+        const p = mon.progress[key];
+        if (!p) return;
+        p.total = Math.max(0, (p.total || 0) - n);
+        const tech = all.find((t) => techKey(t) === key);
+        // 必要回数に届かなくなったら「✓完了」を外す
+        if (tech) p.done = p.total >= tech.need;
+      });
+    }
+
+    mon.log = mon.log.filter((e) => e.id !== id);
     save();
     render();
   },

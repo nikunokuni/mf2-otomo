@@ -51,6 +51,12 @@ ok(body.includes('✓完了'),'完了状態が引き継がれた');
 ok(body.includes('アイショット'),'milestone表示');
 ok((await page.locator('#logArea').textContent()).includes('パンチ+7'),'履歴が引き継がれた');
 
+// 回数の内訳（gains）を持たない古い履歴は、消しても累計は戻らない
+page.once('dialog', d=>d.accept());
+await page.locator('#logArea .log-item').nth(0).locator('[data-action="tracker:delLog"]').click();
+ok((await page.locator('#logArea').textContent()).includes('まだ記録がありません'),'古い履歴も消せる');
+ok((await page.locator('#techBody').textContent()).includes('23/30'),'内訳の無い履歴を消しても累計は動かない');
+
 // 選択を外していた技（techHistoryのみ）の記録が残っているか
 await page.click('[data-action="tracker:openPicker"]');
 await page.waitForSelector('.tech-picker__item');

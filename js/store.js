@@ -124,6 +124,7 @@ export function defaultMon() {
     guts: 15,
     inSession: false,
     memo: '',
+    // 大会1回ぶんの記録。中身の形は normalizeLog() を見ること
     log: [],
     selected: [],
     progress: {},
@@ -209,6 +210,13 @@ let rotaSeq = 0;
 function newRotaId() {
   rotaSeq += 1;
   return `r${Date.now().toString(36)}${rotaSeq}`;
+}
+
+let logSeq = 0;
+/** 履歴1件を指すためのID。削除する行を特定するのに使う */
+export function newLogId() {
+  logSeq += 1;
+  return `g${Date.now().toString(36)}${logSeq}`;
 }
 
 /**
@@ -318,6 +326,35 @@ function normalizeGood(good) {
   return (Array.isArray(good) ? good : []).filter((k, i, a) => keys.includes(k) && a.indexOf(k) === i);
 }
 
+/**
+ * 使い込みの履歴を1件ぶんの形にそろえる。
+ *
+ * gains は「その大会で技ごとに累計へ足した回数」で、履歴を消したときに
+ * 累計から戻すぶんの正本になる（やり直しは足していないので空になる）。
+ * gains を足す前に残った履歴は戻す数が分からないので、
+ * **gains を持たせないまま**にして「戻せない記録」と区別できるようにする。
+ */
+function normalizeLog(list) {
+  return (Array.isArray(list) ? list : [])
+    .filter((e) => e && typeof e === 'object')
+    .map((e) => {
+      const entry = {
+        id: e.id ? String(e.id) : newLogId(),
+        type: e.type === 'ok' ? 'ok' : 'ng',
+        text: String(e.text || ''),
+        date: String(e.date || ''),
+      };
+      if (e.gains && typeof e.gains === 'object') {
+        entry.gains = {};
+        Object.entries(e.gains).forEach(([key, value]) => {
+          const n = Math.floor(Number(value));
+          if (Number.isFinite(n) && n > 0) entry.gains[key] = n;
+        });
+      }
+      return entry;
+    });
+}
+
 /** 桃システムの設定を、必ず2つぶんの { use, si } にそろえる */
 function normalizePeach(peach) {
   const list = Array.isArray(peach) ? peach : [];
@@ -389,7 +426,7 @@ function normalize(loaded) {
     m.feedLike = Object.assign(defaultFeedLike(), m.feedLike || {});
     m.selected = Array.isArray(m.selected) ? m.selected : [];
     m.progress = m.progress || {};
-    m.log = Array.isArray(m.log) ? m.log : [];
+    m.log = normalizeLog(m.log);
     s.mon[name] = m;
     if (!s.order.includes(name)) s.order.push(name);
   });

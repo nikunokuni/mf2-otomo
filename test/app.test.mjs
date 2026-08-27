@@ -76,6 +76,29 @@ for(let i=0;i<3;i++) await page.locator('#techBody tr').nth(0).locator('[data-de
 await page.click('[data-action="tracker:cancel"]');
 ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'やり直しで累計が増えない');
 
+console.log('— 履歴の削除（間違えた合格を取り消す） —');
+ok((await page.locator('#logArea .log-item').count())===2,'履歴が2件たまった');
+await page.click('[data-action="tracker:start"]');
+for(let i=0;i<25;i++) await page.locator('#techBody tr').nth(0).locator('[data-delta="1"]').click();
+await page.click('[data-action="tracker:confirm"]');
+ok((await page.locator('#techBody tr').nth(0).textContent()).includes('✓完了'),'30回で完了になる');
+page.once('dialog',d=>d.accept());
+await page.locator('#logArea .log-item').nth(0).locator('[data-action="tracker:delLog"]').click();
+ok((await page.locator('#logArea .log-item').count())===2,'履歴が1件減る');
+const afterDel = await page.locator('#techBody tr').nth(0).textContent();
+ok(afterDel.includes('5/30'),'削除した合格ぶんが累計から戻る');
+ok(!afterDel.includes('✓完了'),'完了も外れる');
+// やり直しの履歴は累計に足していないので、消しても累計は動かない
+page.once('dialog',d=>d.accept());
+await page.locator('#logArea .log-item').nth(0).locator('[data-action="tracker:delLog"]').click();
+ok((await page.locator('#logArea .log-item').count())===1,'やり直しの履歴も消せる');
+ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'やり直しを消しても累計は動かない');
+// 消した記録が読み込み直しても戻らないこと（保存されている）
+await page.reload({waitUntil:'networkidle'});
+await page.click('#tab-tracker');
+ok((await page.locator('#logArea .log-item').count())===1,'削除が保存されている');
+ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'戻した累計も保存されている');
+
 console.log('— メモ（B1） —');
 await page.fill('#memo','テストメモ123');
 

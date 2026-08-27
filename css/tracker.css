@@ -186,6 +186,24 @@
   color: var(--color-text-tertiary);
   white-space: nowrap;
 }
+.log-item__del {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  align-self: center;
+  padding: 0;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.log-item__del:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-ng);
+}
 .log-ok {
   color: var(--color-ok);
 }
