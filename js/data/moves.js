@@ -780,4 +780,19 @@ export const MOVES = {
     { name:'トリオビームY',           stat:'int', kind:'クリティカル', dist:4, guts:29, dmg:['B',31], acc:['D',-6],  gd:['D',14], cr:['C',19], moral:null, note:'トリオビームX50回',     tHit:5.1, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
     { name:'トリオビームZ',           stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:['B',38], acc:['D',-6],  gd:['C',22], cr:['A',25], moral:20,   note:'トリオビームY50回',     tHit:5.1, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い
+  ラウー: [
+    { init:true, name:'びんた',       stat:'pow', kind:'バランス',     dist:1, guts:13, dmg:['D',15], acc:['A',8],   gd:['E',5],  cr:null,     moral:null, note:'',              tHit:3.8, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'クシャミ',                stat:'int', kind:'ガッツダウン', dist:1, guts:16, dmg:['D',10], acc:['D',-6],  gd:['C',26], cr:['E',5],  moral:null, note:'',              tHit:3.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ラウースイング',          stat:'pow', kind:'超必殺',       dist:1, guts:50, dmg:['S',61], acc:['D',-10], gd:['B',37], cr:['D',10], moral:null, note:'',              tHit:7.3, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'たたきつけ',   stat:'pow', kind:'バランス',     dist:2, guts:16, dmg:['C',20], acc:['B',3],   gd:['E',5],  cr:null,     moral:null, note:'',              tHit:6.1, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ばくふう',                stat:'int', kind:'ガッツダウン', dist:2, guts:26, dmg:['C',21], acc:['D',-8],  gd:['B',38], cr:['E',8],  moral:-20,  note:'',              tHit:3.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'バナナブーメラン',        stat:'int', kind:'命中',         dist:3, guts:18, dmg:['D',15], acc:['A',14],  gd:['E',8],  cr:['E',8],  moral:null, note:'',              tHit:3.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'つかみたたきつけ',        stat:'pow', kind:'大ダメージ',   dist:3, guts:18, dmg:['B',31], acc:['D',-11], gd:['E',5],  cr:['E',5],  moral:null, note:'',              tHit:6.3, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドッカンバナナ',          stat:'int', kind:'命中',         dist:4, guts:28, dmg:['D',19], acc:['S',18],  gd:['D',16], cr:['E',8],  moral:null, note:'',              tHit:8.8, tMiss:5.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'回転アタック',            stat:'pow', kind:'大ダメージ',   dist:4, guts:27, dmg:['A',41], acc:['D',-9],  gd:['D',11], cr:['E',5],  moral:null, note:'',              tHit:4.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ボム',                    stat:'int', kind:'クリティカル', dist:4, guts:19, dmg:['C',22], acc:['D',-7],  gd:['D',10], cr:['C',16], moral:null, note:'',              tHit:6.1, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ハイパーボム',            stat:'int', kind:'クリティカル', dist:4, guts:26, dmg:['C',24], acc:['B',1],   gd:['D',12], cr:['C',18], moral:-30,  note:'ボム50回',      tHit:5.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'パクパクバナナ',          stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:null,     acc:['E',-25], gd:null,     cr:null,     moral:50,   note:'回復力30(B)',   tHit:2.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
