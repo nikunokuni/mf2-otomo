@@ -53,6 +53,47 @@ export function techKey(tech) {
   return tech.from + '→' + tech.to;
 }
 
+/**
+ * 技名を有志Wikiの表記にそろえたときの、保存データのキーの読み替え表。
+ * `monsters.js` の `from→to` は使い込みの記録のキーなので、技名を直すだけだと
+ * それまでの記録が迷子になる。ここに「旧キー → 新キー」を種族ごとに置いて、
+ * 読み込み（とバックアップからの復元）のときに付け替える。
+ *
+ * 何度通しても同じ結果になるので、保存し直すまで残っていても問題ない。
+ * 技名を直すことがまたあれば、ここに足すだけでよい。
+ */
+const RENAMED_TECH = {
+  ヘンガー: { 'パンチ→ヘヴィチョップ': 'パンチ→ヘヴィーチョップ' },
+  アローヘッド: { '怪光弾→怪光弾連射': '怪光弾→怪光連弾' },
+};
+
+/** 1種族ぶんの保存データについて、技キーを新しい名前に付け替える */
+function renameTechKeys(species, mon) {
+  const map = RENAMED_TECH[species];
+  if (!map) return;
+  const to = (k) => (Object.prototype.hasOwnProperty.call(map, k) ? map[k] : k);
+
+  // 選んでいる技（すでに新しいキーも入っていたら重ならないようにする）
+  const seen = new Set();
+  mon.selected = mon.selected.map(to).filter((k) => !seen.has(k) && seen.add(k));
+
+  // 使い込みの累計。新しいキーがすでにあるなら、そちらを残す
+  Object.entries(map).forEach(([oldKey, newKey]) => {
+    if (mon.progress[oldKey] && !mon.progress[newKey]) mon.progress[newKey] = mon.progress[oldKey];
+    delete mon.progress[oldKey];
+  });
+
+  // 履歴の内訳（これを見て累計を戻すので、ここも付け替える）
+  mon.log.forEach((entry) => {
+    if (!entry.gains || typeof entry.gains !== 'object') return;
+    const gains = {};
+    Object.entries(entry.gains).forEach(([k, n]) => {
+      gains[to(k)] = n;
+    });
+    entry.gains = gains;
+  });
+}
+
 /** 育成計算の初期値 */
 export function defaultSim() {
   const apt = {};
@@ -427,6 +468,7 @@ function normalize(loaded) {
     m.selected = Array.isArray(m.selected) ? m.selected : [];
     m.progress = m.progress || {};
     m.log = normalizeLog(m.log);
+    renameTechKeys(name, m);
     s.mon[name] = m;
     if (!s.order.includes(name)) s.order.push(name);
   });

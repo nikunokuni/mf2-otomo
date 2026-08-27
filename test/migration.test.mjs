@@ -170,6 +170,42 @@ ok(migRows.filter(r=>r.peach&&r.name==='ピーク').every(r=>r.heavy==='1'),
 ok((await page.locator('#planWarnings').textContent()).trim()==='','移行しただけでは警告は出ない');
 
 
+/* ===== 技名を @wiki の表記にそろえたぶんの、保存キーの読み替え ===== */
+console.log('— 技名を直したぶんのキー読み替え —');
+// ヘヴィチョップ→ヘヴィーチョップ / 怪光弾連射→怪光連弾。
+// 保存データは selected / progress / 履歴の gains の3か所にキーを持っている
+await page.evaluate(() => {
+  localStorage.clear();
+  localStorage.setItem('monfar_state_v1', JSON.stringify({
+    current:'ヘンガー', order:['ヘンガー','アローヘッド'],
+    mon:{
+      'ヘンガー':{ guts:15, selected:['パンチ→ヘヴィチョップ'],
+        progress:{'パンチ→ヘヴィチョップ':{total:23,done:false,session:0}},
+        log:[{id:'l1',type:'ok',text:'合格: パンチ+7',date:'2026/01/05',
+              gains:{'パンチ→ヘヴィチョップ':7}}] },
+      'アローヘッド':{ guts:15, selected:['怪光弾→怪光弾連射'],
+        progress:{'怪光弾→怪光弾連射':{total:40,done:false,session:0}}, log:[] }
+    }
+  }));
+});
+await page.goto(BASE,{waitUntil:'networkidle'});
+await page.click('#tab-tracker');
+ok((await page.locator('#techBody').textContent()).includes('23/30'),'旧キーの累計が新しい技名に引き継がれる');
+const renamed = await page.evaluate(()=>{
+  const s = JSON.parse(localStorage.getItem('monfar_state_v1'));
+  return { hen:Object.keys(s.mon['ヘンガー'].progress), sel:s.mon['ヘンガー'].selected,
+           gains:Object.keys(s.mon['ヘンガー'].log[0].gains),
+           arrow:Object.keys(s.mon['アローヘッド'].progress) };
+});
+ok(renamed.hen.join()==='パンチ→ヘヴィーチョップ','progress のキーが読み替わった: '+renamed.hen.join());
+ok(renamed.sel.join()==='パンチ→ヘヴィーチョップ','selected のキーが読み替わった: '+renamed.sel.join());
+ok(renamed.gains.join()==='パンチ→ヘヴィーチョップ','履歴の内訳も読み替わった: '+renamed.gains.join());
+ok(renamed.arrow.join()==='怪光弾→怪光連弾','別の種族ぶんも読み替わった: '+renamed.arrow.join());
+// 内訳が読み替わっているので、履歴を消せば累計もちゃんと戻る
+page.once('dialog', d=>d.accept());
+await page.locator('#logArea .log-item').nth(0).locator('[data-action="tracker:delLog"]').click();
+ok((await page.locator('#techBody').textContent()).includes('16/30'),'履歴を消すと 23→16 に戻る（内訳が効いている）');
+
 console.log(`\n合格 ${pass} / 失敗 ${fail}`);
 console.log('コンソールエラー:', errors.length?errors:'なし');
 await browser.close();

@@ -151,8 +151,7 @@ export const MOVES = {
   ヘンガー: [
     { init:true, name:'パンチ',       stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['D',13], acc:['A',5],   gd:null,     cr:null,     moral:null, note:'',                      tHit:2.8, tMiss:3.1, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
     { name:'キック',                  stat:'pow', kind:'バランス',     dist:1, guts:16, dmg:['D',19], acc:['B',1],   gd:['E',5],  cr:['E',5],  moral:null, note:'ローキック30回',        tHit:2.8, tMiss:3.1, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
-    // @wiki の表記は「ヘヴィーチョップ」だが、monsters.js（保存データのキー）が「ヘヴィチョップ」なのでそちらにそろえてある
-    { name:'ヘヴィチョップ',          stat:'pow', kind:'バランス',     dist:1, guts:15, dmg:['D',18], acc:['B',3],   gd:['E',6],  cr:null,     moral:null, note:'パンチ30回',            tHit:2.8, tMiss:3.1, mvHit:'1',      mvMiss:'1→2',   rapid:'強' },
+    { name:'ヘヴィーチョップ',         stat:'pow', kind:'バランス',     dist:1, guts:15, dmg:['D',18], acc:['B',3],   gd:['E',6],  cr:null,     moral:null, note:'パンチ30回',            tHit:2.8, tMiss:3.1, mvHit:'1',      mvMiss:'1→2',   rapid:'強' },
     { init:true, name:'ローキック',   stat:'pow', kind:'バランス',     dist:1, guts:13, dmg:['D',15], acc:['A',7],   gd:null,     cr:['E',5],  moral:null, note:'',                      tHit:2.8, tMiss:3.1, mvHit:'1',      mvMiss:'1→2',   rapid:'強' },
     { name:'レーザーカッター',        stat:'pow', kind:'大ダメージ',   dist:2, guts:28, dmg:['A',42], acc:['E',-15], gd:['D',15], cr:['D',10], moral:null, note:'',                      tHit:5.3, tMiss:4.5, mvHit:'2→2-3',  mvMiss:'2→2-3', rapid:'並' },
     { name:'ヨーヨー',                stat:'pow', kind:'ガッツダウン', dist:2, guts:17, dmg:['D',10], acc:['C',-3],  gd:['C',24], cr:['D',10], moral:null, note:'',                      tHit:4.1, tMiss:4.1, mvHit:'2',      mvMiss:'2→3',   rapid:'強' },
@@ -296,8 +295,7 @@ export const MOVES = {
     { name:'竜巻アタック',            stat:'pow', kind:'超必殺',       dist:3, guts:50, dmg:['S',62], acc:['E',-16], gd:['C',29], cr:['D',10], moral:null, note:'プライヤロックス固有',                    tHit:5.3, tMiss:4.9, mvHit:'', mvMiss:'', rapid:'' },
     { name:'地雷針',                  stat:'pow', kind:'命中',         dist:4, guts:27, dmg:['C',24], acc:['S',19],  gd:['E',6],  cr:['E',5],  moral:null, note:'',                                        tHit:3.8, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
     { name:'怪光弾',                  stat:'int', kind:'ガッツダウン', dist:4, guts:18, dmg:['E',7],  acc:['A',5],   gd:['C',27], cr:['E',5],  moral:null, note:'',                                        tHit:1.5, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
-    // @wiki の表記は「怪光連弾」だが、monsters.js（保存データのキー）が「怪光弾連射」なのでそちらにそろえてある
-    { name:'怪光弾連射',              stat:'int', kind:'ガッツダウン', dist:4, guts:25, dmg:['D',11], acc:['A',5],   gd:['B',35], cr:['E',5],  moral:null, note:'怪光弾50回',                              tHit:5.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'怪光連弾',                stat:'int', kind:'ガッツダウン', dist:4, guts:25, dmg:['D',11], acc:['A',5],   gd:['B',35], cr:['E',5],  moral:null, note:'怪光弾50回',                              tHit:5.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
     { name:'スロウランサー',          stat:'pow', kind:'クリティカル', dist:4, guts:24, dmg:['C',20], acc:['D',-7],  gd:['C',23], cr:['B',20], moral:-20,  note:'レマクラスト、プロテクトアローは修得不可', tHit:4.3, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
     { name:'じごく車',                stat:'pow', kind:'大ダメージ',   dist:4, guts:32, dmg:['S',50], acc:['D',-9],  gd:['E',8],  cr:['E',5],  moral:-30,  note:'',                                        tHit:4.3, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
     { name:'ロケットパンチ',          stat:'pow', kind:'超必殺',       dist:4, guts:19, dmg:['D',16], acc:['A',5],   gd:['E',5],  cr:['C',19], moral:null, note:'レマクラスト固有',                        tHit:4.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
