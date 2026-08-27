@@ -431,4 +431,22 @@ export const MOVES = {
     { name:'仙酒飲',                  stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:null,     acc:['E',-15], gd:null,     cr:null,     moral:50,   note:'回復力50(S)、成功時泥酔誘発', tHit:2.6, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
     { name:'電撃',                    stat:'int', kind:'ガッツダウン', dist:4, guts:11, dmg:['E',7],  acc:['C',-2],  gd:['D',16], cr:['D',10], moral:null, note:'ツンドラ固有',              tHit:2.9, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い
+  グジラ: [
+    { init:true, name:'はら',         stat:'pow', kind:'バランス',     dist:1, guts:12, dmg:['D',16], acc:['B',2],   gd:null,     cr:null,     moral:null, note:'',                                        tHit:4.1,  tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'頭突き',                  stat:'pow', kind:'命中',         dist:1, guts:16, dmg:['D',17], acc:['A',8],   gd:['E',5],  cr:['E',5],  moral:null, note:'',                                        tHit:3.8,  tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'つきあげ',                stat:'pow', kind:'クリティカル', dist:1, guts:19, dmg:['C',20], acc:['B',1],   gd:['E',5],  cr:['C',16], moral:null, note:'',                                        tHit:4.8,  tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ひっかき',     stat:'pow', kind:'バランス',     dist:2, guts:10, dmg:['D',14], acc:['C',-3],  gd:null,     cr:['E',5],  moral:null, note:'',                                        tHit:3.8,  tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'しっぽビンタ',            stat:'pow', kind:'命中',         dist:2, guts:24, dmg:['C',22], acc:['A',13],  gd:['E',8],  cr:['E',5],  moral:null, note:'',                                        tHit:5.3,  tMiss:5.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'くしゃみ',                stat:'int', kind:'ガッツダウン', dist:2, guts:17, dmg:['D',11], acc:['C',-4],  gd:['C',25], cr:['E',5],  moral:null, note:'',                                        tHit:4.5,  tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ボディープレス',          stat:'pow', kind:'超必殺',       dist:2, guts:40, dmg:['S',60], acc:['D',-10], gd:['B',33], cr:['E',5],  moral:null, note:'失敗時自爆ダメージ15(D)',                 tHit:8.3,  tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ウェーブプレス',          stat:'pow', kind:'超必殺',       dist:2, guts:45, dmg:['S',69], acc:['D',-12], gd:['A',41], cr:['C',15], moral:null, note:'ボディープレス50回 失敗時自爆ダメージ25(C)', tHit:8.5,  tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'地震',                    stat:'pow', kind:'大ダメージ',   dist:3, guts:29, dmg:['S',58], acc:['E',-21], gd:['C',21], cr:['E',5],  moral:null, note:'',                                        tHit:4.8,  tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'しゃぼんアタック',        stat:'int', kind:'ガッツダウン', dist:3, guts:30, dmg:['D',19], acc:['D',-5],  gd:['B',37], cr:['E',5],  moral:-20,  note:'',                                        tHit:4.5,  tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'突進',                    stat:'pow', kind:'クリティカル', dist:3, guts:27, dmg:['C',24], acc:['C',-1],  gd:['D',14], cr:['C',19], moral:null, note:'',                                        tHit:5.5,  tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'突進つきあげ',            stat:'pow', kind:'クリティカル', dist:3, guts:32, dmg:['C',27], acc:['C',0],   gd:['D',16], cr:['B',22], moral:null, note:'突進50回',                                tHit:4.5,  tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    // 当時間が2桁になる技（いまのところこれだけ）
+    { name:'ぐるぐるプレス',          stat:'pow', kind:'大ダメージ',   dist:4, guts:21, dmg:['B',35], acc:['D',-12], gd:['E',7],  cr:['E',5],  moral:null, note:'',                                        tHit:10.1, tMiss:6.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大津波',                  stat:'int', kind:'超必殺',       dist:4, guts:37, dmg:['A',42], acc:['D',-9],  gd:['C',24], cr:['C',15], moral:20,   note:'',                                        tHit:7.5,  tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
