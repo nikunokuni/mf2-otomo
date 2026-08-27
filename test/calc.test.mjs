@@ -537,8 +537,11 @@ for (const [species, list] of Object.entries(MOVES)) {
     eq(from.tMiss, pair.miss, `${species} ${pair.from}: 外時間`);
 
     // 上位技の備考には「<下位技><回数>回」が入っている。
-    // 先頭に ※（@wiki の注記の印）が付くことがあるので、それは外して見る
-    const m = /^※?(.+?)(\d+)回/.exec(to.note || '');
+    // 先頭に ※（@wiki の注記の印）が付くことがあるので、それは外して見る。
+    // 備考は「、」で複数の節に分かれることがあり、使い込み条件は先頭とはかぎらない
+    // （「フレイム50回、ユキは修得不可」／「ロックロン固有、地震50回」）。
+    // 技名に「、」は入らないので、節の区切りで切ってから探す
+    const m = /(?:^|、)※?([^、]+?)(\d+)回/.exec(to.note || '');
     eq(!!m, true, `${species} ${pair.to}: 備考に使い込み条件がある`);
     if (!m) continue;
     eq(m[1], pair.from, `${species} ${pair.to}: 備考の下位技`);
