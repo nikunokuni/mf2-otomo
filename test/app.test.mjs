@@ -779,9 +779,12 @@ ok((await page.locator('#techBody').textContent()).includes('使い込みで進�
 ok((await page.locator('#sessionControls').textContent()).trim()==='','技がない種族では大会開始ボタンを出さない');
 ok(await page.locator('#changeTechBtn').isHidden(),'技なし種族では「技を変更」も出さない');
 ok(await page.locator('#techPickerCard').isHidden(),'技なし種族では技選択も開かない');
+// 38種ぶん入れ終えたので「技データが無い種族」はもう無い。
+// 使い込みで進化する技が1つも無い種族（ライガー / スエゾー / ジョーカー）でも、技一覧は出る
 await page.click('#movesToggle');
-await page.waitForSelector('#movesBody .empty');
-ok((await page.locator('#movesBody').textContent()).includes('まだ入っていません'),'技データが無い種族は、その旨を出す');
+await page.waitForSelector('#movesBody .moves-table');
+ok((await page.locator('#movesBody .moves-table tbody tr').count())===12,'使い込み技が無い種族でも技一覧は出る（ライガーは12技）');
+ok((await page.locator('#movesBody').textContent()).includes('雷撃'),'ライガーの技が並んでいる');
 await page.click('#movesToggle');
 await page.click('#tab-simulator');
 ok(await page.locator('#simBody').isVisible(),'技なし種族でも育成計算は使える');

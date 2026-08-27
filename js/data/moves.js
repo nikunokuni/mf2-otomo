@@ -814,4 +814,19 @@ export const MOVES = {
     { name:'毒ガス',                  stat:'int', kind:'ガッツダウン', dist:4, guts:28, dmg:['C',20], acc:['D',-7],  gd:['B',37], cr:['E',5],  moral:null, note:'',                      tHit:3.5, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
     { name:'シェルアタック',          stat:'pow', kind:'超必殺',       dist:4, guts:44, dmg:['B',35], acc:['C',-4],  gd:['B',35], cr:['C',15], moral:null, note:'',                      tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い
+  ナーガ: [
+    { init:true, name:'はたき',       stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['D',12], acc:['D',-5],  gd:null,     cr:null,     moral:null, note:'',                      tHit:2.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'突き',                    stat:'pow', kind:'命中',         dist:1, guts:14, dmg:['D',15], acc:['A',8],   gd:['E',5],  cr:['E',5],  moral:null, note:'',                      tHit:1.5, tMiss:1.5, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ボディーブロー', stat:'pow', kind:'バランス',    dist:2, guts:10, dmg:['D',14], acc:['D',-8],  gd:['E',5],  cr:null,     moral:null, note:'',                      tHit:2.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'くしざし',                stat:'pow', kind:'命中',         dist:2, guts:19, dmg:['D',18], acc:['A',8],   gd:['D',10], cr:['E',5],  moral:null, note:'',                      tHit:2.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'しっぽアタック',          stat:'pow', kind:'大ダメージ',   dist:2, guts:15, dmg:['C',27], acc:['D',-13], gd:['E',5],  cr:['E',5],  moral:null, note:'',                      tHit:3.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドレイン',                stat:'int', kind:'超必殺',       dist:2, guts:50, dmg:['B',30], acc:['E',-19], gd:null,     cr:null,     moral:-50,  note:'ライフドレイン率100%',  tHit:3.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'毒ギリ',                  stat:'int', kind:'ガッツダウン', dist:3, guts:15, dmg:['D',12], acc:['C',-4],  gd:['D',19], cr:['E',8],  moral:null, note:'',                      tHit:3.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'魔空弾',                  stat:'int', kind:'クリティカル', dist:3, guts:17, dmg:['C',21], acc:['D',-13], gd:['D',15], cr:['C',15], moral:null, note:'',                      tHit:4.3, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'回転アタック',            stat:'pow', kind:'超必殺',       dist:3, guts:45, dmg:['B',39], acc:['A',5],   gd:['C',29], cr:['E',7],  moral:null, note:'',                      tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドリルアタック',          stat:'pow', kind:'大ダメージ',   dist:4, guts:23, dmg:['B',38], acc:['D',-13], gd:['D',12], cr:['E',5],  moral:null, note:'',                      tHit:4.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイビーム',              stat:'int', kind:'クリティカル', dist:4, guts:29, dmg:['B',31], acc:['D',-11], gd:['C',23], cr:['B',21], moral:20,   note:'',                      tHit:4.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'連続魔空弾',              stat:'int', kind:'クリティカル', dist:4, guts:24, dmg:['C',27], acc:['D',-9],  gd:['D',15], cr:['C',19], moral:null, note:'魔空弾25回',            tHit:5.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
