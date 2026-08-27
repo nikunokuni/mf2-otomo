@@ -571,4 +571,29 @@ export const MOVES = {
     { name:'アイスメテオ',              stat:'int', kind:'クリティカル', dist:4, guts:29, dmg:['C',29], acc:['D',-5],  gd:['D',13], cr:['C',19], moral:20,   note:'',                      tHit:4.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
     { name:'吹雪',                      stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['B',35], acc:['A',5],   gd:['B',35], cr:['E',5],  moral:null, note:'',                      tHit:5.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // モッチ砲の当時間は @wiki が「2.6(2.9)」と2つ書いているが、2.6 を採る
+  // （monsters.js も 2.6 で持っている）
+  モッチー: [
+    { init:true, name:'もんた',       stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['E',9],  acc:['B',2],   gd:['E',5],  cr:null,     moral:null, note:'',                                    tHit:3.1, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ガッチョ',                stat:'pow', kind:'命中',         dist:1, guts:15, dmg:['D',10], acc:['A',6],   gd:['E',9],  cr:['E',6],  moral:null, note:'',                                    tHit:3.5, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ガッチャー',              stat:'pow', kind:'命中',         dist:1, guts:27, dmg:['D',15], acc:['A',13],  gd:['D',14], cr:['E',7],  moral:null, note:'ガッチョ50回',                        tHit:3.8, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ガッチョ',              stat:'pow', kind:'超必殺',       dist:1, guts:38, dmg:['B',38], acc:['D',-10], gd:['C',22], cr:['D',10], moral:null, note:'ガッチャー50回',                      tHit:6.1, tMiss:5.1, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'もちき',       stat:'pow', kind:'バランス',     dist:2, guts:12, dmg:['D',12], acc:['D',-5],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                                    tHit:3.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ぺろりん',                stat:'int', kind:'ガッツダウン', dist:2, guts:19, dmg:['D',13], acc:['D',-11], gd:['C',24], cr:['E',5],  moral:null, note:'',                                    tHit:3.1, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'もっちゃん',              stat:'pow', kind:'大ダメージ',   dist:2, guts:24, dmg:['C',24], acc:['D',-9],  gd:['D',12], cr:['E',9],  moral:null, note:'',                                    tHit:4.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'もっさん',                stat:'pow', kind:'大ダメージ',   dist:2, guts:34, dmg:['B',39], acc:['D',-14], gd:['D',19], cr:['D',10], moral:null, note:'もっちゃん50回',                      tHit:5.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'もっさま',                stat:'pow', kind:'大ダメージ',   dist:2, guts:39, dmg:['A',49], acc:['E',-16], gd:['C',20], cr:['D',10], moral:null, note:'もっさん50回',                        tHit:5.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ローリンモッチ',          stat:'pow', kind:'クリティカル', dist:3, guts:27, dmg:['D',19], acc:['D',-6],  gd:['D',19], cr:['C',19], moral:null, note:'',                                    tHit:4.8, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ローリンモッチ',        stat:'pow', kind:'クリティカル', dist:3, guts:36, dmg:['C',28], acc:['D',-9],  gd:['C',20], cr:['A',25], moral:null, note:'ローリンモッチ50回',                  tHit:5.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'さくら吹雪',              stat:'int', kind:'クリティカル', dist:3, guts:16, dmg:['D',14], acc:['D',-10], gd:['D',13], cr:['C',16], moral:null, note:'',                                    tHit:4.8, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'八重ざくら',              stat:'int', kind:'超必殺',       dist:3, guts:45, dmg:null,     acc:['E',-15], gd:null,     cr:null,     moral:50,   note:'さくら吹雪50回 回復力40(A)',          tHit:5.8, tMiss:5.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'乱れさくら',              stat:'int', kind:'超必殺',       dist:3, guts:40, dmg:['B',35], acc:['E',-15], gd:null,     cr:null,     moral:-50,  note:'さくら吹雪50回 ライフドレイン率50%',  tHit:4.8, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'モッチ砲',                stat:'int', kind:'超必殺',       dist:4, guts:35, dmg:['C',20], acc:['A',10],  gd:['C',20], cr:['D',10], moral:null, note:'',                                    tHit:2.6, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大モッチ砲',              stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:['C',25], acc:['B',3],   gd:['C',25], cr:['C',15], moral:null, note:'モッチ砲50回',                        tHit:5.2, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超モッチ砲',              stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['A',45], acc:['D',-5],  gd:['C',25], cr:['B',20], moral:20,   note:'大モッチ砲50回',                      tHit:5.4, tMiss:3.0, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'炎',                      stat:'int', kind:'超必殺',       dist:4, guts:38, dmg:['A',44], acc:['D',-13], gd:['D',16], cr:['D',10], moral:null, note:'ミタラシ固有',                        tHit:4.0, tMiss:2.9, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ローリン',                stat:'pow', kind:'大ダメージ',   dist:4, guts:19, dmg:['C',25], acc:['D',-12], gd:['E',7],  cr:['E',5],  moral:null, note:'',                                    tHit:5.8, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ローリンローリン',        stat:'pow', kind:'大ダメージ',   dist:4, guts:25, dmg:['C',29], acc:['D',-13], gd:['D',15], cr:['E',7],  moral:null, note:'ローリン50回',                        tHit:5.9, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
