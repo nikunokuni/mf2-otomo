@@ -518,18 +518,22 @@ for (const [species, list] of Object.entries(MOVES)) {
   // 技名の数字は全角にそろえる（monsters.js が ３連アタック のように全角で持っていて、
   // そこが保存データのキーになっているため）。
   // monsters.js 自身が半角で持っている技名（G・キューブ2）だけは、そのままでよい
+  // 上位技は「超バックナックル／レフトナックル」のように「／」でつないである行がある
+  // （下位技1つから、どちらか一方に分かれる）。技データ側は1技ずつ持つので、割って見る
   const inMonsters = new Set(
-    (MONSTER_DATA[species] || []).flatMap((p) => [p.from, p.to, p.milestone && p.milestone.to])
+    (MONSTER_DATA[species] || []).flatMap((p) =>
+      [p.from, ...p.to.split('／'), p.milestone && p.milestone.to])
   );
   eq(list.filter((mv) => /[0-9]/.test(mv.name) && !inMonsters.has(mv.name)).map((mv) => mv.name), [],
      `${species}: 技名の数字が半角のまま残っていない`);
 
   for (const pair of MONSTER_DATA[species] || []) {
     const from = byName.get(pair.from);
-    const to = byName.get(pair.to);
+    const toNames = pair.to.split('／');
     eq(!!from, true, `${species}: 下位技「${pair.from}」が技データにある`);
-    eq(!!to, true, `${species}: 上位技「${pair.to}」が技データにある`);
-    if (!from || !to) continue;
+    eq(toNames.filter((n) => !byName.has(n)), [],
+       `${species}: 上位技「${pair.to}」が技データにある`);
+    if (!from || !toNames.every((n) => byName.has(n))) continue;
 
     // 使い込みは下位技を撃ち続けるので、消費Gとモーション秒は下位技のもの
     eq(from.guts, pair.guts, `${species} ${pair.from}: 消費G`);
@@ -540,12 +544,15 @@ for (const [species, list] of Object.entries(MOVES)) {
     // 先頭に ※（@wiki の注記の印）が付くことがあるので、それは外して見る。
     // 備考は「、」で複数の節に分かれることがあり、使い込み条件は先頭とはかぎらない
     // （「フレイム50回、ユキは修得不可」／「ロックロン固有、地震50回」）。
-    // 技名に「、」は入らないので、節の区切りで切ってから探す
-    const m = /(?:^|、)※?([^、]+?)(\d+)回/.exec(to.note || '');
-    eq(!!m, true, `${species} ${pair.to}: 備考に使い込み条件がある`);
-    if (!m) continue;
-    eq(m[1], pair.from, `${species} ${pair.to}: 備考の下位技`);
-    eq(Number(m[2]), pair.need, `${species} ${pair.from}→${pair.to} 使い込み回数`);
+    // 技名に「、」は入らないので、節の区切りで切ってから探す。
+    // 分かれる上位技は、どちらも同じ下位技・同じ回数を備考に持っているはず
+    for (const to of toNames.map((n) => byName.get(n))) {
+      const m = /(?:^|、)※?([^、]+?)(\d+)回/.exec(to.note || '');
+      eq(!!m, true, `${species} ${to.name}: 備考に使い込み条件がある`);
+      if (!m) continue;
+      eq(m[1], pair.from, `${species} ${to.name}: 備考の下位技`);
+      eq(Number(m[2]), pair.need, `${species} ${pair.from}→${to.name} 使い込み回数`);
+    }
   }
 
   // milestone（途中で覚える技）も名簿に載っていること

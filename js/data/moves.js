@@ -334,4 +334,26 @@ export const MOVES = {
     { name:'雷撃',                    stat:'int', kind:'ガッツダウン', dist:4, guts:30, dmg:['D',14], acc:['D',-10], gd:['B',35], cr:['E',5],  moral:null, note:'※キンダーホップ固有(すり替え継承可)', tHit:2.5, tMiss:2.7, mvHit:'4',      mvMiss:'4',   rapid:'並' },
     { name:'炎',                      stat:'int', kind:'超必殺',       dist:4, guts:36, dmg:['B',35], acc:['E',-16], gd:['C',25], cr:['E',5],  moral:null, note:'キンダーホップ固有',                tHit:3.1, tMiss:2.7, mvHit:'4',      mvMiss:'4',   rapid:'並' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // monsters.js は「ドラゴンパンチ→超ドラゴンパンチ／まわしげり」のように、
+  // 分かれる上位技を1行にまとめて持っている（技データ側は1技ずつ）
+  ハム: [
+    { name:'正拳',                    stat:'pow', kind:'命中',         dist:1, guts:20, dmg:['D',15], acc:['S',20],  gd:['E',5],  cr:['D',10], moral:null, note:'',                    tHit:2.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超正拳',                  stat:'pow', kind:'命中',         dist:1, guts:27, dmg:['C',20], acc:['S',16],  gd:['E',8],  cr:['D',12], moral:null, note:'正拳50回',            tHit:3.8, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドラゴンパンチ',          stat:'pow', kind:'クリティカル', dist:1, guts:18, dmg:['D',19], acc:['D',-9],  gd:['E',7],  cr:['B',24], moral:null, note:'',                    tHit:4.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ドラゴンパンチ',        stat:'pow', kind:'クリティカル', dist:1, guts:25, dmg:['C',27], acc:['D',-11], gd:['E',8],  cr:['A',28], moral:null, note:'ドラゴンパンチ50回',  tHit:4.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'暗けい',                  stat:'pow', kind:'超必殺',       dist:1, guts:45, dmg:['B',32], acc:['A',10],  gd:['C',22], cr:['D',10], moral:null, note:'',                    tHit:4.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超暗けい',                stat:'pow', kind:'超必殺',       dist:1, guts:50, dmg:['A',44], acc:['A',5],   gd:['C',29], cr:['E',5],  moral:null, note:'暗けい50回',          tHit:5.1, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'バックナックル',          stat:'pow', kind:'大ダメージ',   dist:2, guts:19, dmg:['C',29], acc:['D',-14], gd:['E',7],  cr:['D',10], moral:null, note:'',                    tHit:2.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超バックナックル',        stat:'pow', kind:'大ダメージ',   dist:2, guts:27, dmg:['A',40], acc:['E',-15], gd:['D',12], cr:['D',11], moral:null, note:'バックナックル50回',  tHit:3.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'レフトナックル',          stat:'pow', kind:'大ダメージ',   dist:2, guts:26, dmg:['A',45], acc:['E',-18], gd:['E',9],  cr:['D',10], moral:null, note:'バックナックル50回',  tHit:4.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超レフトナックル',        stat:'pow', kind:'大ダメージ',   dist:2, guts:33, dmg:['S',56], acc:['E',-19], gd:['D',13], cr:['D',12], moral:null, note:'レフトナックル50回',  tHit:4.8, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ハイキック',              stat:'pow', kind:'クリティカル', dist:2, guts:31, dmg:['C',29], acc:['D',-5],  gd:['D',12], cr:['B',21], moral:null, note:'',                    tHit:4.8, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'まわしげり',              stat:'pow', kind:'クリティカル', dist:2, guts:36, dmg:['B',35], acc:['D',-7],  gd:['D',14], cr:['A',25], moral:null, note:'ドラゴンパンチ50回',  tHit:4.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ワン・ツー',   stat:'pow', kind:'バランス',     dist:3, guts:10, dmg:['D',12], acc:['S',15],  gd:null,     cr:['E',5],  moral:null, note:'',                    tHit:3.1, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大砲屁',                  stat:'int', kind:'ガッツダウン', dist:3, guts:14, dmg:null,     acc:['A',9],   gd:['C',27], cr:['D',10], moral:null, note:'',                    tHit:3.3, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドラゴンキック',          stat:'pow', kind:'超必殺',       dist:3, guts:44, dmg:['A',41], acc:['D',-12], gd:['D',18], cr:['A',29], moral:20,   note:'まわしげり50回',      tHit:4.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'おなら',       stat:'int', kind:'バランス',     dist:3, guts:10, dmg:['E',7],  acc:['A',7],   gd:['E',7],  cr:null,     moral:null, note:'',                    tHit:3.1, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超砲屁',                  stat:'int', kind:'ガッツダウン', dist:4, guts:25, dmg:['E',5],  acc:['A',13],  gd:['B',35], cr:['D',10], moral:-20,  note:'',                    tHit:4.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
