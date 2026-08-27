@@ -28,9 +28,10 @@
      tMiss  外時間（空振り時のモーション秒。monsters.js の miss と同じ値）
      mvHit  移動(当)  '1' や '2→3' のように表のまま
      mvMiss 移動(外)
-     rapid  連射      強 / 並
+     rapid  連射      超 / 強 / 並
      init   最初から持っている技なら true（無ければ書かない）
-            @wiki の表では「種類」のセルが淡い黄色（#ffffa0）になっているもの。
+            @wiki の表では「種類」のセルが淡く塗られているもの
+            （ちから技なら淡い黄 #ffffa0 / かしこさ技なら淡い緑 #cdffcc）。
             画面には出していないが、修行で覚える技と区別が付くので持っておく
    =========================================================== */
 
@@ -169,5 +170,31 @@ export const MOVES = {
     { name:'ドリルロケット',          stat:'pow', kind:'クリティカル', dist:4, guts:27, dmg:['C',22], acc:['C',0],   gd:['D',12], cr:['A',25], moral:30,   note:'ロケットパンチ50回',    tHit:4.1, tMiss:2.8, mvHit:'4→4-5',  mvMiss:'4',     rapid:'強' },
     { name:'Wドリルロケット',         stat:'pow', kind:'超必殺',       dist:4, guts:45, dmg:['B',35], acc:['B',4],   gd:['D',14], cr:['S',30], moral:50,   note:'ドリルロケット50回',    tHit:4.1, tMiss:2.8, mvHit:'4→5',    mvMiss:'4',     rapid:'並' },
     { name:'アイショット',            stat:'int', kind:'クリティカル', dist:4, guts:26, dmg:['C',24], acc:['C',-2],  gd:['E',9],  cr:['B',23], moral:null, note:'パンチ50回',            tHit:3.8, tMiss:2.3, mvHit:'4→4-5',  mvMiss:'4',     rapid:'並' },
+  ],
+  チャッキー: [
+    { init:true, name:'凶器アタック', stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['E',8],  acc:['A',10],  gd:['E',5],  cr:null,     moral:null, note:'',                                                                tHit:3.8, tMiss:3.8, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
+    { name:'凶器コンボ',              stat:'pow', kind:'バランス',     dist:1, guts:20, dmg:['D',16], acc:['A',5],   gd:['D',10], cr:null,     moral:null, note:'凶器アタック30回',                                                tHit:4.8, tMiss:4.5, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
+    { name:'けり',                    stat:'pow', kind:'命中',         dist:1, guts:28, dmg:['D',17], acc:['S',17],  gd:['E',7],  cr:['E',5],  moral:null, note:'',                                                                tHit:3.8, tMiss:3.8, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
+    { name:'後ろ回しげり',            stat:'pow', kind:'命中',         dist:1, guts:33, dmg:['C',22], acc:['S',15],  gd:['D',11], cr:['E',5],  moral:null, note:'けり50回',                                                        tHit:3.8, tMiss:4.1, mvHit:'1',      mvMiss:'1→2',   rapid:'並' },
+    { name:'旋風脚',                  stat:'pow', kind:'超必殺',       dist:1, guts:45, dmg:['B',35], acc:['S',15],  gd:['D',15], cr:['E',5],  moral:null, note:'後ろ回しげり50回',                                                tHit:5.3, tMiss:4.8, mvHit:'1→2',    mvMiss:'1→2',   rapid:'並' },
+    { name:'パンチ',                  stat:'pow', kind:'大ダメージ',   dist:1, guts:18, dmg:['C',20], acc:['D',-10], gd:['D',10], cr:['E',5],  moral:null, note:'',                                                                tHit:5.5, tMiss:4.5, mvHit:'1→2',    mvMiss:'1→2',   rapid:'並' },
+    { name:'ぐるぐるパンチ',          stat:'pow', kind:'大ダメージ',   dist:2, guts:25, dmg:['C',27], acc:['D',-7],  gd:['D',15], cr:['E',5],  moral:null, note:'パンチ50回',                                                      tHit:5.5, tMiss:4.4, mvHit:'2→3',    mvMiss:'2→3',   rapid:'並' },
+    { name:'ぐるパンコンボ',          stat:'pow', kind:'超必殺',       dist:2, guts:50, dmg:['A',45], acc:['E',-15], gd:['A',45], cr:['E',5],  moral:null, note:'ぐるぐるパンチ50回',                                              tHit:6.1, tMiss:5.1, mvHit:'2→3',    mvMiss:'2→3',   rapid:'並' },
+    { name:'呪じゅつ',                stat:'int', kind:'ガッツダウン', dist:2, guts:20, dmg:['E',4],  acc:['C',0],   gd:['C',28], cr:['E',5],  moral:null, note:'',                                                                tHit:4.3, tMiss:3.1, mvHit:'2',      mvMiss:'2',     rapid:'超' },
+    { name:'だましうち',              stat:'pow', kind:'クリティカル', dist:2, guts:16, dmg:['D',11], acc:['B',3],   gd:['E',9],  cr:['C',19], moral:null, note:'',                                                                tHit:4.5, tMiss:4.1, mvHit:'2',      mvMiss:'2→2-3', rapid:'強' },
+    { name:'だましコンボ',            stat:'pow', kind:'クリティカル', dist:2, guts:42, dmg:['C',20], acc:['B',2],   gd:['D',10], cr:['A',25], moral:null, note:'',                                                                tHit:6.1, tMiss:4.1, mvHit:'2→3',    mvMiss:'2→2-3', rapid:'強' },
+    { name:'サーカスファイア',        stat:'int', kind:'超必殺',       dist:2, guts:50, dmg:['S',55], acc:['D',-14], gd:['C',25], cr:['E',5],  moral:null, note:'ドラコ固有',                                                      tHit:3.5, tMiss:3.5, mvHit:'',       mvMiss:'',      rapid:''   },
+    { init:true, name:'凶器投げ',     stat:'int', kind:'バランス',     dist:3, guts:12, dmg:['D',11], acc:['A',6],   gd:['E',5],  cr:null,     moral:null, note:'',                                                                tHit:2.5, tMiss:2.5, mvHit:'3',      mvMiss:'3→3-4', rapid:'強' },
+    { name:'竜巻斬',                  stat:'pow', kind:'大ダメージ',   dist:3, guts:28, dmg:['B',32], acc:['D',-12], gd:['E',5],  cr:['D',10], moral:20,   note:'',                                                                tHit:4.1, tMiss:4.1, mvHit:'3',      mvMiss:'3',     rapid:'並' },
+    { name:'ピエロ',                  stat:'int', kind:'ガッツダウン', dist:3, guts:32, dmg:['E',5],  acc:['C',0],   gd:['A',45], cr:['E',5],  moral:null, note:'',                                                                tHit:4.5, tMiss:4.1, mvHit:'3',      mvMiss:'3',     rapid:'並' },
+    { name:'自爆',                    stat:'pow', kind:'超必殺',       dist:3, guts:50, dmg:['S',70], acc:['E',-25], gd:['S',50], cr:['D',10], moral:-50,  note:'ベビードール、ドラコ、バッキー、モッキーは修得不可 使用時自爆ダメージ70(S)', tHit:5.8, tMiss:4.8, mvHit:'3→4',    mvMiss:'3→3-4', rapid:'並' },
+    { name:'ヘッドスパイク',          stat:'int', kind:'超必殺',       dist:3, guts:45, dmg:['C',25], acc:['C',-1],  gd:['B',37], cr:['E',5],  moral:null, note:'',                                                                tHit:6.1, tMiss:3.8, mvHit:'3→4',    mvMiss:'3',     rapid:'並' },
+    { name:'爆裂スパイク',            stat:'int', kind:'超必殺',       dist:3, guts:50, dmg:['B',33], acc:['D',-5],  gd:['A',43], cr:['E',5],  moral:null, note:'ヘッドスパイク50回',                                              tHit:6.1, tMiss:4.1, mvHit:'3→4',    mvMiss:'3',     rapid:'並' },
+    { name:'ソニックブーム',          stat:'int', kind:'命中',         dist:4, guts:17, dmg:['E',9],  acc:['S',22],  gd:['E',8],  cr:['E',5],  moral:null, note:'修行では修得不可 ※メインすり替えのみ',                            tHit:1.8, tMiss:1.5, mvHit:'4',      mvMiss:'4',     rapid:'並' },
+    { name:'超ソニックブーム',        stat:'int', kind:'命中',         dist:4, guts:28, dmg:['C',20], acc:['S',22],  gd:['D',12], cr:['E',5],  moral:null, note:'ソニックブーム50回',                                              tHit:4.1, tMiss:2.5, mvHit:'4→4-5',  mvMiss:'4',     rapid:'並' },
+    { name:'超竜巻斬',                stat:'pow', kind:'大ダメージ',   dist:4, guts:39, dmg:['A',46], acc:['D',-13], gd:['E',6],  cr:['D',10], moral:50,   note:'竜巻斬50回',                                                      tHit:6.3, tMiss:5.8, mvHit:'4→5',    mvMiss:'4',     rapid:'並' },
+    { name:'乱舞',                    stat:'pow', kind:'超必殺',       dist:4, guts:50, dmg:['C',25], acc:['C',0],   gd:['C',25], cr:['A',25], moral:null, note:'',                                                                tHit:5.5, tMiss:2.1, mvHit:'4→5',    mvMiss:'4',     rapid:'並' },
+    { name:'呪いの乱舞',              stat:'pow', kind:'超必殺',       dist:4, guts:55, dmg:['B',35], acc:['C',0],   gd:['B',35], cr:['S',35], moral:null, note:'乱舞50回',                                                        tHit:5.5, tMiss:2.1, mvHit:'4→5',    mvMiss:'4',     rapid:'並' },
+    { name:'炎',                      stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['A',44], acc:['D',-14], gd:['A',44], cr:['E',5],  moral:null, note:'',                                                                tHit:5.5, tMiss:2.8, mvHit:'4→5',    mvMiss:'4',     rapid:'並' },
   ],
 };
