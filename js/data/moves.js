@@ -505,4 +505,21 @@ export const MOVES = {
     { name:'ファイアリバー',          stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['B',39], acc:['B',3],   gd:['D',16], cr:['D',10], moral:null, note:'',                tHit:5.1, tMiss:2.5, mvHit:'4→4-5', mvMiss:'4',      rapid:'並' },
     { name:'ファイアウェーブ',        stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['S',50], acc:['C',-1],  gd:['D',18], cr:['C',15], moral:null, note:'ファイアリバー50回', tHit:5.5, tMiss:2.8, mvHit:'4→5',  mvMiss:'4',      rapid:'並' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // 初期技（ピコピコハンマー・体当たり）が2つとも使い込みの下位技になっていない、
+  // いまのところ唯一の種族
+  ゴースト: [
+    { init:true, name:'ピコピコハンマー', stat:'pow', kind:'バランス',     dist:1, guts:11, dmg:['D',12], acc:['D',-5],  gd:null,     cr:null,     moral:null, note:'',                        tHit:4.1, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'体当たり',         stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['E',9],  acc:['B',3],   gd:null,     cr:null,     moral:null, note:'',                        tHit:3.8, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大パンチ',                    stat:'pow', kind:'超必殺',       dist:1, guts:50, dmg:['B',30], acc:['B',1],   gd:['C',25], cr:['E',5],  moral:null, note:'',                        tHit:4.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'コンビネーション',            stat:'pow', kind:'超必殺',       dist:1, guts:55, dmg:['B',35], acc:['B',1],   gd:['B',30], cr:['E',5],  moral:null, note:'大パンチ25回',            tHit:5.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ソウルビーム',                stat:'int', kind:'命中',         dist:2, guts:16, dmg:['E',8],  acc:['S',15],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                        tHit:5.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'びっくり',                    stat:'int', kind:'ガッツダウン', dist:2, guts:17, dmg:['E',9],  acc:['D',-10], gd:['C',20], cr:['E',5],  moral:null, note:'',                        tHit:6.1, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'びっくりドクロ',              stat:'int', kind:'ガッツダウン', dist:2, guts:32, dmg:['D',11], acc:['D',-7],  gd:['B',36], cr:['E',5],  moral:null, note:'びっくり25回',            tHit:5.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドクロビーム',                stat:'int', kind:'命中',         dist:3, guts:25, dmg:['E',8],  acc:['S',29],  gd:['D',10], cr:['E',5],  moral:null, note:'ソウルビーム50回',        tHit:6.1, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ハトのおとしもの',            stat:'int', kind:'大ダメージ',   dist:3, guts:23, dmg:['C',25], acc:['E',-17], gd:['D',10], cr:['E',5],  moral:null, note:'',                        tHit:3.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大きなおとしもの',            stat:'int', kind:'大ダメージ',   dist:3, guts:30, dmg:['B',34], acc:['E',-17], gd:['D',10], cr:['E',5],  moral:null, note:'ハトのおとしもの50回',    tHit:5.8, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'カード',                      stat:'int', kind:'クリティカル', dist:4, guts:19, dmg:['D',11], acc:['D',-5],  gd:['D',10], cr:['C',15], moral:null, note:'',                        tHit:2.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'連続カード',                  stat:'int', kind:'クリティカル', dist:4, guts:29, dmg:['C',21], acc:['D',-10], gd:['D',10], cr:['C',18], moral:null, note:'カード25回',              tHit:5.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
