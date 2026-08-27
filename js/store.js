@@ -217,7 +217,8 @@ function defaultState() {
   return {
     v: 1,
     // rotaOpen: 調整ローテの「開始時点の内部数値 / エサの効き方」を開いているか
-    ui: { top: 'monster', sim: 'plan', gridOpen: false, rotaOpen: false, movesOpen: false },
+    ui: { top: 'monster', sim: 'plan', gridOpen: false, rotaOpen: false,
+          movesOpen: false, allMovesOpen: false },
     current: null,
     order: [],
     mon: {},

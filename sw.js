@@ -7,7 +7,7 @@
    ★ファイルを増やしたら ASSETS に足して、CACHE_VERSION を上げること★
    =========================================================== */
 
-const CACHE_VERSION = 'monfar-v17';
+const CACHE_VERSION = 'monfar-v18';
 
 const ASSETS = [
   './',
@@ -23,6 +23,7 @@ const ASSETS = [
   './js/main.js',
   './js/store.js',
   './js/dom.js',
+  './js/moves-table.js',
   './js/tabs.js',
   './js/species.js',
   './js/monster.js',
@@ -43,6 +44,7 @@ const ASSETS = [
   './js/simulator/rotation.js',
   './js/simulator/rota-calc.js',
   './js/reference/reference.js',
+  './js/reference/all-moves.js',
   './js/data/reference-data.js',
   './assets/icon-192.svg',
   './assets/icon-512.svg',

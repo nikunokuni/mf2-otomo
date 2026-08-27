@@ -17,6 +17,9 @@
    ・再生メモ … ユーザーが自分で書いて残す。state.notes に保存。
    ・リンク集 … あらかじめ入れた3つ（LINKS）に加えて、
      ユーザーが名前とURLを足せる。足したぶんは state.links に保存。
+   ・全技一覧 … 38種族ぶんの技を1つの表にまとめて出す（js/reference/all-moves.js）。
+     使い込みタブの「この種族が覚える技」と同じ表を、種族の列を足して並べたもの。
+     並べ替えると種族をまたいで強い順になる。
    ・バックアップ … JSONの書き出しと読み込み。
 
    箱の高さは固定で、あふれたぶんは箱の中だけがスクロールする
@@ -24,6 +27,7 @@
    リンク集とバックアップだけは中身に合わせて伸びる。
    =========================================================== */
 
+import { allMovesBox, actions as allMovesActions, setup as setupAllMoves } from './all-moves.js';
 import { ROTATION, COMBI, LINKS } from '../data/reference-data.js';
 import { ITEMS, INNER } from '../data/items.js';
 import {
@@ -424,13 +428,19 @@ export function render() {
       itemsBox(),
       dataBox('合体素材', COMBI),
       notesBox(),
+      allMovesBox(),
       linksBox(),
       backupBox()
     )
   );
 }
 
+// 全技一覧の箱からも、早見タブ全体を描き直せるようにしておく
+setupAllMoves(render);
+
 export const actions = {
+  ...allMovesActions,
+
   'ref:addNote': () => {
     addNote();
     render();

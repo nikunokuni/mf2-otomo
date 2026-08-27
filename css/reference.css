@@ -360,3 +360,45 @@
 .item-row--fixed .item-row__effect {
   padding-left: calc(1.6rem + 6px);
 }
+
+/* --- 全技一覧（38種族ぶんをまとめた表） --- */
+/* 横に長い表なので、2列に並べるときも横いっぱいを使う（.ref-box--auto と同じ扱い）。
+   高さは中身に合わせず、開いたときだけ表の中をスクロールさせる */
+.ref-box--moves .moves__toggle {
+  padding: 0;
+}
+.ref-box--moves .scroll-x {
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* 縦にもスクロールするので、見出しの行は上に貼り付けておく */
+.ref-box--moves .moves-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-background-secondary);
+}
+/* 技名の列は左に貼り付けてある（css/tracker.css）。
+   見出しの角は縦横どちらにも貼り付くので、重なり順を上げておく */
+.ref-box--moves .moves-table thead th:first-child {
+  z-index: 3;
+}
+
+/* 「最初から持っている技だけ」の切り替え */
+.all-moves__filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.all-moves__filter .moves__count {
+  margin-left: 0;
+}
+
+/* 種族の列（技名のとなり） */
+.moves-table__species {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}

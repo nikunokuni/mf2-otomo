@@ -820,10 +820,13 @@ ok(await page.locator('#pane-reference').isVisible(),'早見タブが表示');
 const visibleTop = await page.evaluate(()=>['monster','tracker','simulator','reference'].filter(t=>!document.getElementById('pane-'+t).hidden));
 ok(visibleTop.length===1 && visibleTop[0]==='reference','上位タブはちょうど1つだけ表示: '+visibleTop.join(','));
 ok(await page.locator('#speciesBar').isHidden(),'早見は種族に関係ないので種族チップを隠す');
-ok((await page.locator('.ref-box').count())===6,'6つの箱が並ぶ');
+ok((await page.locator('.ref-box').count())===7,'7つの箱が並ぶ');
+// 全技一覧だけは見出しが開閉ボタンなので、.ref-box__head を持たない
 const boxTitles = await page.locator('.ref-box__head').allTextContents();
 ok(boxTitles.map(t=>t.replace('＋ 追加','').replace(/（\d+件）/,'').trim()).join(',')
    ==='ローテ,アイテム,合体素材,再生メモ,リンク集,データのバックアップ','箱の並び: '+boxTitles.join(','));
+ok((await page.locator('.ref-box').nth(4).locator('#allMovesToggle').count())===1,
+   '全技一覧は再生メモとリンク集のあいだ');
 await page.click('#tab-tracker');
 ok(await page.locator('#speciesBar').isVisible(),'ほかのタブでは種族チップが戻る');
 await page.click('#tab-reference');
@@ -860,7 +863,7 @@ await myName.last().fill('おいしいマタタビ');
 await myEffect.last().fill('ちから+10 きふん+5');
 
 console.log('— リンク集 —');
-ok((await page.locator('.ref-box--auto').count())===2,'リンク集とバックアップは中身に合わせて伸びる');
+ok((await page.locator('.ref-box--auto').count())===3,'全技一覧・リンク集・バックアップは中身に合わせて伸びる');
 ok((await page.locator('.ref-link__btn').count())===3,'あらかじめ3つのリンクが入っている');
 ok((await page.locator('.ref-link__del').count())===0,'あらかじめ入っているリンクは消せない');
 // 名前だけ / URLだけではエラーになる
@@ -891,6 +894,53 @@ const fixedHeight = await page.evaluate(()=>{
   return h.length===4 && h.every(v=>v===h[0]);
 });
 ok(fixedHeight,'箱の高さが固定（リンク集とバックアップをのぞく4つとも同じ）');
+
+console.log('— 全技一覧（早見タブ） —');
+const { MOVES: ALL_MOVES } = await import('../js/data/moves.js');
+const allTotal = Object.values(ALL_MOVES).reduce((n,l)=>n+l.length,0);
+const allInit = Object.values(ALL_MOVES).reduce((n,l)=>n+l.filter(m=>m.init).length,0);
+ok(await page.locator('#allMovesBody').isHidden(),'はじめはたたんである');
+await page.click('#allMovesToggle');
+await page.waitForSelector('#allMovesBody .moves-table');
+const allRow = () => page.locator('#allMovesBody .moves-table tbody tr');
+ok((await allRow().count())===allTotal,`全種族ぶんが1つの表に並ぶ（データは${allTotal}技）`);
+ok((await page.locator('#allMovesBody .moves-table thead th').nth(1).textContent())==='種族',
+   '技名のとなりに種族の列がある');
+// 種族ごとの表と同じ列で並べ替えられる。全技なので種族をまたいで並ぶ
+const dmgOf = (row) => row.locator('td').nth(5).textContent().then(t=>Number((t.match(/\((-?\d+)\)/)||[])[1]));
+await page.click('#allMovesBody [data-action="allMoves:sort"][data-key="dmg"]');
+const d0 = await dmgOf(allRow().nth(0)), d1 = await dmgOf(allRow().nth(1));
+ok(d0>=d1 && d0>=70,`ダメージの大きい順に並ぶ（先頭 ${d0} → ${d1}）`);
+const topSpecies = await allRow().nth(0).locator('td').nth(1).textContent();
+const someSpecies = await page.evaluate(()=>[...document.querySelectorAll('#allMovesBody .moves-table tbody tr')]
+  .slice(0,10).map(tr=>tr.children[1].textContent));
+ok(new Set(someSpecies).size>1,`種族をまたいで並ぶ（先頭10行に ${new Set(someSpecies).size} 種族）`);
+ok(topSpecies.length>0,'並べ替えても種族が分かる: '+topSpecies);
+// 当時間は「小さいほど良い」ので小さい順から
+await page.click('#allMovesBody [data-action="allMoves:sort"][data-key="tHit"]');
+const t0 = Number(await allRow().nth(0).locator('td').nth(10).textContent());
+const t1 = Number(await allRow().nth(1).locator('td').nth(10).textContent());
+ok(t0<=t1,`当時間は小さい順から（先頭 ${t0} → ${t1}）`);
+// 最初から持っている技だけに絞る
+await page.click('#allMovesInit');
+ok((await allRow().count())===allInit,`初期技だけに絞れる（${allInit}技）`);
+ok((await page.locator('#allMovesInit').getAttribute('aria-pressed'))==='true','絞り込み中が分かる');
+const initNames = await page.evaluate(()=>[...document.querySelectorAll('#allMovesBody .moves-table tbody tr')]
+  .map(tr=>tr.children[0].textContent+'/'+tr.children[1].textContent));
+const wantInit = Object.entries(ALL_MOVES).flatMap(([sp,l])=>l.filter(m=>m.init).map(m=>m.name+'/'+sp));
+ok(initNames.slice().sort().join()===wantInit.slice().sort().join(),'絞ったあとの中身がデータと合っている');
+await page.click('#allMovesInit');
+ok((await allRow().count())===allTotal,'もう一度押すと全技に戻る');
+// 開閉は覚えるが、並べ替えと絞り込みは覚えない
+await page.reload({waitUntil:'networkidle'});
+await page.click('#tab-reference');
+await page.waitForSelector('#allMovesBody .moves-table');
+ok((await page.locator('#allMovesToggle').getAttribute('aria-expanded'))==='true','開いたままで覚えている');
+ok((await page.locator('#allMovesInit').getAttribute('aria-pressed'))==='false','絞り込みは覚えない');
+const firstAfter = await allRow().nth(0).locator('td').nth(0).textContent();
+ok(firstAfter==='タッチ','並べ替えも覚えない（表のままの並びに戻る）: '+firstAfter);
+await page.click('#allMovesToggle');
+ok(await page.locator('#allMovesBody').isHidden(),'閉じられる');
 
 console.log('— 再生メモ —');
 await page.click('[data-action="ref:addNote"]');
