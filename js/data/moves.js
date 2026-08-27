@@ -713,4 +713,28 @@ export const MOVES = {
     { name:'トルネード',              stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['A',44], acc:['D',-10], gd:['B',33], cr:['E',5],  moral:null, note:'',                              tHit:4.8, tMiss:4.1, mvHit:'4',     mvMiss:'4',     rapid:'並' },
     { name:'Wトルネード',             stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['S',55], acc:['D',-13], gd:['A',44], cr:['E',5],  moral:null, note:'トルネード50回',                tHit:5.8, tMiss:4.1, mvHit:'4→5',   mvMiss:'4',     rapid:'並' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // monsters.js の「ダックミサイル→Wダックミサイル／超ダックミサイル」が、
+  // 「／」で分かれる上位技の最後の1件（全7件）。どちらの備考も「ダックミサイル50回」。
+  // アイビーム / アイビーム連射 の当時間は @wiki が「2」と書いているぶん（= 2.0）
+  ダックン: [
+    { init:true, name:'ビタビタビンタ', stat:'pow', kind:'バランス',     dist:1, guts:11, dmg:['E',8],  acc:['A',5],   gd:['E',5],  cr:null,     moral:null, note:'',                          tHit:3.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'自爆',                      stat:'pow', kind:'超必殺',       dist:1, guts:50, dmg:['S',60], acc:['E',-20], gd:['S',55], cr:['D',10], moral:-20,  note:'使用時自爆ダメージ60(S)',   tHit:4.5, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ボンバヘッド',   stat:'pow', kind:'バランス',     dist:2, guts:15, dmg:['D',14], acc:['C',0],   gd:null,     cr:['E',5],  moral:null, note:'',                          tHit:2.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'パラダンス',                stat:'int', kind:'ガッツダウン', dist:2, guts:19, dmg:['E',8],  acc:['D',-9],  gd:['C',23], cr:['E',5],  moral:null, note:'',                          tHit:3.1, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ビックリバコ',              stat:'int', kind:'ガッツダウン', dist:2, guts:27, dmg:['E',7],  acc:['D',-8],  gd:['B',39], cr:['E',5],  moral:null, note:'',                          tHit:2.1, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドリブルシュート',          stat:'pow', kind:'命中',         dist:2, guts:30, dmg:['C',20], acc:['S',15],  gd:['E',8],  cr:['D',10], moral:null, note:'ドリブルアタック50回',      tHit:4.8, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドリブルダンク',            stat:'pow', kind:'超必殺',       dist:2, guts:39, dmg:['B',31], acc:['A',6],   gd:['E',8],  cr:['D',10], moral:null, note:'ドリブルシュート50回',      tHit:4.8, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドリブルアタック',          stat:'pow', kind:'命中',         dist:3, guts:15, dmg:['D',10], acc:['A',12],  gd:['E',5],  cr:['D',10], moral:null, note:'',                          tHit:3.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイビーム',                stat:'int', kind:'命中',         dist:3, guts:26, dmg:['D',15], acc:['A',8],   gd:['D',15], cr:['D',10], moral:null, note:'',                          tHit:2.0, tMiss:1.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイビーム連射',            stat:'int', kind:'命中',         dist:3, guts:35, dmg:['C',20], acc:['S',15],  gd:['D',18], cr:['D',10], moral:null, note:'アイビーム25回',            tHit:2.0, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超アイビーム',              stat:'int', kind:'超必殺',       dist:3, guts:40, dmg:['B',31], acc:['C',0],   gd:['B',31], cr:['D',10], moral:20,   note:'アイビーム連射50回',        tHit:4.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'くうばく',                  stat:'int', kind:'大ダメージ',   dist:3, guts:33, dmg:['A',43], acc:['E',-18], gd:['D',10], cr:['D',10], moral:null, note:'',                          tHit:4.8, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ブーメラン',                stat:'int', kind:'クリティカル', dist:3, guts:28, dmg:['D',19], acc:['C',-3],  gd:['D',11], cr:['A',26], moral:null, note:'',                          tHit:5.8, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ダックミサイル',            stat:'int', kind:'大ダメージ',   dist:4, guts:19, dmg:['C',29], acc:['E',-20], gd:['E',5],  cr:['E',5],  moral:null, note:'',                          tHit:5.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'Wダックミサイル',           stat:'int', kind:'クリティカル', dist:4, guts:31, dmg:['C',28], acc:['D',-8],  gd:['D',10], cr:['S',30], moral:20,   note:'ダックミサイル50回',        tHit:4.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ダックミサイル',          stat:'int', kind:'大ダメージ',   dist:4, guts:39, dmg:['S',55], acc:['E',-22], gd:['D',19], cr:['E',5],  moral:-20,  note:'ダックミサイル50回',        tHit:5.3, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'みずのみアタック',          stat:'pow', kind:'クリティカル', dist:4, guts:17, dmg:['D',15], acc:['D',-11], gd:['E',5],  cr:['B',21], moral:null, note:'',                          tHit:3.5, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'みだれうち',                stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['C',25], acc:['B',2],   gd:['C',25], cr:['A',25], moral:20,   note:'',                          tHit:5.9, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
