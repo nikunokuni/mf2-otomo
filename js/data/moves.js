@@ -404,4 +404,31 @@ export const MOVES = {
     { name:'超スピンカッター',        stat:'pow', kind:'超必殺',       dist:4, guts:38, dmg:['C',28], acc:['C',-3],  gd:['C',28], cr:['A',28], moral:null, note:'大スピンカッター50回',                                 tHit:7.1, tMiss:6.8, mvHit:'', mvMiss:'', rapid:'' },
     { name:'ゴッドファイナル',        stat:'pow', kind:'超必殺',       dist:4, guts:40, dmg:['B',33], acc:['D',-5],  gd:['A',45], cr:['E',5],  moral:-20,  note:'ゴッドアタック50回',                                   tHit:4.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // 刺刈爪の備考は @wiki では「2連刈爪50回」（半角）だが、技名を全角にそろえるのに合わせて
+  // 備考の中の技名も全角にしてある（そろえないと monsters.js との突き合わせが落ちる）
+  アーケロ: [
+    { init:true, name:'刈爪',         stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['D',13], acc:['A',7],   gd:null,     cr:['D',10], moral:null, note:'',                          tHit:3.5, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'２連刈爪',                stat:'pow', kind:'バランス',     dist:1, guts:17, dmg:['D',19], acc:['B',4],   gd:['E',5],  cr:['D',10], moral:null, note:'刈爪30回',                  tHit:3.1, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'刺刈爪',                  stat:'pow', kind:'大ダメージ',   dist:1, guts:23, dmg:['B',36], acc:['D',-12], gd:['D',10], cr:['D',10], moral:null, note:'２連刈爪50回',              tHit:5.5, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'仙煙草',                  stat:'int', kind:'ガッツダウン', dist:1, guts:18, dmg:['E',8],  acc:['A',5],   gd:['C',24], cr:['D',10], moral:-20,  note:'',                          tHit:5.3, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'なめる',                  stat:'int', kind:'ガッツダウン', dist:1, guts:19, dmg:['D',13], acc:['D',-7],  gd:['C',29], cr:['E',5],  moral:null, note:'ユズボウズ固有',            tHit:3.7, tMiss:3.7, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ぺろりん',                stat:'int', kind:'ガッツダウン', dist:1, guts:15, dmg:['D',13], acc:['D',-11], gd:['C',24], cr:['E',5],  moral:null, note:'サクラジイヤ固有',          tHit:3.9, tMiss:3.9, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'刺爪',         stat:'pow', kind:'バランス',     dist:2, guts:12, dmg:['D',16], acc:['B',3],   gd:null,     cr:['D',10], moral:null, note:'',                          tHit:3.3, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'仙酔酒',                  stat:'int', kind:'ガッツダウン', dist:2, guts:27, dmg:['C',23], acc:['D',-11], gd:['A',43], cr:['E',5],  moral:-50,  note:'',                          tHit:5.1, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'旋風爪',                  stat:'pow', kind:'クリティカル', dist:2, guts:15, dmg:['D',19], acc:['D',-7],  gd:['D',12], cr:['B',20], moral:null, note:'',                          tHit:5.1, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大旋風爪',                stat:'pow', kind:'クリティカル', dist:2, guts:28, dmg:['C',29], acc:['D',-10], gd:['D',19], cr:['A',25], moral:null, note:'旋風爪50回',                tHit:5.3, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超旋風爪',                stat:'pow', kind:'超必殺',       dist:2, guts:30, dmg:['B',30], acc:['D',-13], gd:['B',30], cr:['S',30], moral:20,   note:'大旋風爪50回',              tHit:6.8, tMiss:3.2, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'仙酒火',                  stat:'int', kind:'大ダメージ',   dist:3, guts:17, dmg:['C',28], acc:['D',-6],  gd:['E',7],  cr:['E',5],  moral:null, note:'',                          tHit:3.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'仙酒炎',                  stat:'int', kind:'大ダメージ',   dist:3, guts:30, dmg:['A',46], acc:['E',-15], gd:['D',14], cr:['D',10], moral:-30,  note:'仙酒火50回',                tHit:4.8, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'竜巻爪',                  stat:'pow', kind:'クリティカル', dist:3, guts:20, dmg:['C',25], acc:['C',0],   gd:['E',5],  cr:['A',25], moral:null, note:'',                          tHit:3.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'飛爪',                    stat:'int', kind:'命中',         dist:3, guts:25, dmg:['C',20], acc:['S',20],  gd:['E',7],  cr:['D',10], moral:null, note:'',                          tHit:2.1, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超飛爪',                  stat:'int', kind:'命中',         dist:3, guts:35, dmg:['C',25], acc:['S',20],  gd:['D',10], cr:['C',15], moral:null, note:'飛爪50回',                  tHit:2.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'影爪',                    stat:'pow', kind:'命中',         dist:4, guts:17, dmg:['D',17], acc:['S',15],  gd:['E',5],  cr:['D',10], moral:null, note:'',                          tHit:3.1, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'跳爪',                    stat:'pow', kind:'大ダメージ',   dist:4, guts:17, dmg:['C',24], acc:['D',-5],  gd:['E',8],  cr:['D',10], moral:null, note:'',                          tHit:3.8, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大跳爪',                  stat:'pow', kind:'大ダメージ',   dist:4, guts:22, dmg:['B',36], acc:['E',-18], gd:['D',17], cr:['D',10], moral:null, note:'跳爪50回',                  tHit:5.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超跳爪',                  stat:'pow', kind:'超必殺',       dist:4, guts:30, dmg:['A',43], acc:['E',-19], gd:['C',27], cr:['C',19], moral:null, note:'大跳爪50回',                tHit:5.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'仙酒飲',                  stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:null,     acc:['E',-15], gd:null,     cr:null,     moral:50,   note:'回復力50(S)、成功時泥酔誘発', tHit:2.6, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'電撃',                    stat:'int', kind:'ガッツダウン', dist:4, guts:11, dmg:['E',7],  acc:['C',-2],  gd:['D',16], cr:['D',10], moral:null, note:'ツンドラ固有',              tHit:2.9, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
