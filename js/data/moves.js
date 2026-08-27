@@ -356,4 +356,23 @@ export const MOVES = {
     { init:true, name:'おなら',       stat:'int', kind:'バランス',     dist:3, guts:10, dmg:['E',7],  acc:['A',7],   gd:['E',7],  cr:null,     moral:null, note:'',                    tHit:3.1, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
     { name:'超砲屁',                  stat:'int', kind:'ガッツダウン', dist:4, guts:25, dmg:['E',5],  acc:['A',13],  gd:['B',35], cr:['D',10], moral:-20,  note:'',                    tHit:4.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い
+  バクー: [
+    { init:true, name:'あとしまつ',   stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['D',12], acc:['A',5],   gd:null,     cr:null,     moral:null, note:'',                        tHit:3.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'かみつき',                stat:'pow', kind:'命中',         dist:1, guts:15, dmg:['D',15], acc:['C',0],   gd:['E',9],  cr:['E',5],  moral:null, note:'',                        tHit:3.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'Wかみつき',               stat:'pow', kind:'命中',         dist:1, guts:25, dmg:['C',23], acc:['A',7],   gd:['D',10], cr:['E',5],  moral:null, note:'かみつき50回',            tHit:3.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超かみつき',              stat:'pow', kind:'超必殺',       dist:1, guts:33, dmg:['B',33], acc:['D',-5],  gd:['B',33], cr:['E',5],  moral:null, note:'Wかみつき50回',           tHit:5.5, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ベロビンタ',              stat:'pow', kind:'大ダメージ',   dist:1, guts:25, dmg:['A',41], acc:['D',-14], gd:['D',11], cr:['E',5],  moral:null, note:'',                        tHit:4.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ちょとつもうしん', stat:'pow', kind:'バランス',  dist:2, guts:13, dmg:['D',17], acc:['D',-5],  gd:null,     cr:['E',5],  moral:null, note:'',                        tHit:4.3, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'吠え',                    stat:'int', kind:'クリティカル', dist:2, guts:19, dmg:['D',18], acc:['C',-2],  gd:['D',10], cr:['C',15], moral:null, note:'',                        tHit:2.3, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'W吠え',                   stat:'int', kind:'クリティカル', dist:2, guts:26, dmg:['C',25], acc:['D',-8],  gd:['E',8],  cr:['B',24], moral:null, note:'吠え50回',                tHit:2.5, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'連続吠え',                stat:'int', kind:'超必殺',       dist:2, guts:34, dmg:['A',43], acc:['D',-12], gd:['C',22], cr:['C',15], moral:null, note:'W吠え50回',               tHit:4.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'フライングプレス',        stat:'pow', kind:'大ダメージ',   dist:3, guts:30, dmg:['S',60], acc:['E',-16], gd:['C',28], cr:['C',15], moral:null, note:'失敗時自爆ダメージ20(C)', tHit:5.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'くしゃみ',                stat:'int', kind:'ガッツダウン', dist:3, guts:20, dmg:['D',16], acc:['D',-9],  gd:['C',24], cr:['E',5],  moral:null, note:'',                        tHit:2.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'さかりうた',              stat:'int', kind:'ガッツダウン', dist:3, guts:32, dmg:['D',19], acc:['D',-7],  gd:['B',33], cr:['E',6],  moral:null, note:'',                        tHit:3.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'すかしっぺ',              stat:'int', kind:'超必殺',       dist:3, guts:35, dmg:['C',26], acc:['D',-13], gd:['A',40], cr:['E',7],  moral:-20,  note:'',                        tHit:2.8, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ふきとばし',              stat:'pow', kind:'命中',         dist:4, guts:19, dmg:['C',21], acc:['A',5],   gd:['E',5],  cr:['E',5],  moral:null, note:'',                        tHit:4.1, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'さいみん',                stat:'int', kind:'クリティカル', dist:4, guts:21, dmg:['D',16], acc:['C',-4],  gd:['D',16], cr:['A',25], moral:null, note:'',                        tHit:2.5, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'うたたね',                stat:'int', kind:'超必殺',       dist:4, guts:30, dmg:null,     acc:['E',-20], gd:null,     cr:null,     moral:30,   note:'回復力30(B)',             tHit:3.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
