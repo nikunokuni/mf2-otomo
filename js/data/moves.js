@@ -628,4 +628,29 @@ export const MOVES = {
     { name:'つば',                    stat:'int', kind:'ガッツダウン', dist:4, guts:24, dmg:['D',12], acc:['D',-5],  gd:['B',37], cr:['E',5],  moral:-20,  note:'',                      tHit:2.1, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
     { name:'ネンドロスカイ',          stat:'pow', kind:'クリティカル', dist:4, guts:28, dmg:['C',24], acc:['D',-6],  gd:['D',16], cr:['B',23], moral:50,   note:'',                      tHit:4.8, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // G・キューブ2 の「2」は半角のまま。monsters.js 自身が半角で持っている唯一の技名で、
+  // そこが保存データのキーになっている（技名の数字を全角にそろえる決まりの例外）
+  ゲル: [
+    { init:true, name:'突き刺し',     stat:'pow', kind:'バランス',     dist:1, guts:11, dmg:['D',14], acc:['C',0],   gd:null,     cr:['E',5],  moral:null, note:'',                      tHit:1.8, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'くし刺し',                stat:'pow', kind:'バランス',     dist:1, guts:21, dmg:['C',20], acc:['C',0],   gd:null,     cr:['E',5],  moral:null, note:'突き刺し30回',          tHit:1.8, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゲルフーセン',            stat:'pow', kind:'クリティカル', dist:1, guts:24, dmg:['C',20], acc:['B',4],   gd:['E',8],  cr:['B',20], moral:null, note:'',                      tHit:3.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'エナジードレイン',        stat:'pow', kind:'超必殺',       dist:1, guts:40, dmg:['B',30], acc:['E',-20], gd:null,     cr:null,     moral:-50,  note:'ライフドレイン率100%',  tHit:5.8, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ムチ',         stat:'pow', kind:'バランス',     dist:2, guts:14, dmg:['D',14], acc:['A',6],   gd:['E',5],  cr:null,     moral:null, note:'',                      tHit:2.1, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'連続ムチ',                stat:'pow', kind:'バランス',     dist:2, guts:22, dmg:['C',21], acc:['A',6],   gd:['D',11], cr:null,     moral:null, note:'ムチ30回',              tHit:2.5, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゲルプレス',              stat:'pow', kind:'命中',         dist:2, guts:30, dmg:['C',28], acc:['A',11],  gd:['E',7],  cr:['E',5],  moral:null, note:'',                      tHit:6.1, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'G・キューブ',             stat:'pow', kind:'大ダメージ',   dist:2, guts:16, dmg:['C',29], acc:['E',-16], gd:['E',5],  cr:['E',9],  moral:null, note:'',                      tHit:5.5, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'G・キューブ2',            stat:'pow', kind:'大ダメージ',   dist:2, guts:23, dmg:['B',39], acc:['D',-10], gd:['E',6],  cr:['E',9],  moral:null, note:'G・キューブ50回',       tHit:5.5, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'コマアタック',            stat:'pow', kind:'命中',         dist:3, guts:17, dmg:['D',14], acc:['S',15],  gd:['E',6],  cr:['E',5],  moral:null, note:'',                      tHit:4.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'コマスパイク',            stat:'pow', kind:'命中',         dist:3, guts:28, dmg:['C',22], acc:['A',13],  gd:['E',8],  cr:['D',10], moral:null, note:'コマアタック50回',      tHit:4.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ハエタタキ',              stat:'pow', kind:'ガッツダウン', dist:3, guts:27, dmg:['D',15], acc:['C',-3],  gd:['B',31], cr:['E',7],  moral:null, note:'',                      tHit:5.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ハエスパイク',            stat:'pow', kind:'ガッツダウン', dist:3, guts:39, dmg:['C',26], acc:['D',-5],  gd:['A',41], cr:['E',9],  moral:null, note:'ハエタタキ50回',        tHit:5.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'パラボラビーム',          stat:'int', kind:'クリティカル', dist:3, guts:18, dmg:['D',15], acc:['C',-2],  gd:['D',15], cr:['C',19], moral:null, note:'',                      tHit:5.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超パラボラビーム',        stat:'int', kind:'クリティカル', dist:3, guts:35, dmg:['C',25], acc:['C',-2],  gd:['C',25], cr:['A',25], moral:null, note:'パラボラビーム50回',    tHit:5.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大砲',                    stat:'int', kind:'大ダメージ',   dist:4, guts:35, dmg:['S',50], acc:['D',-12], gd:['D',10], cr:['D',10], moral:null, note:'',                      tHit:5.3, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'パチンコ',                stat:'int', kind:'ガッツダウン', dist:4, guts:18, dmg:['E',9],  acc:['D',-8],  gd:['B',31], cr:['E',9],  moral:null, note:'',                      tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ピラミッドパワー',        stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:null,     acc:['E',-20], gd:null,     cr:null,     moral:50,   note:'回復力40(A)',           tHit:3.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ガトリング',              stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['B',30], acc:['S',15],  gd:['D',15], cr:['C',15], moral:null, note:'',                      tHit:5.5, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゲルコプター',            stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['S',50], acc:['A',5],   gd:['D',15], cr:['E',5],  moral:null, note:'',                      tHit:4.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
