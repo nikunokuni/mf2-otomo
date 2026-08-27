@@ -493,4 +493,16 @@ export const MOVES = {
     { name:'メーム',                  stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:['A',41], acc:['D',-12], gd:['A',41], cr:['D',10], moral:null, note:'',                      tHit:4.8, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
     { name:'メーマ',                  stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['S',59], acc:['E',-16], gd:['A',45], cr:['B',20], moral:null, note:'メーム50回',            tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  ヒノトリ: [
+    { init:true, name:'くちばし',     stat:'pow', kind:'バランス',     dist:1, guts:13, dmg:['D',19], acc:['C',0],   gd:null,     cr:null,     moral:null, note:'',                tHit:3.1, tMiss:3.3, mvHit:'1',     mvMiss:'1',      rapid:'強' },
+    { init:true, name:'かぎつめ',     stat:'pow', kind:'バランス',     dist:2, guts:11, dmg:['D',15], acc:['A',5],   gd:null,     cr:null,     moral:null, note:'',                tHit:2.8, tMiss:2.5, mvHit:'2',     mvMiss:'2→2-3',  rapid:'強' },
+    { name:'６連くちばし',            stat:'pow', kind:'命中',         dist:2, guts:23, dmg:['C',25], acc:['A',10],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                tHit:2.8, tMiss:2.8, mvHit:'2',     mvMiss:'2',      rapid:'超' },
+    { name:'火炎砲',                  stat:'int', kind:'ガッツダウン', dist:3, guts:19, dmg:['D',15], acc:['C',-3],  gd:['D',19], cr:['E',5],  moral:null, note:'',                tHit:4.3, tMiss:2.1, mvHit:'3→4',   mvMiss:'3',      rapid:'並' },
+    { name:'火炎連砲',                stat:'int', kind:'ガッツダウン', dist:3, guts:30, dmg:['D',18], acc:['C',-4],  gd:['A',40], cr:['E',5],  moral:-20,  note:'火炎砲50回',      tHit:4.7, tMiss:3.0, mvHit:'3',     mvMiss:'3-4',    rapid:'並' },
+    { name:'炎ハリケーン',            stat:'int', kind:'クリティカル', dist:3, guts:20, dmg:['C',22], acc:['C',-4],  gd:['E',8],  cr:['C',16], moral:null, note:'',                tHit:2.5, tMiss:2.5, mvHit:'3',     mvMiss:'3→3-4',  rapid:'並' },
+    { name:'炎タイフーン',            stat:'int', kind:'クリティカル', dist:3, guts:26, dmg:['B',31], acc:['D',-10], gd:['E',9],  cr:['B',22], moral:20,   note:'炎ハリケーン50回', tHit:4.1, tMiss:2.5, mvHit:'3→4',   mvMiss:'3→3-4',  rapid:'並' },
+    { name:'フレイムビーム',          stat:'int', kind:'大ダメージ',   dist:4, guts:29, dmg:['A',46], acc:['D',-13], gd:['E',8],  cr:['E',5],  moral:null, note:'',                tHit:4.8, tMiss:2.5, mvHit:'4',     mvMiss:'4',      rapid:'並' },
+    { name:'ファイアリバー',          stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['B',39], acc:['B',3],   gd:['D',16], cr:['D',10], moral:null, note:'',                tHit:5.1, tMiss:2.5, mvHit:'4→4-5', mvMiss:'4',      rapid:'並' },
+    { name:'ファイアウェーブ',        stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['S',50], acc:['C',-1],  gd:['D',18], cr:['C',15], moral:null, note:'ファイアリバー50回', tHit:5.5, tMiss:2.8, mvHit:'4→5',  mvMiss:'4',      rapid:'並' },
+  ],
 };
