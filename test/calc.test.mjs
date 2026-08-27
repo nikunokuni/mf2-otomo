@@ -504,6 +504,17 @@ eq(R.lifeTotals(lifeRows),{age:3,extra:3,total:6},'合計の内訳');
    技名を打ち間違えるとここで落ちる（種族を足してもテストを書き足す必要はない）。 */
 console.log('\n— 技データと使い込みデータの突き合わせ —');
 
+// @wiki の備考が monsters.js の使い込みと合わない組み合わせ。ここに挙げたぶんだけ
+// 備考の照合を飛ばす（消費G・当時間・外時間の照合は飛ばさない）。
+// バジャールは表ぜんたいに「設定ミスにより修得不可」の注記が入っている種族で、
+// 備考が修得条件になっていない行がある。使い込みそのものは monsters.js を正とする
+const NOTE_SKIP = new Set([
+  // @wiki の備考は「設定ミスにより修得不可」だけで、修得条件が書かれていない
+  'バジャール／ターンストレート',
+  // @wiki の備考は「右ジャブ50回」。monsters.js は １・２フック→コンボフック で持っている
+  'バジャール／コンボフック',
+]);
+
 for (const [species, list] of Object.entries(MOVES)) {
   const byName = new Map(list.map((mv) => [mv.name, mv]));
   eq(byName.size, list.length, `${species}: 技名の重複が無い`);
@@ -540,18 +551,17 @@ for (const [species, list] of Object.entries(MOVES)) {
     eq(from.tHit, pair.hit, `${species} ${pair.from}: 当時間`);
     eq(from.tMiss, pair.miss, `${species} ${pair.from}: 外時間`);
 
-    // 上位技の備考には「<下位技><回数>回」が入っている。
-    // 先頭に ※（@wiki の注記の印）が付くことがあるので、それは外して見る。
-    // 備考は「、」で複数の節に分かれることがあり、使い込み条件は先頭とはかぎらない
-    // （「フレイム50回、ユキは修得不可」／「ロックロン固有、地震50回」）。
-    // 技名に「、」は入らないので、節の区切りで切ってから探す。
+    // 上位技の備考には「<下位技><回数>回」が入っている。ただし前後に別の文が付く
+    //   「※ヒップアタック30回」「フレイム50回、ユキは修得不可」
+    //   「ロックロン固有、地震50回」「本来はフック50回で修得」
+    // ので、位置は決め打ちにせず **その文字列を含むか** で見る。
+    // 技名と回数をひとつながりで見るので、どちらの写し間違いもここで落ちる。
     // 分かれる上位技は、どちらも同じ下位技・同じ回数を備考に持っているはず
     for (const to of toNames.map((n) => byName.get(n))) {
-      const m = /(?:^|、)※?([^、]+?)(\d+)回/.exec(to.note || '');
-      eq(!!m, true, `${species} ${to.name}: 備考に使い込み条件がある`);
-      if (!m) continue;
-      eq(m[1], pair.from, `${species} ${to.name}: 備考の下位技`);
-      eq(Number(m[2]), pair.need, `${species} ${pair.from}→${to.name} 使い込み回数`);
+      if (NOTE_SKIP.has(`${species}／${to.name}`)) continue;
+      const want = `${pair.from}${pair.need}回`;
+      eq((to.note || '').includes(want), true,
+         `${species} ${to.name}: 備考に「${want}」がある（備考「${to.note}」）`);
     }
   }
 

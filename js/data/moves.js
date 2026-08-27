@@ -449,4 +449,27 @@ export const MOVES = {
     { name:'ぐるぐるプレス',          stat:'pow', kind:'大ダメージ',   dist:4, guts:21, dmg:['B',35], acc:['D',-12], gd:['E',7],  cr:['E',5],  moral:null, note:'',                                        tHit:10.1, tMiss:6.5, mvHit:'', mvMiss:'', rapid:'' },
     { name:'大津波',                  stat:'int', kind:'超必殺',       dist:4, guts:37, dmg:['A',42], acc:['D',-9],  gd:['C',24], cr:['C',15], moral:20,   note:'',                                        tHit:7.5,  tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // 備考の赤字（「設定ミスにより修得不可」など、@wiki が付けた注意書き）は取り込んでいない。
+  // そのため ターンストレート の備考は空になっている。
+  // コンボフックの備考は @wiki では「右ジャブ50回」だが、monsters.js は
+  // １・２フック→コンボフック で持っている。使い込みは monsters.js を正とするので触らず、
+  // この2つは test/calc.test.mjs の NOTE_SKIP に入れて備考の照合だけ飛ばしている
+  バジャール: [
+    { name:'フック',                  stat:'pow', kind:'大ダメージ',   dist:1, guts:25, dmg:['B',39], acc:['E',-16], gd:['D',11], cr:['E',5],  moral:null, note:'ストレート50回',                        tHit:3.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'左ジャブ',     stat:'pow', kind:'バランス',     dist:2, guts:10, dmg:['E',8],  acc:['A',9],   gd:null,     cr:null,     moral:null, note:'',                                      tHit:2.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'右ジャブ',     stat:'pow', kind:'バランス',     dist:2, guts:12, dmg:['D',13], acc:['B',4],   gd:null,     cr:['E',5],  moral:null, note:'',                                      tHit:2.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'１・２フック',            stat:'pow', kind:'大ダメージ',   dist:2, guts:30, dmg:['A',46], acc:['E',-16], gd:['D',15], cr:['E',5],  moral:null, note:'本来はフック50回で修得',                tHit:4.4, tMiss:3.4, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ストレート',              stat:'pow', kind:'大ダメージ',   dist:2, guts:20, dmg:['C',28], acc:['D',-12], gd:['E',8],  cr:['E',5],  moral:null, note:'右ジャブ50回',                          tHit:3.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'スマッシュ',              stat:'pow', kind:'クリティカル', dist:2, guts:21, dmg:['D',17], acc:['C',0],   gd:['E',9],  cr:['C',16], moral:null, note:'',                                      tHit:3.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'１・２スマッシュ',        stat:'pow', kind:'クリティカル', dist:2, guts:29, dmg:['C',22], acc:['B',2],   gd:['D',12], cr:['C',19], moral:null, note:'スマッシュ50回',                        tHit:4.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'コンボフック',            stat:'pow', kind:'超必殺',       dist:3, guts:36, dmg:['S',53], acc:['E',-16], gd:['C',21], cr:['E',5],  moral:20,   note:'右ジャブ50回',                          tHit:4.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ターンストレート',        stat:'pow', kind:'大ダメージ',   dist:3, guts:26, dmg:['B',34], acc:['D',-9],  gd:['E',9],  cr:['E',5],  moral:null, note:'',                                      tHit:4.3, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'コンボスマッシュ',        stat:'pow', kind:'超必殺',       dist:3, guts:39, dmg:['B',33], acc:['B',2],   gd:['D',12], cr:['C',15], moral:20,   note:'１・２スマッシュ50回',                  tHit:4.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'バロストレート',          stat:'pow', kind:'超必殺',       dist:4, guts:34, dmg:['A',43], acc:['D',-11], gd:['D',18], cr:['E',5],  moral:20,   note:'ターンストレート50回',                  tHit:4.4, tMiss:3.4, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'魔法つぼ',                stat:'int', kind:'超必殺',       dist:4, guts:35, dmg:['C',20], acc:['D',-5],  gd:null,     cr:null,     moral:-20,  note:'ライフドレイン率100%',                  tHit:3.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大魔法つぼ',              stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:null,     acc:['D',-10], gd:['B',30], cr:null,     moral:-40,  note:'魔法つぼ50回 ガッツドレイン率100%',     tHit:3.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超魔法つぼ',              stat:'int', kind:'超必殺',       dist:4, guts:60, dmg:['B',30], acc:['E',-15], gd:['B',30], cr:null,     moral:-60,  note:'魔法つぼ50回 ライフ＆ガッツドレイン率100%', tHit:3.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'怪光線',                  stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:['C',24], acc:['A',10],  gd:['C',24], cr:['E',5],  moral:null, note:'',                                      tHit:3.5, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
