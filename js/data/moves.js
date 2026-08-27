@@ -522,4 +522,21 @@ export const MOVES = {
     { name:'カード',                      stat:'int', kind:'クリティカル', dist:4, guts:19, dmg:['D',11], acc:['D',-5],  gd:['D',10], cr:['C',15], moral:null, note:'',                        tHit:2.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
     { name:'連続カード',                  stat:'int', kind:'クリティカル', dist:4, guts:29, dmg:['C',21], acc:['D',-10], gd:['D',10], cr:['C',18], moral:null, note:'カード25回',              tHit:5.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // かしこさ技はメタビーム1つだけ（いまのところ最少）
+  メタルナー: [
+    { init:true, name:'左掌',         stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['E',7],  acc:['A',10],  gd:['E',5],  cr:null,     moral:null, note:'',                                        tHit:2.1, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'テツざんこう',            stat:'pow', kind:'クリティカル', dist:1, guts:29, dmg:['C',26], acc:['D',-8],  gd:['C',26], cr:['S',35], moral:null, note:'',                                        tHit:4.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'右掌',         stat:'pow', kind:'バランス',     dist:2, guts:12, dmg:['D',10], acc:['A',8],   gd:['E',5],  cr:['E',5],  moral:null, note:'',                                        tHit:5.3, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ポン拳',                  stat:'pow', kind:'命中',         dist:2, guts:18, dmg:['D',15], acc:['A',10],  gd:['D',10], cr:['C',15], moral:null, note:'',                                        tHit:2.1, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'右たん脚',                stat:'pow', kind:'クリティカル', dist:2, guts:20, dmg:['D',15], acc:['B',2],   gd:['D',10], cr:['A',25], moral:null, note:'',                                        tHit:3.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'連たん脚',                stat:'pow', kind:'クリティカル', dist:2, guts:25, dmg:['D',19], acc:['C',0],   gd:['D',10], cr:['S',30], moral:null, note:'右たん脚50回',                            tHit:5.3, tMiss:4.4, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'宙ポン拳',                stat:'pow', kind:'命中',         dist:3, guts:27, dmg:['C',20], acc:['A',10],  gd:['D',13], cr:['C',15], moral:null, note:'ポン拳50回、ポン拳と分離して継承可能',   tHit:4.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ちょうちゅう',            stat:'pow', kind:'命中',         dist:3, guts:30, dmg:['D',15], acc:['S',16],  gd:['D',12], cr:['C',15], moral:null, note:'',                                        tHit:4.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ツイン掌打',              stat:'pow', kind:'大ダメージ',   dist:3, guts:20, dmg:['C',20], acc:['D',-13], gd:['D',10], cr:['C',15], moral:null, note:'',                                        tHit:4.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'こうはざん',              stat:'pow', kind:'ガッツダウン', dist:4, guts:22, dmg:['D',14], acc:['D',-8],  gd:['C',25], cr:['C',15], moral:null, note:'',                                        tHit:4.8, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'メタビーム',              stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['B',30], acc:['D',-6],  gd:['A',40], cr:['C',15], moral:-20,  note:'',                                        tHit:5.8, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'宙打掌',                  stat:'pow', kind:'超必殺',       dist:4, guts:50, dmg:['A',45], acc:['D',-11], gd:['C',25], cr:['C',15], moral:20,   note:'',                                        tHit:5.5, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大極変化',                stat:'pow', kind:'大ダメージ',   dist:4, guts:30, dmg:['S',50], acc:['E',-22], gd:['D',17], cr:['C',15], moral:null, note:'',                                        tHit:5.8, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
