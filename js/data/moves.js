@@ -375,4 +375,33 @@ export const MOVES = {
     { name:'さいみん',                stat:'int', kind:'クリティカル', dist:4, guts:21, dmg:['D',16], acc:['C',-4],  gd:['D',16], cr:['A',25], moral:null, note:'',                        tHit:2.5, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
     { name:'うたたね',                stat:'int', kind:'超必殺',       dist:4, guts:30, dmg:null,     acc:['E',-20], gd:null,     cr:null,     moral:30,   note:'回復力30(B)',             tHit:3.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // 魔人ナックルの備考は @wiki の文章をそのまま入れてある。「修得条件が魔人ナックル50回」は
+  // ゲーム側の設定ミス（自分自身が条件になっている）を @wiki が書き留めたもので、
+  // 使い込みのペアではない。monsters.js の持ち方（魔人ナックル→ゴッドナックル）が正しい。
+  // ナックルの備考の「魔神ナックル」も @wiki の表記のまま（この表の技名は「魔人ナックル」）
+  ガリ: [
+    { name:'ナックル',                stat:'pow', kind:'命中',         dist:1, guts:25, dmg:['D',19], acc:['A',13],  gd:['D',12], cr:['E',7],  moral:null, note:'合体継承時も魔神ナックルと非対応',                       tHit:3.1, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'火のカベ',                stat:'int', kind:'命中',         dist:1, guts:15, dmg:['D',14], acc:['A',11],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                                                     tHit:2.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'炎のカベ',                stat:'int', kind:'命中',         dist:1, guts:27, dmg:['C',21], acc:['S',16],  gd:['D',13], cr:['E',5],  moral:null, note:'火のカベ50回',                                         tHit:2.8, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'火炎のカベ',              stat:'int', kind:'超必殺',       dist:1, guts:38, dmg:['B',34], acc:['A',12],  gd:['D',14], cr:['E',5],  moral:null, note:'炎のカベ50回',                                         tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'魔人ナックル',            stat:'pow', kind:'命中',         dist:2, guts:35, dmg:['C',26], acc:['S',15],  gd:['D',16], cr:['E',8],  moral:null, note:'修行では修得不可(設定ミスで修得条件が魔人ナックル50回)', tHit:4.5, tMiss:3.4, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'プレス',                  stat:'pow', kind:'大ダメージ',   dist:2, guts:17, dmg:['C',27], acc:['D',-11], gd:['E',7],  cr:['E',5],  moral:null, note:'',                                                     tHit:5.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ハリケーン',              stat:'int', kind:'大ダメージ',   dist:2, guts:25, dmg:['B',35], acc:['D',-9],  gd:['D',12], cr:['E',5],  moral:null, note:'',                                                     tHit:3.8, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'魔人ハリケーン',          stat:'int', kind:'大ダメージ',   dist:2, guts:34, dmg:['A',42], acc:['D',-12], gd:['C',26], cr:['D',10], moral:null, note:'ハリケーン50回',                                       tHit:5.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゴッドハリケーン',        stat:'int', kind:'超必殺',       dist:2, guts:41, dmg:['S',50], acc:['D',-10], gd:['C',29], cr:['C',15], moral:null, note:'魔人ハリケーン50回',                                   tHit:5.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゴッドアタック',          stat:'pow', kind:'超必殺',       dist:2, guts:38, dmg:['B',36], acc:['C',0],   gd:['C',25], cr:['E',8],  moral:null, note:'',                                                     tHit:4.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ストレート',   stat:'pow', kind:'バランス',     dist:3, guts:10, dmg:['D',13], acc:['A',6],   gd:null,     cr:null,     moral:null, note:'',                                                     tHit:3.8, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'魔人プレス',              stat:'pow', kind:'大ダメージ',   dist:3, guts:35, dmg:['A',49], acc:['D',-13], gd:['D',19], cr:['D',10], moral:null, note:'プレス50回',                                           tHit:5.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'レッドウィスプ',          stat:'int', kind:'ガッツダウン', dist:3, guts:18, dmg:['D',10], acc:['C',-2],  gd:['C',27], cr:['E',5],  moral:20,   note:'',                                                     tHit:5.8, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ブルーウィスプ',          stat:'int', kind:'ガッツダウン', dist:3, guts:30, dmg:['D',18], acc:['C',-4],  gd:['A',44], cr:['E',5],  moral:50,   note:'',                                                     tHit:5.8, tMiss:5.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'スピンカッター',          stat:'pow', kind:'クリティカル', dist:3, guts:17, dmg:['D',15], acc:['B',1],   gd:['E',7],  cr:['C',19], moral:null, note:'',                                                     tHit:3.8, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゴッドストライク',        stat:'pow', kind:'超必殺',       dist:3, guts:43, dmg:['A',45], acc:['D',-5],  gd:['C',29], cr:['E',9],  moral:20,   note:'ゴッドアタック50回',                                   tHit:4.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'雷',           stat:'int', kind:'バランス',     dist:4, guts:13, dmg:['D',14], acc:['B',3],   gd:['E',5],  cr:null,     moral:null, note:'',                                                     tHit:4.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゴッドナックル',          stat:'pow', kind:'超必殺',       dist:4, guts:41, dmg:['B',33], acc:['A',14],  gd:['D',17], cr:['E',6],  moral:null, note:'魔人ナックル50回',                                     tHit:4.3, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゴッドプレス',            stat:'pow', kind:'超必殺',       dist:4, guts:40, dmg:['S',54], acc:['D',-10], gd:['C',24], cr:['E',5],  moral:null, note:'魔人プレス50回',                                       tHit:5.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大スピンカッター',        stat:'pow', kind:'クリティカル', dist:4, guts:24, dmg:['D',19], acc:['C',-1],  gd:['E',9],  cr:['B',23], moral:null, note:'スピンカッター50回',                                   tHit:5.5, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超スピンカッター',        stat:'pow', kind:'超必殺',       dist:4, guts:38, dmg:['C',28], acc:['C',-3],  gd:['C',28], cr:['A',28], moral:null, note:'大スピンカッター50回',                                 tHit:7.1, tMiss:6.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ゴッドファイナル',        stat:'pow', kind:'超必殺',       dist:4, guts:40, dmg:['B',33], acc:['D',-5],  gd:['A',45], cr:['E',5],  moral:-20,  note:'ゴッドアタック50回',                                   tHit:4.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
