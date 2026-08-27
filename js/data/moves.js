@@ -539,4 +539,20 @@ export const MOVES = {
     { name:'宙打掌',                  stat:'pow', kind:'超必殺',       dist:4, guts:50, dmg:['A',45], acc:['D',-11], gd:['C',25], cr:['C',15], moral:20,   note:'',                                        tHit:5.5, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
     { name:'大極変化',                stat:'pow', kind:'大ダメージ',   dist:4, guts:30, dmg:['S',50], acc:['E',-22], gd:['D',17], cr:['C',15], moral:null, note:'',                                        tHit:5.8, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // 使い込みで上位技に変わるペアが1つも無い種族（monsters.js は空配列）。ライガーに続いて2種族目。
+  // 備考もヨイワルも全技ぶん空で、移動(当) / 移動(外) / 連射 の3列も無い
+  スエゾー: [
+    { init:true, name:'しっぽアタック', stat:'pow', kind:'バランス',     dist:1, guts:12, dmg:['D',14], acc:['C',-4],  gd:['E',5],  cr:null,     moral:null, note:'', tHit:1.8, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ベロビンタ',                stat:'pow', kind:'大ダメージ',   dist:1, guts:33, dmg:['A',42], acc:['E',-16], gd:['C',25], cr:['E',5],  moral:null, note:'', tHit:4.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'キッス',                    stat:'int', kind:'ガッツダウン', dist:1, guts:29, dmg:['D',16], acc:['D',-8],  gd:['B',39], cr:['E',5],  moral:null, note:'', tHit:4.5, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ツバはき',       stat:'int', kind:'バランス',     dist:2, guts:10, dmg:['D',10], acc:['A',9],   gd:['E',5],  cr:null,     moral:null, note:'', tHit:1.5, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'かみつき',                  stat:'pow', kind:'大ダメージ',   dist:2, guts:22, dmg:['C',25], acc:['D',-12], gd:['D',15], cr:['E',5],  moral:null, note:'', tHit:2.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'なめる',                    stat:'int', kind:'ガッツダウン', dist:2, guts:22, dmg:['D',13], acc:['D',-7],  gd:['C',29], cr:['E',5],  moral:null, note:'', tHit:3.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'食う',                      stat:'pow', kind:'超必殺',       dist:2, guts:45, dmg:['B',36], acc:['B',4],   gd:['C',22], cr:['E',5],  moral:null, note:'', tHit:6.8, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'テレポート',                stat:'pow', kind:'命中',         dist:3, guts:16, dmg:['D',12], acc:['A',10],  gd:['D',10], cr:['E',5],  moral:null, note:'', tHit:2.5, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'サイコキネシス',            stat:'int', kind:'命中',         dist:3, guts:23, dmg:['D',14], acc:['S',21],  gd:['D',10], cr:['E',5],  moral:null, note:'', tHit:4.5, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'テレパシー',                stat:'int', kind:'クリティカル', dist:3, guts:21, dmg:['D',17], acc:['D',-5],  gd:['D',12], cr:['C',15], moral:null, note:'', tHit:4.1, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'熱視線',                    stat:'int', kind:'クリティカル', dist:4, guts:31, dmg:['C',28], acc:['D',-7],  gd:['D',10], cr:['B',22], moral:null, note:'', tHit:3.8, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'歌う',                      stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:['C',25], acc:['D',-5],  gd:['A',45], cr:['E',5],  moral:null, note:'', tHit:4.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
