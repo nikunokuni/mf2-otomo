@@ -596,4 +596,16 @@ export const MOVES = {
     { name:'ローリン',                stat:'pow', kind:'大ダメージ',   dist:4, guts:19, dmg:['C',25], acc:['D',-12], gd:['E',7],  cr:['E',5],  moral:null, note:'',                                    tHit:5.8, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
     { name:'ローリンローリン',        stat:'pow', kind:'大ダメージ',   dist:4, guts:25, dmg:['C',29], acc:['D',-13], gd:['D',15], cr:['E',7],  moral:null, note:'ローリン50回',                        tHit:5.9, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // 使い込みで上位技に変わるペアが1つも無い種族（monsters.js は空配列）。
+  // ライガー・スエゾーに続いて3種族目で、これで技なし3種族がそろう。
+  // 全6技とヨイワル・備考の並びは @wiki のまま（備考は全技ぶん空）。
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列がある
+  ジョーカー: [
+    { init:true, name:'デスパンチ',   stat:'pow', kind:'バランス',     dist:1, guts:12, dmg:['D',16], acc:['C',-2],  gd:['D',10], cr:null,     moral:null, note:'', tHit:2.5, tMiss:2.5, mvHit:'1',     mvMiss:'1→2',   rapid:'強' },
+    { name:'デススラッシュ',          stat:'pow', kind:'大ダメージ',   dist:2, guts:29, dmg:['A',42], acc:['E',-16], gd:['C',29], cr:['D',11], moral:-20,  note:'', tHit:4.8, tMiss:3.1, mvHit:'2',     mvMiss:'2→1-2', rapid:'並' },
+    { init:true, name:'デスナックル', stat:'pow', kind:'バランス',     dist:2, guts:15, dmg:['D',18], acc:['C',-4],  gd:['D',10], cr:['E',5],  moral:null, note:'', tHit:3.8, tMiss:2.5, mvHit:'2→2-3', mvMiss:'2→2-3', rapid:'並' },
+    { name:'デスカッター',            stat:'int', kind:'クリティカル', dist:3, guts:28, dmg:['C',24], acc:['D',-5],  gd:['C',24], cr:['B',24], moral:-20,  note:'', tHit:2.8, tMiss:2.8, mvHit:'3',     mvMiss:'3',     rapid:'並' },
+    { name:'デスエナジー',            stat:'int', kind:'命中',         dist:4, guts:28, dmg:['C',21], acc:['S',16],  gd:['D',15], cr:['D',10], moral:-20,  note:'', tHit:2.8, tMiss:3.1, mvHit:'4',     mvMiss:'4',     rapid:'強' },
+    { name:'デスファイナル',          stat:'pow', kind:'超必殺',       dist:4, guts:50, dmg:['S',50], acc:['E',-15], gd:['S',50], cr:['C',15], moral:-50,  note:'', tHit:7.1, tMiss:4.8, mvHit:'4',     mvMiss:'4',     rapid:'並' },
+  ],
 };
