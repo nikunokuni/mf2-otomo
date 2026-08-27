@@ -737,4 +737,20 @@ export const MOVES = {
     { name:'みずのみアタック',          stat:'pow', kind:'クリティカル', dist:4, guts:17, dmg:['D',15], acc:['D',-11], gd:['E',5],  cr:['B',21], moral:null, note:'',                          tHit:3.5, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
     { name:'みだれうち',                stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['C',25], acc:['B',2],   gd:['C',25], cr:['A',25], moral:20,   note:'',                          tHit:5.9, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // 使い込みが2ペアとも25回（根っこ / 種ガン）
+  プラント: [
+    { init:true, name:'ビンタ',       stat:'pow', kind:'バランス',     dist:1, guts:11, dmg:['E',7],  acc:['A',8],   gd:null,     cr:null,     moral:null, note:'',                      tHit:3.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'根っこ',                  stat:'pow', kind:'命中',         dist:1, guts:13, dmg:['E',6],  acc:['S',22],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                      tHit:2.8, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'連続根っこ',              stat:'pow', kind:'命中',         dist:1, guts:21, dmg:['D',12], acc:['S',21],  gd:['E',5],  cr:['E',5],  moral:null, note:'根っこ25回',            tHit:4.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドレイン',                stat:'int', kind:'超必殺',       dist:1, guts:50, dmg:['C',25], acc:['C',0],   gd:null,     cr:null,     moral:-50,  note:'ライフドレイン率100%',  tHit:4.5, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'つっつき',     stat:'pow', kind:'バランス',     dist:2, guts:10, dmg:['E',6],  acc:['A',11],  gd:null,     cr:null,     moral:null, note:'',                      tHit:2.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'連続つっつき',            stat:'pow', kind:'大ダメージ',   dist:2, guts:18, dmg:['D',15], acc:['C',-1],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                      tHit:4.8, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'コンビネーション',        stat:'pow', kind:'大ダメージ',   dist:2, guts:25, dmg:['C',25], acc:['D',-11], gd:['D',10], cr:['E',5],  moral:null, note:'',                      tHit:4.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ミツ',                    stat:'int', kind:'ガッツダウン', dist:3, guts:26, dmg:['E',4],  acc:['A',9],   gd:['C',22], cr:['E',5],  moral:null, note:'',                      tHit:4.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'花粉',                    stat:'int', kind:'ガッツダウン', dist:3, guts:35, dmg:['E',8],  acc:['C',-1],  gd:['B',33], cr:['E',5],  moral:null, note:'',                      tHit:3.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'フェイスドリル',          stat:'pow', kind:'超必殺',       dist:3, guts:35, dmg:['C',21], acc:['A',10],  gd:['D',17], cr:['E',5],  moral:null, note:'',                      tHit:5.8, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'種ガン',                  stat:'int', kind:'クリティカル', dist:4, guts:21, dmg:['D',12], acc:['B',1],   gd:['D',10], cr:['C',19], moral:null, note:'',                      tHit:1.8, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'種マシンガン',            stat:'int', kind:'クリティカル', dist:4, guts:27, dmg:['C',20], acc:['C',-4],  gd:['D',10], cr:['A',25], moral:20,   note:'種ガン25回',            tHit:5.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
