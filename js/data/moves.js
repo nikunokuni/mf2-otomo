@@ -555,4 +555,20 @@ export const MOVES = {
     { name:'熱視線',                    stat:'int', kind:'クリティカル', dist:4, guts:31, dmg:['C',28], acc:['D',-7],  gd:['D',10], cr:['B',22], moral:null, note:'', tHit:3.8, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
     { name:'歌う',                      stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:['C',25], acc:['D',-5],  gd:['A',45], cr:['E',5],  moral:null, note:'', tHit:4.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // 「アイス」と付く技のうち、アイスダンスだけがちから技（技名セルが黄）
+  ジール: [
+    { init:true, name:'おうふくビンタ', stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['D',13], acc:['C',0],   gd:['E',5],  cr:null,     moral:null, note:'',                      tHit:3.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイスタワー',              stat:'int', kind:'命中',         dist:1, guts:17, dmg:['C',20], acc:['A',9],   gd:null,     cr:['E',5],  moral:null, note:'',                      tHit:4.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ハンドプレス',              stat:'pow', kind:'ガッツダウン', dist:1, guts:18, dmg:['D',15], acc:['B',1],   gd:['D',16], cr:['E',5],  moral:null, note:'',                      tHit:4.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ジャブストレート', stat:'pow', kind:'バランス',   dist:2, guts:12, dmg:['D',15], acc:['A',6],   gd:null,     cr:['E',5],  moral:null, note:'',                      tHit:5.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アッパーキャノン',          stat:'pow', kind:'大ダメージ',   dist:2, guts:29, dmg:['A',42], acc:['D',-12], gd:['D',16], cr:['E',6],  moral:null, note:'',                      tHit:6.1, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'スーパービンタ',            stat:'pow', kind:'ガッツダウン', dist:2, guts:27, dmg:['C',21], acc:['B',1],   gd:['C',25], cr:['E',6],  moral:-20,  note:'',                      tHit:6.8, tMiss:5.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイスビーム',              stat:'int', kind:'命中',         dist:3, guts:26, dmg:['D',19], acc:['S',17],  gd:['D',13], cr:['E',5],  moral:null, note:'',                      tHit:5.3, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイスウェーブ',            stat:'int', kind:'大ダメージ',   dist:3, guts:19, dmg:['B',33], acc:['D',-10], gd:null,     cr:['E',5],  moral:null, note:'',                      tHit:4.1, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'だだっこパンチ',            stat:'pow', kind:'クリティカル', dist:3, guts:19, dmg:['C',20], acc:['C',-2],  gd:['E',6],  cr:['C',16], moral:null, note:'',                      tHit:4.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイスダンス',              stat:'pow', kind:'超必殺',       dist:3, guts:45, dmg:['S',61], acc:['D',-10], gd:['C',20], cr:['E',8],  moral:null, note:'アッパーキャノン50回',  tHit:8.8, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイスメテオ',              stat:'int', kind:'クリティカル', dist:4, guts:29, dmg:['C',29], acc:['D',-5],  gd:['D',13], cr:['C',19], moral:20,   note:'',                      tHit:4.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'吹雪',                      stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['B',35], acc:['A',5],   gd:['B',35], cr:['E',5],  moral:null, note:'',                      tHit:5.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
