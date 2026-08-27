@@ -795,4 +795,23 @@ export const MOVES = {
     { name:'ハイパーボム',            stat:'int', kind:'クリティカル', dist:4, guts:26, dmg:['C',24], acc:['B',1],   gd:['D',12], cr:['C',18], moral:-30,  note:'ボム50回',      tHit:5.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
     { name:'パクパクバナナ',          stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:null,     acc:['E',-25], gd:null,     cr:null,     moral:50,   note:'回復力30(B)',   tHit:2.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // ヨイワルの付く技が1つも無い（全15技とも空欄）
+  ワーム: [
+    { init:true, name:'かみつき',     stat:'pow', kind:'バランス',     dist:1, guts:13, dmg:['D',14], acc:['A',5],   gd:null,     cr:null,     moral:null, note:'',                      tHit:3.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'サマーソルト',            stat:'pow', kind:'命中',         dist:1, guts:26, dmg:['C',20], acc:['S',18],  gd:['E',9],  cr:['E',5],  moral:null, note:'',                      tHit:3.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'Wサマーソルト',           stat:'pow', kind:'命中',         dist:1, guts:30, dmg:['C',24], acc:['S',18],  gd:['D',11], cr:['E',5],  moral:null, note:'サマーソルト50回',      tHit:5.1, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'針',           stat:'pow', kind:'バランス',     dist:2, guts:10, dmg:['D',10], acc:['A',7],   gd:null,     cr:['E',5],  moral:null, note:'',                      tHit:4.3, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'しっぽキック',            stat:'pow', kind:'命中',         dist:2, guts:19, dmg:['D',15], acc:['S',20],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                      tHit:4.8, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'Wしっぽキック',           stat:'pow', kind:'命中',         dist:2, guts:27, dmg:['D',19], acc:['S',16],  gd:['D',13], cr:['E',5],  moral:null, note:'しっぽキック50回',      tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'３連しっぽキック',        stat:'pow', kind:'超必殺',       dist:2, guts:34, dmg:['C',26], acc:['A',13],  gd:['D',15], cr:['E',5],  moral:null, note:'Wしっぽキック50回',     tHit:5.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'空中回転アタック',        stat:'pow', kind:'超必殺',       dist:2, guts:50, dmg:['S',50], acc:['D',-10], gd:['C',25], cr:['E',5],  moral:null, note:'',                      tHit:5.5, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'くし刺し投げ',            stat:'pow', kind:'大ダメージ',   dist:2, guts:20, dmg:['C',28], acc:['D',-8],  gd:['E',7],  cr:['E',5],  moral:null, note:'',                      tHit:6.3, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'バックドロップ',          stat:'pow', kind:'大ダメージ',   dist:3, guts:29, dmg:['A',40], acc:['D',-8],  gd:['D',10], cr:['E',5],  moral:null, note:'',                      tHit:6.5, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'くしざし',                stat:'pow', kind:'ガッツダウン', dist:3, guts:18, dmg:['D',12], acc:['D',-5],  gd:['C',23], cr:['E',5],  moral:null, note:'',                      tHit:4.8, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'牙斬り',                  stat:'pow', kind:'クリティカル', dist:3, guts:17, dmg:['D',16], acc:['B',4],   gd:['E',5],  cr:['C',17], moral:null, note:'',                      tHit:3.3, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'毒注射',                  stat:'int', kind:'クリティカル', dist:3, guts:28, dmg:['C',25], acc:['D',-11], gd:['C',23], cr:['A',25], moral:null, note:'',                      tHit:5.8, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'毒ガス',                  stat:'int', kind:'ガッツダウン', dist:4, guts:28, dmg:['C',20], acc:['D',-7],  gd:['B',37], cr:['E',5],  moral:null, note:'',                      tHit:3.5, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'シェルアタック',          stat:'pow', kind:'超必殺',       dist:4, guts:44, dmg:['B',35], acc:['C',-4],  gd:['B',35], cr:['C',15], moral:null, note:'',                      tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
