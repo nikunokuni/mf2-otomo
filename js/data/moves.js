@@ -753,4 +753,31 @@ export const MOVES = {
     { name:'種ガン',                  stat:'int', kind:'クリティカル', dist:4, guts:21, dmg:['D',12], acc:['B',1],   gd:['D',10], cr:['C',19], moral:null, note:'',                      tHit:1.8, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
     { name:'種マシンガン',            stat:'int', kind:'クリティカル', dist:4, guts:27, dmg:['C',20], acc:['C',-4],  gd:['D',10], cr:['A',25], moral:20,   note:'種ガン25回',            tHit:5.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // アタック系の数字は全角（monsters.js が ２連アタック / ３連アタック で持っている）。
+  // ３連アタックの備考も @wiki は「2連アタック50回」（半角）だが、全角にそろえてある。
+  // トリオビーム X / Y / Z は monsters.js と同じ半角（全角にそろえる決まりは数字だけ）
+  モノリス: [
+    { init:true, name:'体当たり',     stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['D',12], acc:['A',10],  gd:null,     cr:null,     moral:null, note:'',                      tHit:2.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'針ぶっさし',              stat:'pow', kind:'大ダメージ',   dist:1, guts:21, dmg:['C',27], acc:['C',-2],  gd:['D',10], cr:['E',5],  moral:null, note:'',                      tHit:2.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超針ぶっさし',            stat:'pow', kind:'大ダメージ',   dist:1, guts:27, dmg:['B',34], acc:['C',-4],  gd:['D',11], cr:['E',8],  moral:null, note:'針ぶっさし50回',        tHit:3.8, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'フォームアルファ',        stat:'int', kind:'超必殺',       dist:1, guts:35, dmg:['C',25], acc:['B',4],   gd:['B',35], cr:['E',5],  moral:null, note:'',                      tHit:3.8, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'フォームベータ',          stat:'int', kind:'超必殺',       dist:1, guts:40, dmg:['B',30], acc:['B',1],   gd:['A',40], cr:['E',5],  moral:null, note:'フォームアルファ50回',  tHit:4.5, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'フォームガンマ',          stat:'int', kind:'超必殺',       dist:1, guts:45, dmg:['B',35], acc:['C',0],   gd:['A',45], cr:['D',10], moral:null, note:'フォームベータ50回',    tHit:5.5, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'たおれこみ',   stat:'pow', kind:'バランス',     dist:2, guts:12, dmg:['D',16], acc:['A',5],   gd:null,     cr:null,     moral:null, note:'',                      tHit:5.1, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'針かみつき',              stat:'pow', kind:'大ダメージ',   dist:2, guts:29, dmg:['B',39], acc:['D',-12], gd:['C',20], cr:['D',10], moral:null, note:'',                      tHit:4.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ひっかき',                stat:'pow', kind:'ガッツダウン', dist:2, guts:20, dmg:['D',16], acc:['C',-2],  gd:['C',24], cr:['E',5],  moral:null, note:'',                      tHit:3.5, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アタック',                stat:'pow', kind:'超必殺',       dist:2, guts:35, dmg:['B',35], acc:['A',10],  gd:['D',10], cr:['E',5],  moral:null, note:'',                      tHit:5.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'２連アタック',            stat:'pow', kind:'超必殺',       dist:2, guts:45, dmg:['A',40], acc:['S',15],  gd:['D',15], cr:['E',5],  moral:null, note:'アタック50回',          tHit:5.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'３連アタック',            stat:'pow', kind:'超必殺',       dist:2, guts:50, dmg:['A',42], acc:['S',15],  gd:['C',21], cr:['E',5],  moral:null, note:'２連アタック50回',      tHit:5.5, tMiss:5.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大たおれこみ',            stat:'pow', kind:'バランス',     dist:3, guts:15, dmg:['D',19], acc:['A',5],   gd:['E',5],  cr:null,     moral:null, note:'たおれこみ30回',        tHit:4.1, tMiss:1.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'サケビ声',                stat:'int', kind:'命中',         dist:3, guts:25, dmg:['D',16], acc:['S',24],  gd:['D',14], cr:['E',5],  moral:null, note:'',                      tHit:3.3, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'怪光線',                  stat:'int', kind:'クリティカル', dist:3, guts:18, dmg:['C',23], acc:['D',-7],  gd:['E',6],  cr:['C',15], moral:null, note:'',                      tHit:5.5, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超たおれこみ',            stat:'pow', kind:'バランス',     dist:4, guts:20, dmg:['C',24], acc:['B',2],   gd:['E',5],  cr:['E',5],  moral:null, note:'大たおれこみ30回',      tHit:7.8, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'おんぱ',                  stat:'int', kind:'命中',         dist:4, guts:17, dmg:['D',15], acc:['S',18],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                      tHit:2.8, tMiss:2.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'わらわら',                stat:'pow', kind:'ガッツダウン', dist:4, guts:37, dmg:['C',27], acc:['C',0],   gd:['A',41], cr:['E',5],  moral:-20,  note:'',                      tHit:4.5, tMiss:4.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'トリオビームX',           stat:'int', kind:'クリティカル', dist:4, guts:24, dmg:['C',28], acc:['C',-3],  gd:['E',5],  cr:['C',17], moral:null, note:'',                      tHit:3.8, tMiss:1.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'トリオビームY',           stat:'int', kind:'クリティカル', dist:4, guts:29, dmg:['B',31], acc:['D',-6],  gd:['D',14], cr:['C',19], moral:null, note:'トリオビームX50回',     tHit:5.1, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'トリオビームZ',           stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:['B',38], acc:['D',-6],  gd:['C',22], cr:['A',25], moral:20,   note:'トリオビームY50回',     tHit:5.1, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
