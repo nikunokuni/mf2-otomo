@@ -701,4 +701,16 @@ export const MOVES = {
     { name:'大ローリンナイト',          stat:'pow', kind:'超必殺',       dist:4, guts:40, dmg:['B',35], acc:['C',-2],  gd:['E',5],  cr:['B',20], moral:null, note:'ローリンナイト50回',      tHit:5.1, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
     { name:'超ローリンナイト',          stat:'pow', kind:'超必殺',       dist:4, guts:50, dmg:['A',40], acc:['D',-5],  gd:['B',35], cr:['B',20], moral:null, note:'大ローリンナイト50回',    tHit:5.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // ちから技はヘッドバッド1つだけで、残り8技はすべてかしこさ技
+  モック: [
+    { init:true, name:'ヘッドバッド', stat:'pow', kind:'バランス',     dist:1, guts:15, dmg:['D',16], acc:['B',3],   gd:['E',5],  cr:null,     moral:null, note:'',                              tHit:3.8, tMiss:3.8, mvHit:'1',     mvMiss:'1→2',   rapid:'強' },
+    { name:'リーフショット',          stat:'int', kind:'命中',         dist:2, guts:18, dmg:['D',14], acc:['S',15],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                              tHit:3.8, tMiss:3.8, mvHit:'2',     mvMiss:'2→2-3', rapid:'強' },
+    { init:true, name:'リーフガン',   stat:'int', kind:'バランス',     dist:3, guts:12, dmg:['D',13], acc:['C',0],   gd:null,     cr:null,     moral:null, note:'',                              tHit:4.3, tMiss:4.5, mvHit:'3',     mvMiss:'3',     rapid:'並' },
+    { name:'リーフマシンガン',        stat:'int', kind:'大ダメージ',   dist:3, guts:23, dmg:['B',34], acc:['D',-14], gd:['E',8],  cr:['E',5],  moral:null, note:'リーフガン50回',                tHit:5.5, tMiss:4.5, mvHit:'3→3-4', mvMiss:'3',     rapid:'強' },
+    { name:'ポイズンニードル',        stat:'int', kind:'ガッツダウン', dist:3, guts:18, dmg:['D',10], acc:['D',-6],  gd:['C',25], cr:['E',5],  moral:null, note:'',                              tHit:4.8, tMiss:2.8, mvHit:'3→4',   mvMiss:'3',     rapid:'並' },
+    { name:'ポイズンアロー',          stat:'int', kind:'ガッツダウン', dist:3, guts:30, dmg:['C',21], acc:['D',-8],  gd:['B',35], cr:['E',5],  moral:null, note:'',                              tHit:4.8, tMiss:2.8, mvHit:'3→4',   mvMiss:'3',     rapid:'並' },
+    { name:'リーフドレイン',          stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['A',40], acc:['E',-20], gd:['A',40], cr:null,     moral:-50,  note:'ライフ＆ガッツドレイン率50%',   tHit:5.5, tMiss:5.8, mvHit:'4',     mvMiss:'4',     rapid:'並' },
+    { name:'トルネード',              stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['A',44], acc:['D',-10], gd:['B',33], cr:['E',5],  moral:null, note:'',                              tHit:4.8, tMiss:4.1, mvHit:'4',     mvMiss:'4',     rapid:'並' },
+    { name:'Wトルネード',             stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['S',55], acc:['D',-13], gd:['A',44], cr:['E',5],  moral:null, note:'トルネード50回',                tHit:5.8, tMiss:4.1, mvHit:'4→5',   mvMiss:'4',     rapid:'並' },
+  ],
 };
