@@ -679,4 +679,26 @@ export const MOVES = {
     { name:'アクアゲイザー',            stat:'int', kind:'クリティカル', dist:4, guts:16, dmg:['D',11], acc:['C',-2],  gd:['E',7],  cr:['S',30], moral:null, note:'',                    tHit:4.1, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
     { name:'超アクアブラスト',          stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['B',30], acc:['A',5],   gd:['A',40], cr:['C',15], moral:null, note:'アクアブラスト50回',  tHit:4.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // 超ナイトニングは ヨイワル欄と備考の末尾の両方に ※（@wiki の注記の印）が付いている。
+  // ヨイワル欄のほうは値ではないので入れず（moral:null）、備考のほうは表の文字として残した
+  ナイトン: [
+    { init:true, name:'ナイトウィップ', stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['E',9],  acc:['A',8],   gd:null,     cr:null,     moral:null, note:'',                        tHit:3.5, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'ナイトニードル', stat:'pow', kind:'バランス',     dist:1, guts:12, dmg:['D',12], acc:['C',-1],  gd:null,     cr:null,     moral:null, note:'',                        tHit:3.5, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大ナイトニードル',          stat:'pow', kind:'バランス',     dist:1, guts:15, dmg:['D',15], acc:['C',-1],  gd:null,     cr:['E',5],  moral:null, note:'ナイトニードル30回',      tHit:4.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ナイトニードル',          stat:'pow', kind:'バランス',     dist:1, guts:21, dmg:['C',22], acc:['D',-6],  gd:['E',6],  cr:['D',10], moral:null, note:'大ナイトニードル30回',    tHit:3.8, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ナイトウェーブ',            stat:'int', kind:'命中',         dist:2, guts:16, dmg:['D',10], acc:['S',16],  gd:['D',10], cr:['E',9],  moral:null, note:'',                        tHit:4.1, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大ナイトウェーブ',          stat:'int', kind:'命中',         dist:2, guts:24, dmg:['D',16], acc:['A',14],  gd:['D',12], cr:['C',15], moral:null, note:'ナイトウェーブ50回',      tHit:4.1, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ナイトウェーブ',          stat:'int', kind:'超必殺',       dist:2, guts:35, dmg:['D',19], acc:['S',15],  gd:['D',18], cr:['C',15], moral:null, note:'大ナイトウェーブ50回',    tHit:6.5, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ナイトスネーク',            stat:'pow', kind:'クリティカル', dist:2, guts:19, dmg:['D',17], acc:['D',-7],  gd:['E',7],  cr:['A',25], moral:null, note:'',                        tHit:3.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大ナイトスネーク',          stat:'pow', kind:'クリティカル', dist:2, guts:28, dmg:['C',23], acc:['D',-10], gd:['D',13], cr:['A',29], moral:null, note:'ナイトスネーク50回',      tHit:4.1, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ナイトスネーク',          stat:'pow', kind:'超必殺',       dist:2, guts:35, dmg:['B',31], acc:['D',-10], gd:['D',15], cr:['S',35], moral:20,   note:'大ナイトスネーク50回',    tHit:5.3, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ナイトニング',              stat:'int', kind:'大ダメージ',   dist:3, guts:19, dmg:['D',18], acc:['D',-10], gd:['D',14], cr:['D',10], moral:null, note:'',                        tHit:3.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大ナイトニング',            stat:'int', kind:'大ダメージ',   dist:3, guts:26, dmg:['C',28], acc:['D',-12], gd:['D',15], cr:['D',10], moral:null, note:'ナイトニング50回',        tHit:4.1, tMiss:4.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ナイトニング',            stat:'int', kind:'超必殺',       dist:3, guts:35, dmg:['B',38], acc:['D',-12], gd:['D',19], cr:['D',10], moral:null, note:'大ナイトニング50回※',    tHit:5.8, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'オクトパスナイト',          stat:'int', kind:'ガッツダウン', dist:3, guts:20, dmg:['E',2],  acc:['B',2],   gd:['B',32], cr:['D',10], moral:-20,  note:'',                        tHit:4.3, tMiss:4.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ローリンナイト',            stat:'pow', kind:'超必殺',       dist:4, guts:35, dmg:['B',30], acc:['C',0],   gd:['E',5],  cr:['D',10], moral:null, note:'',                        tHit:5.5, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'大ローリンナイト',          stat:'pow', kind:'超必殺',       dist:4, guts:40, dmg:['B',35], acc:['C',-2],  gd:['E',5],  cr:['B',20], moral:null, note:'ローリンナイト50回',      tHit:5.1, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超ローリンナイト',          stat:'pow', kind:'超必殺',       dist:4, guts:50, dmg:['A',40], acc:['D',-5],  gd:['B',35], cr:['B',20], moral:null, note:'大ローリンナイト50回',    tHit:5.8, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
