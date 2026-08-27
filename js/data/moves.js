@@ -653,4 +653,30 @@ export const MOVES = {
     { name:'ガトリング',              stat:'int', kind:'超必殺',       dist:4, guts:45, dmg:['B',30], acc:['S',15],  gd:['D',15], cr:['C',15], moral:null, note:'',                      tHit:5.5, tMiss:4.1, mvHit:'', mvMiss:'', rapid:'' },
     { name:'ゲルコプター',            stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['S',50], acc:['A',5],   gd:['D',15], cr:['E',5],  moral:null, note:'',                      tHit:4.1, tMiss:3.5, mvHit:'', mvMiss:'', rapid:'' },
   ],
+  // この種族の表には 移動(当) / 移動(外) / 連射 の3列が無い。
+  // かしこさ技16技はいまのところ最多。「アクア」と付く技のうち、
+  // アクアウィップ / 超アクアウィップ だけがちから技（技名セルが黄）
+  ウンディーネ: [
+    { init:true, name:'アイスブレード', stat:'pow', kind:'バランス',     dist:1, guts:10, dmg:['E',8],  acc:['A',10],  gd:null,     cr:['E',5],  moral:null, note:'',                    tHit:2.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超アイスブレード',          stat:'pow', kind:'バランス',     dist:1, guts:14, dmg:['D',15], acc:['A',10],  gd:null,     cr:['E',9],  moral:null, note:'アイスブレード30回',  tHit:4.3, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ドルフィンブロー',          stat:'pow', kind:'大ダメージ',   dist:1, guts:18, dmg:['C',23], acc:['D',-5],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                    tHit:5.3, tMiss:5.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'スプラッシュ',              stat:'int', kind:'ガッツダウン', dist:1, guts:27, dmg:['E',8],  acc:['D',-8],  gd:['A',40], cr:['E',5],  moral:20,   note:'',                    tHit:3.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アクアウィップ',            stat:'pow', kind:'ガッツダウン', dist:2, guts:19, dmg:['E',6],  acc:['D',-9],  gd:['C',29], cr:['E',5],  moral:-20,  note:'',                    tHit:2.3, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超アクアウィップ',          stat:'pow', kind:'ガッツダウン', dist:2, guts:29, dmg:['D',11], acc:['D',-12], gd:['B',39], cr:['E',5],  moral:-30,  note:'アクアウィップ50回',  tHit:4.3, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'キッス',                    stat:'int', kind:'命中',         dist:2, guts:30, dmg:['D',15], acc:['S',15],  gd:['D',14], cr:['E',5],  moral:null, note:'',                    tHit:3.8, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
+    { init:true, name:'アイスクラウド',  stat:'int', kind:'バランス',    dist:2, guts:12, dmg:['D',10], acc:['A',12],  gd:null,     cr:null,     moral:null, note:'',                    tHit:2.8, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アロー',                    stat:'int', kind:'クリティカル', dist:2, guts:18, dmg:['D',15], acc:['B',2],   gd:['E',6],  cr:['B',20], moral:20,   note:'',                    tHit:2.5, tMiss:2.5, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アクアウェイブ',            stat:'int', kind:'命中',         dist:3, guts:19, dmg:['D',12], acc:['S',20],  gd:['E',5],  cr:['E',5],  moral:null, note:'',                    tHit:2.5, tMiss:1.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超アクアウェイブ',          stat:'int', kind:'命中',         dist:3, guts:28, dmg:['C',20], acc:['S',15],  gd:['E',7],  cr:['E',5],  moral:null, note:'アクアウェイブ50回',  tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイスコフィン',            stat:'int', kind:'大ダメージ',   dist:3, guts:30, dmg:['B',38], acc:['E',-15], gd:['D',15], cr:['D',10], moral:null, note:'',                    tHit:3.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイスアロー',              stat:'int', kind:'クリティカル', dist:3, guts:28, dmg:['C',20], acc:['C',0],   gd:['D',12], cr:['A',25], moral:30,   note:'アロー50回',          tHit:4.8, tMiss:3.1, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アイスストーム',            stat:'int', kind:'超必殺',       dist:3, guts:50, dmg:['B',39], acc:['D',-10], gd:['B',39], cr:['E',5],  moral:null, note:'',                    tHit:5.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アクアブラスト',            stat:'int', kind:'超必殺',       dist:3, guts:45, dmg:['C',20], acc:['S',15],  gd:['B',30], cr:['E',5],  moral:null, note:'',                    tHit:2.1, tMiss:2.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'クリスタルアロー',          stat:'int', kind:'超必殺',       dist:4, guts:35, dmg:['B',30], acc:['C',-4],  gd:['D',15], cr:['S',30], moral:50,   note:'アイスアロー50回',    tHit:4.8, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'クリスタルレイン',          stat:'int', kind:'クリティカル', dist:4, guts:34, dmg:['C',23], acc:['B',4],   gd:['E',5],  cr:['B',20], moral:null, note:'',                    tHit:3.8, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超アイスストーム',          stat:'int', kind:'超必殺',       dist:4, guts:55, dmg:['A',49], acc:['E',-15], gd:['A',49], cr:['D',10], moral:null, note:'アイスストーム50回',  tHit:5.1, tMiss:3.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'ヒーリングジェル',          stat:'int', kind:'超必殺',       dist:4, guts:40, dmg:null,     acc:['E',-20], gd:null,     cr:null,     moral:50,   note:'回復力30(B)',         tHit:3.1, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'アクアゲイザー',            stat:'int', kind:'クリティカル', dist:4, guts:16, dmg:['D',11], acc:['C',-2],  gd:['E',7],  cr:['S',30], moral:null, note:'',                    tHit:4.1, tMiss:3.3, mvHit:'', mvMiss:'', rapid:'' },
+    { name:'超アクアブラスト',          stat:'int', kind:'超必殺',       dist:4, guts:50, dmg:['B',30], acc:['A',5],   gd:['A',40], cr:['C',15], moral:null, note:'アクアブラスト50回',  tHit:4.5, tMiss:2.8, mvHit:'', mvMiss:'', rapid:'' },
+  ],
 };
