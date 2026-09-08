@@ -53,7 +53,8 @@ textarea {
 .app {
   max-width: var(--app-width);
   margin: 0 auto;
-  padding: var(--page-gutter) var(--page-gutter) 3rem;
+  /* 上の余白は貼り付いたタブの帯（.topbar）が持っている */
+  padding: 0 var(--page-gutter) 3rem;
 }
 
 /* ===========================================================

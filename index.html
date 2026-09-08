@@ -24,23 +24,31 @@
 </head>
 <body>
 
-<div class="app">
-
-  <!-- ===== 上位タブ ===== -->
-  <div class="tabbar" role="tablist" aria-label="表示の切り替え">
-    <button type="button" class="tabbar__btn" id="tab-monster" role="tab"
-            aria-selected="true" aria-controls="pane-monster"
-            data-action="tab:top" data-tab="monster">モンスター</button>
-    <button type="button" class="tabbar__btn" id="tab-tracker" role="tab"
-            aria-selected="false" aria-controls="pane-tracker"
-            data-action="tab:top" data-tab="tracker">使い込み</button>
-    <button type="button" class="tabbar__btn" id="tab-simulator" role="tab"
-            aria-selected="false" aria-controls="pane-simulator"
-            data-action="tab:top" data-tab="simulator">育成計算</button>
-    <button type="button" class="tabbar__btn" id="tab-reference" role="tab"
-            aria-selected="false" aria-controls="pane-reference"
-            data-action="tab:top" data-tab="reference">早見</button>
+<!-- ===== 上位タブ =====
+     どこまでスクロールしても画面のいちばん上に貼り付いたまま（css/components.css）。
+     .app の外に出してあるのは、貼り付いたときに横いっぱいを覆わせるため
+     （育成計算タブや技の表は広い画面で .app より広がるので、
+       外に出さないと帯の左右から中身が透けてしまう） -->
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="tabbar" role="tablist" aria-label="表示の切り替え">
+      <button type="button" class="tabbar__btn" id="tab-monster" role="tab"
+              aria-selected="true" aria-controls="pane-monster"
+              data-action="tab:top" data-tab="monster">モンスター</button>
+      <button type="button" class="tabbar__btn" id="tab-tracker" role="tab"
+              aria-selected="false" aria-controls="pane-tracker"
+              data-action="tab:top" data-tab="tracker">使い込み</button>
+      <button type="button" class="tabbar__btn" id="tab-simulator" role="tab"
+              aria-selected="false" aria-controls="pane-simulator"
+              data-action="tab:top" data-tab="simulator">育成計算</button>
+      <button type="button" class="tabbar__btn" id="tab-reference" role="tab"
+              aria-selected="false" aria-controls="pane-reference"
+              data-action="tab:top" data-tab="reference">早見</button>
+    </div>
   </div>
+</header>
+
+<div class="app">
 
   <!-- 選択中の種族。早見タブは種族に関係ないので、そのときだけ隠す -->
   <div id="speciesBar" class="species-bar">

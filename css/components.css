@@ -108,6 +108,27 @@ textarea {
   color: var(--color-text-secondary);
 }
 
+/* --- 上位タブの帯（画面のいちばん上に貼り付く） ---
+   スクロールしても動かないので、どこからでもタブを押せる。
+   .app の外に置いてあるので、帯そのものは横いっぱいに広がり、
+   下を流れていく中身（広い画面では .app より広い）を隠しきれる。
+   タブ自体は .app と同じ幅・同じ位置に収める。 */
+.topbar {
+  position: sticky;
+  top: 0;
+  /* 技の表の見出し（z-index 2〜3）より上に置く */
+  z-index: 20;
+  /* 下を流れる中身を透かさないよう、ページの地色でふさぐ */
+  background: var(--color-background-secondary);
+}
+.topbar__inner {
+  max-width: var(--app-width);
+  margin: 0 auto;
+  /* 上は .app の余白ぶん。iPhone のノッチぶんも足しておく */
+  padding: calc(var(--page-gutter) + env(safe-area-inset-top, 0px)) var(--page-gutter)
+    var(--page-gutter);
+}
+
 /* --- 上位タブ（使い込み / 育成計算） --- */
 .tabbar {
   display: flex;
@@ -115,7 +136,6 @@ textarea {
   background: var(--color-background-tertiary);
   border-radius: var(--border-radius-md);
   padding: 3px;
-  margin-bottom: 0.75rem;
 }
 .tabbar__btn {
   flex: 1;
