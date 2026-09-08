@@ -88,7 +88,10 @@ export function allMovesBox() {
 
   return h(
     'section',
-    { class: 'card ref-box ref-box--auto ref-box--moves' },
+    {
+      // 開いているあいだだけ、広い画面で箱の外まで広げる（css/base.css の .wide）
+      class: 'card ref-box ref-box--auto ref-box--moves' + (open ? ' wide' : ''),
+    },
     h(
       'button',
       {

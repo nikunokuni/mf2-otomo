@@ -59,6 +59,10 @@ export function render() {
   const loaded = !!getMoves();
   const count = loaded ? movesOf(state.current).length : null;
 
+  // 開いているあいだだけ、広い画面で横いっぱいに広げる（css/base.css の .wide）。
+  // 畳んでいるときは見出しの1行しかないので、広げると浮いてしまう
+  card.classList.toggle('wide', open);
+
   replace(
     card,
     h(
