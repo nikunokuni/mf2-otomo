@@ -206,6 +206,49 @@ page.once('dialog', d=>d.accept());
 await page.locator('#logArea .log-item').nth(0).locator('[data-action="tracker:delLog"]').click();
 ok((await page.locator('#techBody').textContent()).includes('16/30'),'履歴を消すと 23→16 に戻る（内訳が効いている）');
 
+/* ===== エサとアイテムの名前を短くしたぶんの読み替え ===== */
+console.log('— エサとアイテムの名前の読み替え —');
+// ニクもどき→ニク / カララギマンゴー→マンゴー など。
+// 名前は 好き嫌い・調整ローテの週・早見に保存したローテ の3か所にキーとして入っている
+await page.evaluate(() => {
+  localStorage.clear();
+  localStorage.setItem('monfar_state_v1', JSON.stringify({
+    current:'ピクシー', order:['ピクシー'],
+    mon:{
+      'ピクシー':{ guts:15,
+        feedLike:{'ジャガもどき':'like','ビタミンもどき':'dislike'},
+        rota:{ feeds:['ニクもどき'],
+               weeks:[{item:'カララギマンゴー',act:''},{item:'夏見草',act:'rest'}] } }
+    },
+    rotas:[{ id:'r1', species:'ピクシー', savedAt:'2026-01-05T00:00:00.000Z',
+             weeks:[{label:'1か月目 第1週',feed:'ニクもどき',item:'オイリーオイル',act:'休養'},
+                    {label:'1か月目 第2週',feed:'',item:'ソンナバナナ',act:'休養'}],
+             start:{}, end:{}, life:{age:2,extra:0,total:2} }]
+  }));
+});
+await page.goto(BASE,{waitUntil:'networkidle'});
+const renamedFood = await page.evaluate(()=>{
+  const s = JSON.parse(localStorage.getItem('monfar_state_v1'));
+  const r = s.mon['ピクシー'].rota;
+  return { like:s.mon['ピクシー'].feedLike, feeds:r.feeds,
+           items:r.weeks.map(w=>w.item), saved:s.rotas[0].weeks };
+});
+ok(renamedFood.like['ジャガ']==='like'&&renamedFood.like['ビタミン']==='dislike',
+   '好き嫌いが短い名前に引き継がれる: '+JSON.stringify(renamedFood.like));
+ok(!('ジャガもどき' in renamedFood.like),'古いキーは残らない');
+ok(Object.keys(renamedFood.like).length===6,'エサは6つのまま: '+Object.keys(renamedFood.like).length);
+ok(renamedFood.feeds.join()==='ニク','調整ローテのエサも読み替わる: '+renamedFood.feeds.join());
+// いちばん下の空行は画面が足すぶんなので、入っているものだけを見る
+ok(renamedFood.items.filter(Boolean).join()==='マンゴー,草',
+   '調整ローテのアイテムも読み替わる: '+renamedFood.items.join());
+ok(renamedFood.saved.map(w=>w.item).join()==='油,バナナ',
+   '早見に保存したローテのアイテムも読み替わる: '+renamedFood.saved.map(w=>w.item).join());
+ok(renamedFood.saved[0].feed==='ニク','早見に保存したローテのエサも読み替わる: '+renamedFood.saved[0].feed);
+// 読み替えたあとも計算はそのまま動く（ニク普通 ストレス-6）
+await page.click('#tab-monster');
+ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガ"]').inputValue())==='like',
+   '好き嫌いの欄にも出る');
+
 console.log(`\n合格 ${pass} / 失敗 ${fail}`);
 console.log('コンソールエラー:', errors.length?errors:'なし');
 await browser.close();

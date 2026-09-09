@@ -9,7 +9,8 @@
 
 import { SK } from './data/growth.js';
 import { SKEYS, GOOD_KEYS } from './data/growth.js';
-import { FEEDS, DEFAULT_LIKING } from './data/feeds.js';
+import { FEEDS, DEFAULT_LIKING, RENAMED_FEEDS } from './data/feeds.js';
+import { RENAMED_ITEMS } from './data/items.js';
 import { SPECIES_SPEC } from './data/species-spec.js';
 import { segKey } from './simulator/growth-calc.js';
 
@@ -92,6 +93,31 @@ function renameTechKeys(species, mon) {
     });
     entry.gains = gains;
   });
+}
+
+/**
+ * エサとアイテムの名前を短くしたときの読み替え（js/data/feeds.js / items.js の表）。
+ * 名前は保存データに入るので、読み込みのときにここで新しい名前へ付け替える。
+ *   エサ     mon.feedLike のキー / mon.rota.feeds / 保存したローテの週
+ *   アイテム mon.rota.weeks[].item / 保存したローテの週
+ * 表に無い名前（ユーザーが足したアイテムなど）はそのまま通す。
+ */
+function renamedFeed(name) {
+  return RENAMED_FEEDS[name] || name;
+}
+
+function renamedItem(name) {
+  return RENAMED_ITEMS[name] || name;
+}
+
+/** 好き嫌いのキーを新しいエサ名に付け替える（新しい名前が入っていればそちらを残す） */
+function renameFeedLikeKeys(feedLike) {
+  const out = {};
+  Object.entries(feedLike || {}).forEach(([name, liking]) => {
+    const key = renamedFeed(name);
+    if (out[key] === undefined || name === key) out[key] = liking;
+  });
+  return out;
 }
 
 /** 育成計算の初期値 */
@@ -438,10 +464,11 @@ function normalize(loaded) {
     // タイトルとメモは後から足したので、古い保存ぶんには入っていない（空文字で読む）
     saved.title = String(saved.title || '');
     saved.memo = String(saved.memo || '');
+    // エサとアイテムは名前を短くしたので、古い名前で写っているぶんも読み替える
     saved.weeks = (Array.isArray(saved.weeks) ? saved.weeks : []).map((w) => ({
       label: String((w && w.label) || ''),
-      feed: String((w && w.feed) || ''),
-      item: String((w && w.item) || ''),
+      feed: renamedFeed(String((w && w.feed) || '')),
+      item: renamedItem(String((w && w.item) || '')),
       act: String((w && w.act) || ''),
     }));
     saved.start = Object.assign({}, saved.start || {});
@@ -478,14 +505,18 @@ function normalize(loaded) {
     m.rota.jugs = Number.isFinite(jugs) ? Math.max(0, Math.min(99, jugs)) : JUGS_DEFAULT;
     m.rota.stage = SKEYS.includes(m.rota.stage) ? m.rota.stage : 's1';
     m.rota.weeks = (Array.isArray(m.rota.weeks) ? m.rota.weeks : []).map((w) => ({
-      item: String((w && w.item) || ''),
+      // アイテムは名前を短くしたので、古い名前で入っているぶんは読み替える
+      item: renamedItem(String((w && w.item) || '')),
       // 大会は結果ごとに分かれたので、結果の無い古い 'tc' は「他」として読む
       act: String((w && w.act) === 'tc' ? 'tc:mid' : (w && w.act) || ''),
     }));
-    m.rota.feeds = (Array.isArray(m.rota.feeds) ? m.rota.feeds : []).map((f) => String(f || ''));
+    m.rota.feeds = (Array.isArray(m.rota.feeds) ? m.rota.feeds : []).map((f) =>
+      renamedFeed(String(f || ''))
+    );
     m.rota.title = String(m.rota.title || '');
     m.rota.memo = String(m.rota.memo || '');
-    m.feedLike = Object.assign(defaultFeedLike(), m.feedLike || {});
+    // 好き嫌いはエサ名がキー。名前を短くしたぶんを付け替えてから当てはめる
+    m.feedLike = Object.assign(defaultFeedLike(), renameFeedLikeKeys(m.feedLike));
     m.selected = Array.isArray(m.selected) ? m.selected : [];
     m.progress = m.progress || {};
     m.log = normalizeLog(m.log);

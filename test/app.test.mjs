@@ -509,23 +509,23 @@ console.log('— エサ —');
 const feedRows = page.locator('.feed-table tbody tr');
 ok((await feedRows.count())===6,'エサは6種類: '+(await feedRows.count()));
 const feedNames = await page.locator('.feed-table__name').allTextContents();
-ok(feedNames.join(',')==='ジャガもどき,ミルクもどき,サカナもどき,ゼリーもどき,ニクもどき,ビタミンもどき',
+ok(feedNames.join(',')==='ジャガ,ミルク,サカナ,ゼリー,ニク,ビタミン',
    'エサの並び: '+feedNames.join(','));
-// ジャガもどき普通 = ストレス+4 / 恐れ度+3 / 甘え度-4 / 体型-1
+// ジャガ普通 = ストレス+4 / 恐れ度+3 / 甘え度-4 / 体型-1
 const jaga = () => feedRows.nth(0).locator('td').allTextContents();
-ok((await jaga()).join(',')==='ジャガもどき,普通,+4,+3,-4,-1','普通のジャガもどき: '+(await jaga()).join(','));
+ok((await jaga()).join(',')==='ジャガ,普通,+4,+3,-4,-1','普通のジャガ: '+(await jaga()).join(','));
 ok((await page.locator('.feed-table thead th').allTextContents()).join(',')==='エサ,好み,ストレス,恐れ度,甘え度,体型',
    'エサの表に買値は出さない');
 // 好き嫌いはモンスタータブで変える
 await page.click('#tab-monster');
 ok((await page.locator('.feed-like').count())===6,'モンスタータブに好き嫌いの欄が6つ');
-await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').selectOption('like');
-await page.locator('[data-change="mon:feedLike"][data-name="ビタミンもどき"]').selectOption('dislike');
+await page.locator('[data-change="mon:feedLike"][data-name="ジャガ"]').selectOption('like');
+await page.locator('[data-change="mon:feedLike"][data-name="ビタミン"]').selectOption('dislike');
 await page.click('#tab-simulator');
 await page.click('#subtab-rotation');
-ok((await jaga()).join(',')==='ジャガもどき,好き,0,0,+1,-1','好きにすると効果が変わる: '+(await jaga()).join(','));
+ok((await jaga()).join(',')==='ジャガ,好き,0,0,+1,-1','好きにすると効果が変わる: '+(await jaga()).join(','));
 const vita = await feedRows.nth(5).locator('td').allTextContents();
-ok(vita.join(',')==='ビタミンもどき,嫌い,-10,+2,-1,+3','嫌いのビタミンもどき: '+vita.join(','));
+ok(vita.join(',')==='ビタミン,嫌い,-10,+2,-1,+3','嫌いのビタミン: '+vita.join(','));
 // 体型は好き嫌いで変わらない
 ok((await jaga())[5]==='-1','体型は好き嫌いで変わらない');
 
@@ -534,10 +534,15 @@ const weekRows = page.locator('.rota-table__inputs');
 ok((await weekRows.count())===1,'はじめは空の1行だけ: '+(await weekRows.count()));
 ok((await page.locator('.rota-table__week').first().textContent())==='1か月目 第1週','週の見出し');
 // 1週ぶん入れると次の週の欄が出てくる（上限なし）
-await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOption('カララギマンゴー');
+await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOption('マンゴー');
 ok((await weekRows.count())===2,'入れると次の週が出る: '+(await weekRows.count()));
 await page.locator('[aria-label="1か月目 第2週の行動"]').selectOption('rest');
 ok((await weekRows.count())===3,'行動だけでも次の週が出る');
+// 桃も1週ぶんのアイテムとして選べる（内部数値は動かさない）
+const itemLabels = await page.locator('[aria-label="1か月目 第2週のアイテム"] option').allTextContents();
+ok(itemLabels.includes('黄金桃')&&itemLabels.includes('白銀桃'),
+   '桃をアイテムとして選べる: '+itemLabels.filter(t=>t.endsWith('桃')).join(','));
+ok(!itemLabels.includes('双子の水差し'),'持ち物（水差し）は毎週のアイテムに出さない');
 const actLabels = await page.locator('[aria-label="1か月目 第2週の行動"] option').allTextContents();
 ok(actLabels.filter(t=>t.startsWith('大会')).join(',')==='大会（優勝）,大会（他）,大会（ビリ）',
    '大会は結果ごとに選ぶ: '+actLabels.filter(t=>t.startsWith('大会')).join(','));
@@ -557,8 +562,8 @@ await page.fill('#rotaStart-spoil','50');
 await page.fill('#rotaStart-form','0');
 await page.fill('#rotaStart-moral','0');
 await page.fill('#rotaJugs','2');
-await page.locator('[aria-label="1か月目のエサ"]').selectOption('ニクもどき');
-// ニクもどき(普通) ス-6 甘+4 体+6 → 水差し×2 ス-2 恐+2 → マンゴー 疲-10 恐+1 甘+1 体+1
+await page.locator('[aria-label="1か月目のエサ"]').selectOption('ニク');
+// ニク(普通) ス-6 甘+4 体+6 → 水差し×2 ス-2 恐+2 → マンゴー 疲-10 恐+1 甘+1 体+1
 // 帯は 内部数値6つ + 体調 + 寿命 の順。内部数値だけ取り出す
 const valRow = async (n) =>
   (await page.locator('.rota-table__values').nth(n).locator('.rota-vals__num').allTextContents()).slice(0,6);
@@ -691,8 +696,8 @@ ok((await page.locator('#rotaStage').inputValue())==='s1','成長段階が保存
 ok((await page.locator('[aria-label="1か月目 第3週の行動"]').inputValue())==='tc:win','行動が保存されている');
 console.log('— 早見のローテに保存 —');
 // エサとアイテムも入れた状態で写す
-await page.locator('[aria-label="1か月目のエサ"]').selectOption('ニクもどき');
-await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOption('カララギマンゴー');
+await page.locator('[aria-label="1か月目のエサ"]').selectOption('ニク');
+await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOption('マンゴー');
 // 保存する前の「最初の状態」と「最後の状態」を控えておく
 const startBefore = await page.locator('.rota-start-grid input').evaluateAll(ns=>ns.map(n=>n.value));
 const endBefore = (await page.locator('.rota-table__values').nth(3).locator('.rota-vals__num').allTextContents()).slice(0,6);
@@ -709,8 +714,8 @@ ok((await page.locator('.ref-rota__name').textContent())==='ピクシー（4週�
    'タイトルが空なら種族と週数が見出しに出る: '+(await page.locator('.ref-rota__name').textContent()));
 await page.locator('.ref-rota__head').click();
 const rotaBody = await page.locator('.ref-rota__body').textContent();
-ok(rotaBody.includes('ニクもどき'),'エサが入る');
-ok(rotaBody.includes('カララギマンゴー'),'アイテムが入る');
+ok(rotaBody.includes('ニク'),'エサが入る');
+ok(rotaBody.includes('マンゴー'),'アイテムが入る');
 ok(!rotaBody.includes('エサ:')&&!rotaBody.includes('アイテム:'),
    'エサとアイテムの見出しは出さない');
 ok(rotaBody.includes('大会（優勝）')&&rotaBody.includes('休養'),'行動が入る');
@@ -857,12 +862,12 @@ ok((await page.locator('#memo').inputValue())==='テストメモ123','ピクシ�
 await page.locator('.chip__name', {hasText:'ライガー'}).click();
 ok((await page.locator('#memo').inputValue())==='','ライガーのメモは空');
 // エサの好き嫌いも種族ごとに持つ（ピクシーだけ手で「好き」にしてある）
-ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').inputValue())==='dislike',
+ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガ"]').inputValue())==='dislike',
    'ライガーは自分の種族データのまま（ピクシーの「好き」が移らない）');
 await page.click('#tab-tracker');
 await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 await page.click('#tab-monster');
-ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').inputValue())==='like',
+ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガ"]').inputValue())==='like',
    'ピクシーの好き嫌いは保存されている');
 await page.click('#tab-tracker');
 await page.locator('.chip__name', {hasText:'ライガー'}).click();
@@ -890,7 +895,7 @@ const itemBox = page.locator('.ref-box').nth(1);
 const builtin = await page.locator('.item-row--fixed').count();
 ok(builtin>0,'収録ぶんのアイテムが出る: '+builtin+'件');
 ok((await page.locator('.item-row--fixed').first().locator('input').count())===0,'収録ぶんは編集できない');
-ok((await page.locator('.item-row--fixed').first().textContent()).includes('カララギマンゴー'),'収録ぶんの名前が出る');
+ok((await page.locator('.item-row--fixed').first().textContent()).includes('マンゴー'),'収録ぶんの名前が出る');
 // 自分で足すぶん
 const myName = page.locator('input.item-row__name');
 const myEffect = page.locator('input.item-row__effect');

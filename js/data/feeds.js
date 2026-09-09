@@ -9,7 +9,11 @@
      （モンスタータブ「エサの好き嫌い」→ mon.feedLike）
 
    ★name は保存データのキーです（mon.feedLike のキーになる）。
-     表記を1文字でも変えると、そのエサの好き嫌いの記録が読めなくなります★
+     表記を1文字でも変えると、そのエサの好き嫌いの記録が読めなくなります。
+     変えるときは、下の RENAMED_FEEDS に「旧名 → 新名」を足すこと★
+
+   ゲーム内の名前は「ジャガもどき」のように「もどき」が付くが、
+   画面が狭いので短いほうだけを名前にしている。
 
    内部数値のキーは js/data/items.js の INNER と同じ
      stress ストレス / fear 恐れ度 / spoil 甘え度 / form 体型
@@ -29,7 +33,7 @@ export const DEFAULT_LIKING = 'normal';
 
 export const FEEDS = [
   {
-    name: 'ジャガもどき',
+    name: 'ジャガ',
     form: -1,
     price: 10,
     like: { stress: 0, fear: 0, spoil: 1 },
@@ -37,7 +41,7 @@ export const FEEDS = [
     dislike: { stress: 16, fear: 4, spoil: -10 },
   },
   {
-    name: 'ミルクもどき',
+    name: 'ミルク',
     form: 1,
     price: 50,
     like: { stress: -3, fear: 0, spoil: 3 },
@@ -45,7 +49,7 @@ export const FEEDS = [
     dislike: { stress: 4, fear: -4, spoil: -4 },
   },
   {
-    name: 'サカナもどき',
+    name: 'サカナ',
     form: 2,
     price: 100,
     like: { stress: -6, fear: 0, spoil: 3 },
@@ -53,7 +57,7 @@ export const FEEDS = [
     dislike: { stress: 2, fear: 1, spoil: -2 },
   },
   {
-    name: 'ゼリーもどき',
+    name: 'ゼリー',
     form: -3,
     price: 150,
     like: { stress: -7, fear: 1, spoil: 2 },
@@ -61,7 +65,7 @@ export const FEEDS = [
     dislike: { stress: 1, fear: 1, spoil: -1 },
   },
   {
-    name: 'ニクもどき',
+    name: 'ニク',
     form: 6,
     price: 300,
     like: { stress: -8, fear: 0, spoil: 6 },
@@ -69,7 +73,7 @@ export const FEEDS = [
     dislike: { stress: 0, fear: 1, spoil: 1 },
   },
   {
-    name: 'ビタミンもどき',
+    name: 'ビタミン',
     form: 3,
     price: 500,
     like: { stress: -15, fear: 2, spoil: 6 },
@@ -77,6 +81,20 @@ export const FEEDS = [
     dislike: { stress: -10, fear: 2, spoil: -1 },
   },
 ];
+
+/**
+ * エサの名前を短くしたときの読み替え表（旧名 → 新名）。
+ * 名前は保存データのキーなので、読み込みのときに store.js が付け替える。
+ * 何度通しても同じ結果になるので、保存し直すまで残っていても問題ない。
+ */
+export const RENAMED_FEEDS = {
+  ジャガもどき: 'ジャガ',
+  ミルクもどき: 'ミルク',
+  サカナもどき: 'サカナ',
+  ゼリーもどき: 'ゼリー',
+  ニクもどき: 'ニク',
+  ビタミンもどき: 'ビタミン',
+};
 
 /**
  * そのモンスターの好き嫌いを当てはめた、エサ1つぶんの実際の効果。
