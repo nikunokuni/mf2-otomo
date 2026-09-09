@@ -376,10 +376,10 @@ eq(R.totalFeedPrice(['ニク','ゼリー'],4),300,'4週なら1か月ぶんだけ
 const base={form:0,moral:0,stress:20,fatigue:20,fear:50,spoil:50};
 const act=(a,over={},stage='s1')=>R.applyAct({...base,...over},a,0,stage);
 
-// トレーニング
-eq([act('light:0').fatigue,act('light:0').stress],[30,25],'軽トレ 疲労+10 ストレス+5');
-eq([act('heavy:0').fatigue,act('heavy:0').stress],[35,32],'重トレ 疲労+15 ストレス+12');
-// 軽トレ6種・重トレ4種はどれも同じ内部数値
+// トレーニング（調整ローテでは種類で分けず「重」「軽」だけ）
+eq([act('light').fatigue,act('light').stress],[30,25],'軽トレ 疲労+10 ストレス+5');
+eq([act('heavy').fatigue,act('heavy').stress],[35,32],'重トレ 疲労+15 ストレス+12');
+// 軽トレ6種・重トレ4種はどれも同じ内部数値（古い保存データの形も同じものとして読む）
 eq([0,1,2,3,4,5].every(i=>act(`light:${i}`).fatigue===30),true,'軽トレはどれも同じ');
 eq([0,1,2,3].every(i=>act(`heavy:${i}`).stress===32),true,'重トレはどれも同じ');
 

@@ -135,7 +135,8 @@ export function applyItem(values, itemName, initMoral, species) {
 
 /**
  * 行動1回ぶん。
- *   act   'light:N' / 'heavy:N' / 'rest' / 'mc' / 'ac' / 'tc:win' / 'tc:mid' / 'tc:last'
+ *   act   'light' / 'heavy' / 'rest' / 'mc' / 'ac' / 'tc:win' / 'tc:mid' / 'tc:last'
+ *         （古い保存データの 'light:2' のような形も同じものとして読む）
  *   stage 成長段階のキー（休養の効き方が変わる）
  * 大会だけは、そのときの体型で疲労が変わり、そのあとストレスが0になる。
  */
@@ -169,8 +170,10 @@ export function applyAct(values, act, initMoral, stage = 's1') {
   // 修行は出かけているあいだ、毎週たまる
   if (act === 'mc') return applyInner(values, { inner: TRAINING_CAMP }, initMoral);
 
-  if (act.startsWith('light:')) return applyInner(values, { inner: TRAIN_LIGHT }, initMoral);
-  if (act.startsWith('heavy:')) return applyInner(values, { inner: TRAIN_HEAVY }, initMoral);
+  // トレーニングは種類で内部数値の動きが変わらないので、重と軽だけを見る。
+  // 昔は種類ごとに 'light:2' のような値で入れていたので、その形も受ける
+  if (act.startsWith('light')) return applyInner(values, { inner: TRAIN_LIGHT }, initMoral);
+  if (act.startsWith('heavy')) return applyInner(values, { inner: TRAIN_HEAVY }, initMoral);
 
   return { ...values };
 }

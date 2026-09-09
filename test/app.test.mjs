@@ -546,6 +546,9 @@ ok(!itemLabels.includes('双子の水差し'),'持ち物（水差し）は毎週
 const actLabels = await page.locator('[aria-label="1か月目 第2週の行動"] option').allTextContents();
 ok(actLabels.filter(t=>t.startsWith('大会')).join(',')==='大会（優勝）,大会（他）,大会（ビリ）',
    '大会は結果ごとに選ぶ: '+actLabels.filter(t=>t.startsWith('大会')).join(','));
+// トレーニングは種類で分けず、重と軽のひとまとめ
+ok(actLabels.join(',')==='なし,重,軽,休養,大会（優勝）,大会（他）,大会（ビリ）,修行,冒険',
+   '行動の選択肢: '+actLabels.join(','));
 for(const w of ['1か月目 第3週','1か月目 第4週']) await page.locator(`[aria-label="${w}の行動"]`).selectOption('rest');
 ok((await weekRows.count())===5,'4週を超えると2か月目に入る');
 ok((await page.locator('.rota-table__week').last().textContent())==='2か月目 第1週','5行目は2か月目 第1週');
@@ -586,7 +589,7 @@ await page.fill('#rotaStart-fatigue','0');
 await page.locator('[aria-label="1か月目のエサ"]').selectOption('');
 await page.fill('#rotaJugs','0');
 await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOption('');
-await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('heavy:0');
+await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('heavy');
 const cond = (n) => page.locator(`#rotaCond-${n}`).textContent();
 const lifeOf = (n) => page.locator(`#rotaLife-${n}`).textContent();
 ok((await valRow(0)).slice(0,2).join(',')==='15,12','重トレで疲労+15 ストレス+12');
@@ -634,7 +637,7 @@ await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('t
 // 大会は 週経過1 + 体調値ぶん + 大会ぶん3
 const tcTitle = await page.locator('#rotaLifeCell-0').getAttribute('title');
 ok(/大会 -(3|6)/.test(tcTitle),'大会ぶんが内訳に出る: '+tcTitle);
-await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('heavy:0');
+await page.locator('[aria-label="1か月目 第1週の行動"]').selectOption('heavy');
 // 取りやめると残りの3週も空く
 await page.locator('[aria-label="1か月目 第4週の行動"]').selectOption('rest');
 const afterCancel = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));

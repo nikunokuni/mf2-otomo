@@ -218,7 +218,8 @@ await page.evaluate(() => {
       'ピクシー':{ guts:15,
         feedLike:{'ジャガもどき':'like','ビタミンもどき':'dislike'},
         rota:{ feeds:['ニクもどき'],
-               weeks:[{item:'カララギマンゴー',act:''},{item:'夏見草',act:'rest'}] } }
+               weeks:[{item:'カララギマンゴー',act:'heavy:2'},{item:'夏見草',act:'light:5'},
+                      {item:'',act:'tc'}] } }
     },
     rotas:[{ id:'r1', species:'ピクシー', savedAt:'2026-01-05T00:00:00.000Z',
              weeks:[{label:'1か月目 第1週',feed:'ニクもどき',item:'オイリーオイル',act:'休養'},
@@ -231,7 +232,8 @@ const renamedFood = await page.evaluate(()=>{
   const s = JSON.parse(localStorage.getItem('monfar_state_v1'));
   const r = s.mon['ピクシー'].rota;
   return { like:s.mon['ピクシー'].feedLike, feeds:r.feeds,
-           items:r.weeks.map(w=>w.item), saved:s.rotas[0].weeks };
+           items:r.weeks.map(w=>w.item), acts:r.weeks.map(w=>w.act),
+           saved:s.rotas[0].weeks };
 });
 ok(renamedFood.like['ジャガ']==='like'&&renamedFood.like['ビタミン']==='dislike',
    '好き嫌いが短い名前に引き継がれる: '+JSON.stringify(renamedFood.like));
@@ -244,6 +246,14 @@ ok(renamedFood.items.filter(Boolean).join()==='マンゴー,草',
 ok(renamedFood.saved.map(w=>w.item).join()==='油,バナナ',
    '早見に保存したローテのアイテムも読み替わる: '+renamedFood.saved.map(w=>w.item).join());
 ok(renamedFood.saved[0].feed==='ニク','早見に保存したローテのエサも読み替わる: '+renamedFood.saved[0].feed);
+// 重トレ・軽トレは種類でまとめたので、古い 'heavy:2' などは 'heavy' / 'light' として読む
+ok(renamedFood.acts.slice(0,3).join()==='heavy,light,tc:mid',
+   'トレーニングの種類は重・軽にまとまる（大会も結果ありに）: '+renamedFood.acts.join());
+await page.click('#tab-simulator');
+await page.click('#subtab-rotation');
+const oldActs = await page.locator('[aria-label$="の行動"]').evaluateAll(ns=>ns.map(n=>n.value));
+ok(oldActs.slice(0,3).join()==='heavy,light,tc:mid','古い行動も欄に出る: '+oldActs.join());
+
 // 読み替えたあとも計算はそのまま動く（ニク普通 ストレス-6）
 await page.click('#tab-monster');
 ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガ"]').inputValue())==='like',

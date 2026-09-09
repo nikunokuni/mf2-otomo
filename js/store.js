@@ -110,6 +110,20 @@ function renamedItem(name) {
   return RENAMED_ITEMS[name] || name;
 }
 
+/**
+ * 調整ローテの1週ぶんの行動を、いまの形にそろえる（mon.rota.weeks[].act）。
+ *   ・大会は結果ごとに分かれたので、結果の無い古い 'tc' は「他」として読む
+ *   ・重トレ4種・軽トレ6種は内部数値の動きが同じなので「重」「軽」に
+ *     まとめた。古い 'heavy:2' のような形は 'heavy' / 'light' として読む
+ */
+function normalizeRotaAct(act) {
+  const key = String(act || '');
+  if (key === 'tc') return 'tc:mid';
+  if (key.startsWith('heavy')) return 'heavy';
+  if (key.startsWith('light')) return 'light';
+  return key;
+}
+
 /** 好き嫌いのキーを新しいエサ名に付け替える（新しい名前が入っていればそちらを残す） */
 function renameFeedLikeKeys(feedLike) {
   const out = {};
@@ -507,8 +521,7 @@ function normalize(loaded) {
     m.rota.weeks = (Array.isArray(m.rota.weeks) ? m.rota.weeks : []).map((w) => ({
       // アイテムは名前を短くしたので、古い名前で入っているぶんは読み替える
       item: renamedItem(String((w && w.item) || '')),
-      // 大会は結果ごとに分かれたので、結果の無い古い 'tc' は「他」として読む
-      act: String((w && w.act) === 'tc' ? 'tc:mid' : (w && w.act) || ''),
+      act: normalizeRotaAct(w && w.act),
     }));
     m.rota.feeds = (Array.isArray(m.rota.feeds) ? m.rota.feeds : []).map((f) =>
       renamedFeed(String(f || ''))

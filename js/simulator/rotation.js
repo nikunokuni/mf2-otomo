@@ -36,7 +36,7 @@
 
 import { INNER, ITEMS } from '../data/items.js';
 import { FEEDS, LIKING_LABEL, feedEffect } from '../data/feeds.js';
-import { HEAVY4, LIGHT6, STAGES, SKEYS } from '../data/growth.js';
+import { STAGES, SKEYS } from '../data/growth.js';
 import { TOURNAMENT } from '../data/acts.js';
 import { save, currentMon, state, defaultRota, addSavedRota } from '../store.js';
 import { el, h, replace, clampInt } from '../dom.js';
@@ -72,11 +72,16 @@ const TRACK_KEYS = [
   ['moral', 'ヨ'],
 ];
 
-/** 1週に選べる行動。値は保存データに入るので変えないこと */
+/**
+ * 1週に選べる行動。値は保存データに入るので変えないこと。
+ * 重トレ4種・軽トレ6種は内部数値の動き方が種類によらず同じなので、
+ * ここでは「重」「軽」のひとまとめにしている
+ * （どのトレーニングをするかは育成計画タブで組む）。
+ */
 const ACTS = [
   ['', 'なし'],
-  ...HEAVY4.map((t, i) => [`heavy:${i}`, `重・${t.name}`]),
-  ...LIGHT6.map((t, i) => [`light:${i}`, `軽・${t.name}`]),
+  ['heavy', '重'],
+  ['light', '軽'],
   ['rest', '休養'],
   ...Object.entries(TOURNAMENT).map(([key, t]) => [`tc:${key}`, `大会（${t.label}）`]),
   ['mc', '修行'],
