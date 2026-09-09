@@ -6,7 +6,8 @@
    だから種族チップの帯も、このタブでは隠している（js/tabs.js）。
 
    ・ローテ … 調整ローテ（育成計算タブ）で「早見のローテに保存」を押したぶんが並ぶ。
-     エサ・アイテム・行動と、最初と最後の内部数値、減る寿命の合計を
+     保存するときに入れたタイトルとメモ、エサ・アイテム・行動と、
+     最初と最後の内部数値、減る寿命の合計を
      写したもの（state.rotas）で、写したあとは動かない。アプリ側であらかじめ入れておくぶんは
      js/data/reference-data.js の ROTATION に書く。
    ・合体素材 … アプリ側のデータを表示する。
@@ -117,16 +118,27 @@ function lifeRow(life) {
   });
 }
 
-/** 1週ぶん。エサ・アイテム・行動を、入っているものだけ並べる */
+/**
+ * 週の見出し。「〇か月目」は月の変わり目（第1週）にだけ出し、
+ * 第2週から第4週は「第2週」だけにする（同じ月が続くので読みやすい）。
+ * 保存ずみのぶんは文言そのままで写っているので、ここで削る。
+ */
+function shortWeekLabel(label) {
+  const text = String(label || '');
+  if (text.includes('第1週')) return text;
+  return text.replace(/^\d+か月目\s*/, '');
+}
+
+/**
+ * 1週ぶん。エサ・アイテム・行動を、入っているものだけ並べる。
+ * 「エサ」「アイテム」の見出しは付けない（並びで分かる）。
+ */
 function savedWeekRow(week) {
-  const parts = [];
-  if (week.feed) parts.push(`エサ:${week.feed}`);
-  if (week.item) parts.push(`アイテム:${week.item}`);
-  if (week.act) parts.push(week.act);
+  const parts = [week.feed, week.item, week.act].filter(Boolean);
   return h(
     'div',
     { class: 'ref-row' },
-    h('span', { class: 'ref-row__name', text: week.label }),
+    h('span', { class: 'ref-row__name', text: shortWeekLabel(week.label) }),
     h('span', { class: 'ref-row__detail', text: parts.length ? parts.join(' / ') : 'なし' })
   );
 }
@@ -134,9 +146,12 @@ function savedWeekRow(week) {
 /**
  * 保存した調整ローテ1件ぶん。
  * 週数がまちまちなので、たたんでおいて押したときだけ中身を出す。
+ * 見出しは保存するときに入れたタイトル。入れていなければ種族名を出す。
+ * メモは入っているときだけ、最初の状態の上に出す。
  */
 function savedRotaCard(saved) {
   const stamp = savedAtText(saved.savedAt);
+  const name = saved.title || saved.species || '調整ローテ';
   return h(
     'details',
     { class: 'ref-rota' },
@@ -145,13 +160,14 @@ function savedRotaCard(saved) {
       { class: 'ref-rota__head' },
       h('span', {
         class: 'ref-rota__name',
-        text: `${saved.species || '調整ローテ'}（${saved.weeks.length}週）`,
+        text: `${name}（${saved.weeks.length}週）`,
       }),
       stamp ? h('span', { class: 'ref-rota__date', text: stamp }) : null
     ),
     h(
       'div',
       { class: 'ref-rota__body' },
+      saved.memo ? h('div', { class: 'ref-rota__memo', text: saved.memo }) : null,
       stateRow('最初の状態', saved.start),
       ...saved.weeks.map(savedWeekRow),
       stateRow('最後の状態', saved.end),

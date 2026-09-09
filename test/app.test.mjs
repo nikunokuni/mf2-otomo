@@ -697,17 +697,28 @@ await page.locator('[aria-label="1か月目 第1週のアイテム"]').selectOpt
 const startBefore = await page.locator('.rota-start-grid input').evaluateAll(ns=>ns.map(n=>n.value));
 const endBefore = (await page.locator('.rota-table__values').nth(3).locator('.rota-vals__num').allTextContents()).slice(0,6);
 const lifeBefore = (await page.locator('#rotaLifeTotal').textContent()).trim();
+// タイトルとメモは空のまま保存できる（タイトルが空なら種族名で入る）
+ok((await page.locator('#rotaTitle').inputValue())==='','タイトルははじめ空');
+ok((await page.locator('#rotaTitle').getAttribute('placeholder'))==='ピクシー',
+   'タイトルが空のときの目安に種族名を出す');
+ok((await page.locator('#rotaMemo').inputValue())==='','メモははじめ空');
 await page.click('[data-action="rota:save"]');
 await page.click('#tab-reference');
 ok((await page.locator('.ref-rota').count())===1,'早見のローテに1件入る');
 ok((await page.locator('.ref-rota__name').textContent())==='ピクシー（4週）',
-   '種族と週数が見出しに出る: '+(await page.locator('.ref-rota__name').textContent()));
+   'タイトルが空なら種族と週数が見出しに出る: '+(await page.locator('.ref-rota__name').textContent()));
 await page.locator('.ref-rota__head').click();
 const rotaBody = await page.locator('.ref-rota__body').textContent();
-ok(rotaBody.includes('エサ:ニクもどき'),'エサが入る');
-ok(rotaBody.includes('アイテム:カララギマンゴー'),'アイテムが入る');
+ok(rotaBody.includes('ニクもどき'),'エサが入る');
+ok(rotaBody.includes('カララギマンゴー'),'アイテムが入る');
+ok(!rotaBody.includes('エサ:')&&!rotaBody.includes('アイテム:'),
+   'エサとアイテムの見出しは出さない');
 ok(rotaBody.includes('大会（優勝）')&&rotaBody.includes('休養'),'行動が入る');
-ok(rotaBody.includes('1か月目 第1週')&&rotaBody.includes('1か月目 第4週'),'組んだ4週ぶんが並ぶ');
+ok(rotaBody.includes('1か月目 第1週'),'月初めの週には「〇か月目」を出す');
+const savedWeekNames = await page.locator('.ref-rota__body .ref-row__name').allTextContents();
+ok(savedWeekNames.join(',')==='1か月目 第1週,第2週,第3週,第4週',
+   '第2週からは「〇か月目」を出さない: '+savedWeekNames.join(','));
+ok((await page.locator('.ref-rota__memo').count())===0,'メモが空なら欄を出さない');
 ok(!rotaBody.includes('2か月目'),'まだ組んでいない「次の週」は入らない');
 ok((await page.locator('.ref-rota__life').textContent())===lifeBefore,
    '減る寿命の合計が調整ローテと同じ形で入る: '+(await page.locator('.ref-rota__life').textContent()));
@@ -725,6 +736,33 @@ ok(savedStates[1]===`体型 ${efo} / ヨイワル ${em} / ストレス ${es} / �
 await page.reload({waitUntil:'networkidle'});
 ok((await page.locator('.ref-rota').count())===1,'保存したローテは残る（再読込しても消えない）');
 
+console.log('— タイトルとメモを付けて保存 —');
+await page.click('#tab-simulator');
+await page.click('#subtab-rotation');
+await page.fill('#rotaTitle','大会前の調整');
+await page.fill('#rotaMemo','疲労を抜いてから出す');
+await page.click('[data-action="rota:save"]');
+await page.click('#tab-reference');
+ok((await page.locator('.ref-rota').count())===2,'2件目が入る');
+const titled = page.locator('.ref-rota').nth(0);
+ok((await titled.locator('.ref-rota__name').textContent())==='大会前の調整（4週）',
+   '入れたタイトルが見出しに出る: '+(await titled.locator('.ref-rota__name').textContent()));
+await titled.locator('.ref-rota__head').click();
+ok((await titled.locator('.ref-rota__memo').textContent())==='疲労を抜いてから出す','メモが入る');
+const firstLines = await titled.locator('.ref-rota__body > *').evaluateAll(ns=>ns.map(n=>n.className));
+ok(firstLines[0]==='ref-rota__memo'&&firstLines[1]==='ref-rota__state',
+   'メモは最初の状態の上に出る: '+firstLines.slice(0,2).join(','));
+// 入れたタイトルとメモは、保存したあとも調整ローテ側に残る
+await page.click('#tab-simulator');
+ok((await page.locator('#rotaTitle').inputValue())==='大会前の調整','タイトルは打ち直さなくてよい');
+ok((await page.locator('#rotaMemo').inputValue())==='疲労を抜いてから出す','メモも残る');
+// 消したぶんは早見に並んでいるものには効かない
+await page.click('#tab-reference');
+await page.locator('.ref-rota__head').first().click();
+page.once('dialog',d=>d.accept());
+await page.locator('[data-action="ref:delRota"]').first().click();
+ok((await page.locator('.ref-rota').count())===1,'タイトル付きのぶんを消しても、はじめのぶんは残る');
+
 console.log('— 調整ローテのリセット —');
 await page.click('#tab-simulator');
 await page.click('#subtab-rotation');
@@ -736,6 +774,8 @@ ok((await page.locator('[aria-label="1か月目 第1週の行動"]').inputValue(
 ok((await page.locator('[aria-label="1か月目 第1週のアイテム"]').inputValue())==='','アイテムが消える');
 ok((await page.locator('[aria-label="1か月目のエサ"]').inputValue())==='','エサも消える');
 ok((await page.locator('#rotaJugs').inputValue())==='6','双子の水差しの所持数もはじめの6個に戻る');
+ok((await page.locator('#rotaTitle').inputValue())==='','タイトルも消える');
+ok((await page.locator('#rotaMemo').inputValue())==='','メモも消える');
 const startAfter = await page.locator('.rota-start-grid input').evaluateAll(ns=>ns.map(n=>n.value));
 // ヨイワルだけは初期ヨイワル(-35)から±100なので 100→65 に収まる
 ok(startAfter.join(',')==='-100,65,0,0,100,100','開始時点の内部数値もはじめの値に戻る: '+startAfter.join(','));

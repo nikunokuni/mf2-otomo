@@ -161,6 +161,10 @@ export function defaultRota() {
     // feeds[m] = mか月目（0はじまり）のエサ名。1か月は4週で、月初めに1回効く
     weeks: [],
     feeds: [],
+    // 早見のローテに保存するときに付ける見出しとメモ。どちらも空白でよい
+    // （タイトルが空なら種族名で入る）
+    title: '',
+    memo: '',
   };
 }
 
@@ -200,6 +204,8 @@ export function defaultItem() {
  * 調整ローテそのもの（mon.rota）は種族ごとだが、保存したぶんは
  * 早見タブに並ぶので種族に関係なく全体で1つ持つ。中身は写した時点のまま動かない。
  *   species 写したときの種族名
+ *   title   保存するときに入れた見出し（空なら種族名を出す）
+ *   memo    保存するときに入れたメモ（空でよい。最初の状態の上に出る）
  *   savedAt 写した日時（ISO文字列）
  *   weeks   [{ label, feed, item, act }]（act は画面に出ていた文言のまま）
  *   start   最初の状態（内部数値全部）
@@ -210,6 +216,8 @@ export function defaultSavedRota() {
   return {
     id: newRotaId(),
     species: '',
+    title: '',
+    memo: '',
     savedAt: '',
     weeks: [],
     start: {},
@@ -427,6 +435,9 @@ function normalize(loaded) {
   );
   s.rotas = (Array.isArray(s.rotas) ? s.rotas : []).map((r) => {
     const saved = Object.assign(defaultSavedRota(), r && typeof r === 'object' ? r : {});
+    // タイトルとメモは後から足したので、古い保存ぶんには入っていない（空文字で読む）
+    saved.title = String(saved.title || '');
+    saved.memo = String(saved.memo || '');
     saved.weeks = (Array.isArray(saved.weeks) ? saved.weeks : []).map((w) => ({
       label: String((w && w.label) || ''),
       feed: String((w && w.feed) || ''),
@@ -472,6 +483,8 @@ function normalize(loaded) {
       act: String((w && w.act) === 'tc' ? 'tc:mid' : (w && w.act) || ''),
     }));
     m.rota.feeds = (Array.isArray(m.rota.feeds) ? m.rota.feeds : []).map((f) => String(f || ''));
+    m.rota.title = String(m.rota.title || '');
+    m.rota.memo = String(m.rota.memo || '');
     m.feedLike = Object.assign(defaultFeedLike(), m.feedLike || {});
     m.selected = Array.isArray(m.selected) ? m.selected : [];
     m.progress = m.progress || {};

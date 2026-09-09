@@ -161,6 +161,17 @@
   color: var(--color-ng);
 }
 
+/* --- 調整ローテ：保存するときのタイトルとメモ --- */
+.rota-save-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.rota-save-fields textarea {
+  min-height: 60px;
+}
+
 /* --- 調整ローテ：保存とリセット --- */
 .rota-actions {
   display: flex;

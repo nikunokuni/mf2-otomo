@@ -20,10 +20,12 @@
    出かける週にはエサが間に合う（冒険はアイテムだけ使えない）。
    2〜4週目はエサもアイテムも無し。帰ってきた週からはふつうに戻る。
 
-   いちばん下に「早見のローテに保存」と「リセット」を置いてある。
+   いちばん下に「タイトル / メモ」の欄と、「早見のローテに保存」と「リセット」を
+   置いてある。
    保存すると、組んだ内容（エサ・アイテム・行動と、最初と最後の内部数値、
-   それに減る寿命の合計）を
-   写して早見タブの「ローテ」に並べる（state.rotas）。写したあとは動かない。
+   それに減る寿命の合計）に、入れたタイトルとメモを添えて
+   写し、早見タブの「ローテ」に並べる（state.rotas）。写したあとは動かない。
+   タイトルもメモも空でよく、タイトルが空なら早見側に種族名で並ぶ。
    リセットは、この画面に入れたものを全部 defaultRota() に戻す。
 
    アイテムの効果そのものを思い出したいときは早見タブを見る
@@ -543,8 +545,12 @@ function startValues() {
  */
 function snapshot(rows) {
   const last = rows[rows.length - 1];
+  const r = rota();
   return {
     species: state.current,
+    // 入れていなければ空のまま写す（早見側で種族名を出す）
+    title: (r.title || '').trim(),
+    memo: (r.memo || '').trim(),
     savedAt: new Date().toISOString(),
     start: startValues(),
     end: { ...last.values },
@@ -558,10 +564,49 @@ function snapshot(rows) {
   };
 }
 
+/**
+ * 保存するときに付けるタイトルとメモ。
+ * どちらも空でよく、タイトルが空なら早見側に種族名で並ぶ。
+ * 入れたものは mon.rota に残るので、保存し直すときに打ち直さなくてよい。
+ */
+function saveFields() {
+  const r = rota();
+  return h(
+    'div',
+    { class: 'rota-save-fields' },
+    h(
+      'div',
+      { class: 'field' },
+      h('label', { attrs: { for: 'rotaTitle' }, text: 'タイトル' }),
+      h('input', {
+        type: 'text',
+        id: 'rotaTitle',
+        value: r.title || '',
+        placeholder: state.current || '',
+        dataset: { input: 'rota:title' },
+        attrs: { 'aria-label': '保存するローテのタイトル' },
+      })
+    ),
+    h(
+      'div',
+      { class: 'field' },
+      h('label', { attrs: { for: 'rotaMemo' }, text: 'メモ' }),
+      h('textarea', {
+        id: 'rotaMemo',
+        value: r.memo || '',
+        placeholder: '空白でも保存できます',
+        dataset: { input: 'rota:memo' },
+        attrs: { 'aria-label': '保存するローテのメモ' },
+      })
+    )
+  );
+}
+
 function actionSection() {
   return h(
     'div',
     { class: 'sim-section' },
+    saveFields(),
     h(
       'div',
       { class: 'rota-actions' },
@@ -694,6 +739,21 @@ export const inputActions = {
     if (!r) return;
     r.jugs = clampInt(target.value, 0, 99, 0);
     refreshValues();
+    save();
+  },
+
+  // 保存するときのタイトルとメモ。数値には関わらないので覚えるだけ
+  'rota:title': (target) => {
+    const r = rota();
+    if (!r) return;
+    r.title = target.value;
+    save();
+  },
+
+  'rota:memo': (target) => {
+    const r = rota();
+    if (!r) return;
+    r.memo = target.value;
     save();
   },
 };
