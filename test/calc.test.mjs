@@ -70,6 +70,17 @@ for(const g of GT) for(let life=100;life<=600;life+=7){
   }
 }
 
+/* ---- 年齢（実際の経過週が48週たつごとに1歳。育成開始は0歳） ---- */
+eq(N.ageYears(0),0,'育成開始は0歳');
+eq(N.ageYears(47),0,'47週目はまだ0歳');
+eq(N.ageYears(48),1,'48週で1歳');
+eq(N.ageYears(95),1,'95週目はまだ1歳');
+eq(N.ageYears(96),2,'96週で2歳');
+eq(N.ageYears(288),6,'288週で6歳');
+// 暦の年（weekToDate の year）は開始月週を含むので、年齢とは別物
+eq(N.weekToDate(12,4,1).year,1,'12月4週から1週で暦は次の年に入る');
+eq(N.ageYears(1),0,'それでも年齢は0歳のまま');
+
 // 桃の区間は「選んだ段階の開始から前へ」ではなく「開始からうしろへ extra 週」
 for(const g of GT) for(let life=100;life<=600;life+=17) for(const si of [0,2,4,5,9]) for(const [pi,ex] of [[0,50],[1,25]]){
   const base=N.calcStageWeeks(life,g);

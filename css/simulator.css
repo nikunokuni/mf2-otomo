@@ -255,8 +255,9 @@
   vertical-align: middle;
   text-align: center;
 }
+/* 「1段階 / 15/15週 / 0歳11月3週」の3行が入る幅 */
 .plan-table .stage-cell {
-  min-width: 74px;
+  min-width: 86px;
 }
 .stage-name {
   display: block;
@@ -296,12 +297,14 @@
   text-align: center;
   color: var(--color-warn);
 }
-/* その段階が始まる時期（○月◎週） */
+/* その段階が始まる時期（〇歳○月◎週） */
 .stage-date {
   display: block;
   font-size: 10px;
   text-align: center;
   color: var(--color-text-tertiary);
+  /* 「0歳11月3週」でも折り返さない（折り返すと行の高さが揃わない） */
+  white-space: nowrap;
 }
 
 .plan-table select,

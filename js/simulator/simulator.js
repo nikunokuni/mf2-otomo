@@ -22,6 +22,7 @@ import {
   validatePlan,
   peachExtra,
   weekToDate,
+  ageYears,
   heavyGain,
   lightGain,
   tripGain,
@@ -208,11 +209,14 @@ function setCell(seg, idx) {
   );
 }
 
-/** 段階が始まる時期。「○月◎週」で出す（分からないときは空） */
+/**
+ * 段階が始まる時期。「〇歳○月◎週」で出す（分からないときは空）。
+ * 年齢は実際の経過週から出すので、桃で若返る行でも増え続ける（growth-calc.js）。
+ */
 function stageDateLabel(s, offset) {
   if (offset === null || offset === undefined) return '';
   const d = weekToDate(s.month, s.week, offset);
-  return `${d.month}月${d.week}週`;
+  return `${ageYears(offset)}歳${d.month}月${d.week}週`;
 }
 
 /** 桃を与える行の見出し。挟み込む位置がそのままタイミングになる */
@@ -241,7 +245,7 @@ function planTable(layout) {
   const s = sim();
   const head = h('thead', {},
     h('tr', {},
-      h('th', { style: 'width:78px', text: '段階(週数)' }),
+      h('th', { style: 'width:90px', text: '段階(週数)' }),
       h('th', { class: 'col-set', text: 'セット' }),
       h('th', { class: 'col-train', text: '重トレ' }),
       h('th', { class: 'col-num', text: '回/月' }),

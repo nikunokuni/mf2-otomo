@@ -357,7 +357,7 @@ ok(rows.filter(r=>r.weeks).map(r=>r.weeks).join(',')
 const peachHead = rows.find(r=>r.head).text;
 ok(peachHead.includes('黄金桃（+50週）を与える'),'与える桃の見出しが挟まる: '+peachHead);
 ok(peachHead.includes('通算201週目'),'通算の週目が出る: '+peachHead);
-ok(/\d+月[1-4]週/.test(peachHead),'与える時期（○月◎週）も出る: '+peachHead);
+ok(/\d+歳\d+月[1-4]週/.test(peachHead),'与える時期（〇歳○月◎週）も出る: '+peachHead);
 // 白銀桃も足すと、年齢の早いほう（通算176週目）が先に挟まる
 await page.locator('[data-change="sim:peach"][data-pi="1"][data-field="use"]').check();
 await page.waitForFunction(()=>document.querySelectorAll('.plan-row--peach-head').length===2);
@@ -420,8 +420,8 @@ ok((await page.locator('#simMonth option').count())===12,'開始月は12か月�
 ok(await page.locator('.sim-start #planApt').count()===1,'成長適正も育成開始と同じ行にある');
 await page.selectOption('#simMonth','4');
 await page.selectOption('#simWeek','1');
-// 選び直したら、表の「○月◎週」もその場で変わる
-ok((await page.locator('.plan-table .stage-date').first().textContent())==='4月1週',
+// 選び直したら、表の「〇歳○月◎週」もその場で変わる
+ok((await page.locator('.plan-table .stage-date').first().textContent())==='0歳4月1週',
    '開始を変えるとすぐ日付が変わる: '+(await page.locator('.plan-table .stage-date').first().textContent()));
 await page.click('#tab-monster');
 await page.selectOption('#simLife','300');
@@ -429,10 +429,14 @@ await page.selectOption('#simGtype','futsuu');
 await page.click('#tab-simulator');
 await page.waitForSelector('.plan-table .stage-date');
 const dates = await page.locator('.plan-table').first().locator('.stage-date').allTextContents();
-ok(dates[0]==='4月1週','1段階は育成開始と同じ: '+dates[0]);
-// 寿命300・普通型なら 1段階30週 → 2段階は30週後 = 11月3週
-ok(dates[1]==='11月3週','2段階は30週後: '+dates[1]);
-ok(dates.every(d=>/^\d+月[1-4]週$/.test(d)),'すべて○月◎週の形: '+dates.join(','));
+ok(dates[0]==='0歳4月1週','1段階は育成開始と同じ（開始は0歳）: '+dates[0]);
+// 寿命300・普通型なら 1段階30週 → 2段階は30週後 = 11月3週（48週たっていないのでまだ0歳）
+ok(dates[1]==='0歳11月3週','2段階は30週後: '+dates[1]);
+ok(dates.every(d=>/^\d+歳\d+月[1-4]週$/.test(d)),'すべて〇歳○月◎週の形: '+dates.join(','));
+// 年齢は実際の経過週ぶんだけ増える（48週で1歳）。下の段階ほど大きくなる
+const ages = dates.map(d=>Number(d.match(/^(\d+)歳/)[1]));
+ok(ages.every((a,i)=>i===0||a>=ages[i-1]),'年齢は下の行ほど大きい: '+ages.join(','));
+ok(ages[ages.length-1]>=1,'寿命300週なら最後の段階は1歳以上: '+ages.join(','));
 
 // 列の並びと、イベント/アイテムで暦がずれること
 const heads = await page.locator('.plan-table').first().locator('thead th').allTextContents();
@@ -443,14 +447,14 @@ ok((await page.locator('.plan-table').first().locator('tbody tr').first().locato
 const firstRow = page.locator('.plan-table').first().locator('tbody tr').first();
 await firstRow.locator('[aria-label="大会の回数"]').fill('2');
 const shifted = await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent();
-ok(shifted==='10月1週','大会2回で2段階が6週手前になる: '+shifted);
+ok(shifted==='0歳10月1週','大会2回で2段階が6週手前になる: '+shifted);
 // アイテムは暦を進めないので、さらに前に寄る
 await firstRow.locator('[aria-label="トロロンの回数"]').fill('1');
 const shifted2 = await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent();
-ok(shifted2==='8月3週','トロロン1個でさらに6週手前になる: '+shifted2);
+ok(shifted2==='0歳8月3週','トロロン1個でさらに6週手前になる: '+shifted2);
 await firstRow.locator('[aria-label="大会の回数"]').fill('0');
 await firstRow.locator('[aria-label="トロロンの回数"]').fill('0');
-ok((await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent())==='11月3週','戻せば元に戻る');
+ok((await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent())==='0歳11月3週','戻せば元に戻る');
 // このあとの保存テストのために設定を戻す
 await page.click('#tab-monster');
 await page.selectOption('#simLife','400');

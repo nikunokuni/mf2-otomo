@@ -50,7 +50,9 @@ export function stageStartWeek(baseWeeks, si) {
 
 /**
  * 育成開始（startMonth月 startWeek週）から offset 週あとが、何月何週か。
- * 4週で1か月、12か月で1年。year は0から数えた経過年数。
+ * 4週で1か月、12か月で1年。
+ * year は「暦の」経過年（開始月週を含めて数えたもの）で、
+ * モンスターの年齢とは別物。年齢は ageYears を使うこと。
  */
 export function weekToDate(startMonth, startWeek, offset) {
   const total = (startMonth - 1) * 4 + (startWeek - 1) + offset;
@@ -59,6 +61,18 @@ export function weekToDate(startMonth, startWeek, offset) {
     month: (Math.floor(total / 4) % 12) + 1,
     week: (total % 4) + 1,
   };
+}
+
+/**
+ * 育成開始から weeks 週たったときの年齢（歳）。
+ * **実際に経過した週**が48週たつごとに1歳増える。育成開始が0歳。
+ * 開始月週は関係しない（5月2週から始めても、始めた週は0歳）。
+ *
+ * 桃で若返っても実際に経過した週は戻らないので、年齢は増え続ける。
+ * 計画表の黄色い行（若返ってたどり直す区間）も、この数え方のまま出す。
+ */
+export function ageYears(weeks) {
+  return Math.floor(weeks / 48);
 }
 
 /* ---------- 年齢の時間軸（桃で若返るぶんを含む） ---------- */
