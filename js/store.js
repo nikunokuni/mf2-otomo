@@ -139,6 +139,11 @@ export function defaultFeedLike() {
   return out;
 }
 
+/** 双子の水差しの所持数のはじめの値。
+ *  新しく追加したモンスターと「リセット」のあとが、この数から始まる。
+ *  すでに入れてある数は上書きしない（0 と入れてあるものも 0 のまま）。 */
+export const JUGS_DEFAULT = 6;
+
 /**
  * 調整ローテの初期値。
  * start は「調整ローテを始める時点の内部数値」で、
@@ -149,7 +154,7 @@ export function defaultRota() {
   return {
     start: { form: -100, moral: 100, stress: 0, fatigue: 0, fear: 100, spoil: 100 },
     // 双子の水差しの所持数。月初めに、持っている数だけ重なって効く
-    jugs: 0,
+    jugs: JUGS_DEFAULT,
     // 成長段階。休養の効き方が段階で変わるので持っておく
     stage: 's1',
     // weeks[i] = i週目（0はじまり）の { item, act }
@@ -457,7 +462,9 @@ function normalize(loaded) {
     m.sim.peach = normalizePeach(m.sim.peach);
     m.rota = Object.assign(defaultRota(), m.rota || {});
     m.rota.start = Object.assign(defaultRota().start, m.rota.start || {});
-    m.rota.jugs = Math.max(0, Math.min(99, parseInt(m.rota.jugs, 10) || 0));
+    // 保存ずみの数はそのまま使う（0 で持っていない、も残す）。読めない値だけ初期値に戻す
+    const jugs = parseInt(m.rota.jugs, 10);
+    m.rota.jugs = Number.isFinite(jugs) ? Math.max(0, Math.min(99, jugs)) : JUGS_DEFAULT;
     m.rota.stage = SKEYS.includes(m.rota.stage) ? m.rota.stage : 's1';
     m.rota.weeks = (Array.isArray(m.rota.weeks) ? m.rota.weeks : []).map((w) => ({
       item: String((w && w.item) || ''),

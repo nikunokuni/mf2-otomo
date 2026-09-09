@@ -503,6 +503,7 @@ await page.selectOption('#simMoral','-35');
 await page.click('#tab-simulator');
 await page.click('#subtab-rotation');
 ok((await page.locator('#rotationArea .callout').count())===0,'調整ローテに案内枠は出さない');
+ok((await page.locator('#rotaJugs').inputValue())==='6','双子の水差しははじめ6個');
 
 console.log('— エサ —');
 const feedRows = page.locator('.feed-table tbody tr');
@@ -734,7 +735,7 @@ ok((await page.locator('.rota-table__inputs').count())===1,
 ok((await page.locator('[aria-label="1か月目 第1週の行動"]').inputValue())==='','行動が消える');
 ok((await page.locator('[aria-label="1か月目 第1週のアイテム"]').inputValue())==='','アイテムが消える');
 ok((await page.locator('[aria-label="1か月目のエサ"]').inputValue())==='','エサも消える');
-ok((await page.locator('#rotaJugs').inputValue())==='0','双子の水差しの所持数も戻る');
+ok((await page.locator('#rotaJugs').inputValue())==='6','双子の水差しの所持数もはじめの6個に戻る');
 const startAfter = await page.locator('.rota-start-grid input').evaluateAll(ns=>ns.map(n=>n.value));
 // ヨイワルだけは初期ヨイワル(-35)から±100なので 100→65 に収まる
 ok(startAfter.join(',')==='-100,65,0,0,100,100','開始時点の内部数値もはじめの値に戻る: '+startAfter.join(','));
