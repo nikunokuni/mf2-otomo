@@ -99,8 +99,17 @@ await page.click('#tab-tracker');
 ok((await page.locator('#logArea .log-item').count())===1,'削除が保存されている');
 ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'戻した累計も保存されている');
 
-console.log('— メモ（B1） —');
+console.log('— メモ（B1。モンスタータブの上のほう） —');
+await page.click('#tab-monster');
+ok(await page.locator('#memo').isVisible(),'メモ欄はモンスタータブにある');
+// 「○○のデータ」の見出しと「成長設定」の間に置いてある
+const memoOrder = await page.evaluate(() => {
+  const titles = [...document.querySelectorAll('#monsterSpec .sim-section__title')].map(e => e.textContent);
+  return titles.slice(0, 2).join(',');
+});
+ok(memoOrder === 'メモ,成長設定','メモは成長設定の上にある: '+memoOrder);
 await page.fill('#memo','テストメモ123');
+await page.click('#tab-tracker');
 
 console.log('— 技一覧（使い込みタブのたたんだカード） —');
 ok(await page.locator('#movesCard').isVisible(),'技一覧のカードが出る');
@@ -763,9 +772,9 @@ await page.reload({waitUntil:'networkidle'});
 ok((await page.locator('#tab-simulator').getAttribute('aria-selected'))==='true','D8: タブを覚えている');
 ok((await page.locator('#subtab-result').getAttribute('aria-selected'))==='true','D8: サブタブも覚えている');
 await page.click('#tab-tracker');
-ok((await page.locator('#memo').inputValue())==='テストメモ123','B1: メモが保存されている');
 ok((await page.locator('#techBody tr').nth(0).textContent()).includes('5/30'),'使い込み累計が保存されている');
 await page.click('#tab-monster');
+ok((await page.locator('#memo').inputValue())==='テストメモ123','B1: メモが保存されている');
 ok((await page.locator('#simLife').inputValue())==='400','寿命が保存されている');
 ok((await page.locator('#simGtype').inputValue())==='bansei','成長タイプが保存されている');
 ok((await page.locator('#simMoral').inputValue())==='-35','ヨイワルが保存されている');
@@ -797,13 +806,12 @@ await page.waitForSelector('#subpane-plan .plan-table');
 ok(await page.locator('#subpane-plan .plan-table').isVisible(),'技なし種族でも育成計画テーブルが出る');
 
 console.log('— 種族の切り替えでデータが混ざらないか —');
-await page.click('#tab-tracker');
+await page.click('#tab-monster');
 await page.locator('.chip__name', {hasText:'ピクシー'}).click();
 ok((await page.locator('#memo').inputValue())==='テストメモ123','ピクシーのメモ');
 await page.locator('.chip__name', {hasText:'ライガー'}).click();
 ok((await page.locator('#memo').inputValue())==='','ライガーのメモは空');
 // エサの好き嫌いも種族ごとに持つ（ピクシーだけ手で「好き」にしてある）
-await page.click('#tab-monster');
 ok((await page.locator('[data-change="mon:feedLike"][data-name="ジャガもどき"]').inputValue())==='dislike',
    'ライガーは自分の種族データのまま（ピクシーの「好き」が移らない）');
 await page.click('#tab-tracker');

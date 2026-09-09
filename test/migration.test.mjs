@@ -72,7 +72,7 @@ ok(keys.includes('mf2_mf2v8_state'),'旧データは消さずに残している'
 // 二重移行が起きないこと
 await page.evaluate(()=>{ const s=JSON.parse(localStorage.getItem('monfar_state_v1')); s.mon['ヘンガー'].memo='移行後メモ'; localStorage.setItem('monfar_state_v1',JSON.stringify(s)); });
 await page.goto(BASE,{waitUntil:'networkidle'});
-await page.click('#tab-tracker');
+await page.click('#tab-monster');
 ok((await page.locator('#memo').inputValue())==='移行後メモ','再読込で旧データに上書きされない');
 ok(await page.locator('#migrationNotice').isHidden(),'2回目は移行の案内を出さない');
 

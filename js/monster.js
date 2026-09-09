@@ -6,6 +6,7 @@
 
      成長タイプ / ヨイワル / 寿命 / 初期パラと適正 … mon.sim
      ガッツ回復速度                              … mon.guts
+     種族ごとの自由メモ                          … mon.memo
 
    docs/roadmap.md ① の「派生種を選ぶと自動で埋まる」7項目は、
    ちょうどこの画面の中身と同じ。派生種の選択を足すならここになる。
@@ -183,6 +184,7 @@ export function render() {
   el('specSpeciesLabel').textContent = state.current;
   // 種族のデータを持っているときだけ、読み込み直すボタンを出す
   el('loadSpecBtn').hidden = !hasSpec(state.current);
+  el('memo').value = mon.memo || '';
   el('simGtype').value = s.gtype;
   replace(el('simLife'), lifeOptions(s.life));
   replace(el('simMoral'), moralOptions(s.moral));
@@ -270,6 +272,14 @@ export const changeActions = {
 };
 
 export const inputActions = {
+  // 種族ごとの自由メモ（B1: 旧トラッカーでは保存処理が無く、メモが一切残らなかった）
+  'mon:memo': (target) => {
+    const mon = currentMon();
+    if (!mon) return;
+    mon.memo = target.value;
+    save();
+  },
+
   'sim:init': (target) => {
     const s = sim();
     if (!s) return;

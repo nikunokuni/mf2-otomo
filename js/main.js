@@ -90,7 +90,6 @@ function start() {
   });
   registerActions('input', {
     ...monster.inputActions,
-    ...tracker.inputActions,
     ...simulator.inputActions,
     ...rotation.inputActions,
     ...reference.inputActions,

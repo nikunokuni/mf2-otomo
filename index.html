@@ -84,6 +84,14 @@
                 data-action="mon:loadSpec" hidden>種族データを読み込む</button>
       </div>
 
+      <!-- 種族ごとの自由メモ。もとは使い込みタブのいちばん下にあったが、
+           そのモンスターについて最初に目に入る場所へ移した（中身は mon.memo のまま） -->
+      <div class="sim-section">
+        <div class="sim-section__title">メモ</div>
+        <textarea id="memo" data-input="mon:memo" style="min-height:100px"
+          placeholder="自由にメモできます"></textarea>
+      </div>
+
       <div class="sim-section">
         <div class="sim-section__title">成長設定</div>
         <!-- 成長タイプ / 寿命 / ヨイワル の3つを1行に収める -->
@@ -186,12 +194,6 @@
       <div class="card">
         <div class="section-head">履歴</div>
         <div id="logArea"></div>
-      </div>
-
-      <div class="card">
-        <div class="section-head">メモ</div>
-        <textarea id="memo" data-input="tracker:memo" style="min-height:100px"
-          placeholder="自由にメモできます"></textarea>
       </div>
 
       <!-- その種族が覚える技の一覧（読むだけ）。中身は js/tracker/moves.js -->

@@ -293,8 +293,6 @@ export function render() {
   badge.className = mon.inSession ? 'badge badge--active' : 'badge';
   badge.textContent = mon.inSession ? '大会中' : '大会なし';
 
-  el('memo').value = mon.memo || '';
-
   renderTechTable();
   renderSessionControls();
   renderLog();
@@ -451,16 +449,6 @@ export const changeActions = {
     if (target.checked) pickState.add(key);
     else pickState.delete(key);
     renderPicker();
-  },
-};
-
-export const inputActions = {
-  // B1: 旧トラッカーではこの保存処理が存在せず、メモが一切残らなかった
-  'tracker:memo': (target) => {
-    const mon = currentMon();
-    if (!mon) return;
-    mon.memo = target.value;
-    save();
   },
 };
 
