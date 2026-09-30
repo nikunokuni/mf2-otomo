@@ -144,6 +144,23 @@ for(let gr=6;gr<=19;gr++) for(const gc of [10,12,17,19,24,29,35,42,50])
   eq(N.planLayout(heavy).overflow>0,true,'使いすぎたぶんは最後まで残る');
 }
 
+/* ---- 残寿命が0になる時期 ---- */
+{
+  const sim={life:1,gtype:'futsuu',month:1,week:1,peach:[{use:false,si:4},{use:false,si:4}],plan:{}};
+  N.normalizePlan(sim);
+  const end=N.planLayout(sim).endCal;
+  eq(end,1,'寿命1週なら1週後');
+  eq(N.weekToDate(1,1,end),{year:0,month:1,week:2},'1月1週に始めると残寿命0は1月2週');
+  const s300={life:300,gtype:'futsuu',month:1,week:1,peach:[{use:false,si:4},{use:false,si:4}],plan:{}};
+  N.normalizePlan(s300);
+  eq(N.planLayout(s300).endCal,300,'トレーニングだけなら寿命ぶん');
+  s300.plan['w-0-0'][0].items={'トロロン':1};
+  N.normalizePlan(s300);
+  const L=N.planLayout(s300);
+  eq(L.endCal,300-6,'アイテムは暦を進めないぶん手前になる');
+  eq(L.endCal,L.segments.at(-1).calStart+L.segments.at(-1).sets.reduce((a,x)=>a+N.calendarWeeks(x),0),'最後の行の開始＋その行で進む暦');
+}
+
 /* ---- 桃を挟み込んだ計画表の並び ---- */
 {
   const mkSim=(peach)=>({life:300,gtype:'futsuu',month:1,week:1,apt:{},init:{},plan:{},peach});

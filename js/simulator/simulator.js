@@ -237,6 +237,17 @@ function peachHeadRow(s, p, seg) {
   );
 }
 
+/** 表のいちばん下に出す、残寿命が0になる時期（最後の行を育て終えた次の週） */
+function lifeEndRow(s, endCal) {
+  return h('tr', { class: 'plan-row--end' },
+    h('td', { class: 'stage-cell' },
+      h('span', { class: 'stage-name', text: '残寿命0' }),
+      h('span', { class: 'stage-date', id: 'lifeEndDate', text: stageDateLabel(s, endCal) })
+    ),
+    h('td', { attrs: { colspan: String(planColCount() - 1) } })
+  );
+}
+
 /**
  * 育成計画の表。
  * 行は時系列に並んでいて、桃で若返るぶんはその位置に黄色い行として挟まる。
@@ -295,6 +306,7 @@ function planTable(layout) {
       rows.push(planRow(seg, idx, set, [...rowspanCells, setCell(seg, idx)]));
     });
   });
+  rows.push(lifeEndRow(s, layout.endCal));
 
   return h('div', { class: 'scroll-x' },
     h('table', { class: 'plan-table' }, head, h('tbody', {}, rows))
@@ -386,8 +398,10 @@ function refreshPlanNumbers() {
   const s = sim();
   if (!s) return;
   normalizePlan(s);
-  const { segments } = planLayout(s);
+  const { segments, endCal } = planLayout(s);
 
+  const end = el('lifeEndDate');
+  if (end) end.textContent = stageDateLabel(s, endCal);
   segments.forEach((seg) => {
     seg.sets.forEach((set, idx) => {
       const input = el(`set-weeks-${seg.key}-${idx}`);

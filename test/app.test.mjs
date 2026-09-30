@@ -342,14 +342,16 @@ const planRows = () => page.locator('.plan-table tbody tr').evaluateAll(rows=>ro
   weeks: (r.querySelector('.stage-weeks')||{}).textContent||'',
   text: r.textContent,
 })));
-ok((await planRows()).length===10,'桃を使う前は10段階だけ');
+const plainRows = await planRows();
+ok(plainRows.length===11,'桃を使う前は10段階＋残寿命0の行だけ');
+ok(plainRows[10].name==='残寿命0','いちばん下は残寿命0の行: '+plainRows[10].name);
 await page.locator('[data-change="sim:peach"][data-pi="0"][data-field="use"]').check();
 await page.waitForSelector('.plan-row--peach');
 ok((await page.locator('.plan-table').count())===1,'桃用の別テーブルは作らない');
 ok((await page.locator('.peach__timing, .peach__sub').count())===0,'タイミングの文は表に置き換わる');
 const rows = await planRows();
 ok(rows.map(r=>(r.head?'🍑':'')+r.name+(r.peach&&!r.head?'(黄)':'')).join(',')
-   ==='1段階,2段階,3段階,4段階,ピーク,準ピーク,5段階,🍑,ピーク(黄),準ピーク(黄),5段階(黄),5段階,6段階,7段階,8段階',
+   ==='1段階,2段階,3段階,4段階,ピーク,準ピーク,5段階,🍑,ピーク(黄),準ピーク(黄),5段階(黄),5段階,6段階,7段階,8段階,残寿命0',
    '白の5段階の途中に、桃のピーク〜5段階が挟まる: '+rows.map(r=>(r.head?'🍑':'')+r.name).join(','));
 ok(rows.filter(r=>r.weeks).map(r=>r.weeks).join(',')
    ==='30/30週,30/30週,45/45週,45/45週,30/30週,15/15週,5/5週,30/30週,15/15週,5/5週,25/25週,15/15週,15/15週,45/45週',
@@ -437,6 +439,8 @@ ok(dates.every(d=>/^\d+歳\d+月[1-4]週$/.test(d)),'すべて〇歳○月◎週
 const ages = dates.map(d=>Number(d.match(/^(\d+)歳/)[1]));
 ok(ages.every((a,i)=>i===0||a>=ages[i-1]),'年齢は下の行ほど大きい: '+ages.join(','));
 ok(ages[ages.length-1]>=1,'寿命300週なら最後の段階は1歳以上: '+ages.join(','));
+// 残寿命0は育て終えた次の週。上のテストで黄金桃を使ったままなので、4月1週から300+50週後
+ok((await page.locator('#lifeEndDate').textContent())==='7歳7月3週','残寿命0は350週後: '+(await page.locator('#lifeEndDate').textContent()));
 
 // 列の並びと、イベント/アイテムで暦がずれること
 const heads = await page.locator('.plan-table').first().locator('thead th').allTextContents();
@@ -448,6 +452,7 @@ const firstRow = page.locator('.plan-table').first().locator('tbody tr').first()
 await firstRow.locator('[aria-label="大会の回数"]').fill('2');
 const shifted = await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent();
 ok(shifted==='0歳10月1週','大会2回で2段階が6週手前になる: '+shifted);
+ok((await page.locator('#lifeEndDate').textContent())==='7歳6月1週','残寿命0もその場で6週手前になる: '+(await page.locator('#lifeEndDate').textContent()));
 // アイテムは暦を進めないので、さらに前に寄る
 await firstRow.locator('[aria-label="トロロンの回数"]').fill('1');
 const shifted2 = await page.locator('.plan-table').first().locator('.stage-date').nth(1).textContent();

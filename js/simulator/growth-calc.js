@@ -175,6 +175,8 @@ function setsOfSeg(sim, key) {
  * calStart その行が始まるのが、育成開始から数えて暦の何週目か。
  *          行は時系列に並んでいるので、実際に進む暦を積み上げるだけでよい
  * overflow 最後の行からもはみ出した週数（寿命が足りていない量）
+ * endCal   残寿命が0になるのが、育成開始から数えて暦の何週目か
+ *          （最後の行を育て終えた次の週）
  */
 export function planLayout(sim) {
   const segments = buildTimeline(sim);
@@ -191,7 +193,7 @@ export function planLayout(sim) {
     cal += seg.sets.reduce((a, set) => a + calendarWeeks(set), 0);
     carry += seg.sets.reduce((a, set) => a + setOverflow(set), 0);
   });
-  return { segments, overflow: carry };
+  return { segments, overflow: carry, endCal: cal };
 }
 
 /** 桃で追加される週数（黄金桃 +50 / 白銀桃 +25） */
